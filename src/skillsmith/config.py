@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import os
+from dataclasses import dataclass
 from pathlib import Path
 
 from pydantic import Field
@@ -65,6 +66,46 @@ class Settings(BaseSettings):
         """Create parent directories for LadybugDB and DuckDB if missing."""
         Path(self.ladybug_db_path).parent.mkdir(parents=True, exist_ok=True)
         Path(self.duckdb_path).parent.mkdir(parents=True, exist_ok=True)
+
+    def require_authoring_config(self) -> AuthoringConfig:
+        """Return authoring fields as non-Optional strings.
+
+        Raises RuntimeError if any required authoring env var is unset —
+        authoring is an advanced workflow that requires explicit configuration.
+        """
+        missing = [
+            f
+            for f, v in [
+                ("AUTHORING_MODEL", self.authoring_model),
+                ("CRITIC_MODEL", self.critic_model),
+                ("AUTHORING_EMBEDDING_MODEL", self.authoring_embedding_model),
+                ("AUTHORING_EMBED_BASE_URL", self.authoring_embed_base_url),
+            ]
+            if v is None
+        ]
+        if missing:
+            raise RuntimeError(
+                f"Authoring requires explicit configuration. Missing: {', '.join(missing)}. "
+                "Set these environment variables before using the authoring pipeline."
+            )
+        return AuthoringConfig(
+            lm_studio_base_url=self.lm_studio_base_url,
+            authoring_embed_base_url=self.authoring_embed_base_url,  # type: ignore[arg-type]
+            authoring_model=self.authoring_model,  # type: ignore[arg-type]
+            critic_model=self.critic_model,  # type: ignore[arg-type]
+            authoring_embedding_model=self.authoring_embedding_model,  # type: ignore[arg-type]
+        )
+
+
+@dataclass(frozen=True)
+class AuthoringConfig:
+    """Authoring fields narrowed to non-Optional str. Obtained via Settings.require_authoring_config()."""
+
+    lm_studio_base_url: str
+    authoring_embed_base_url: str
+    authoring_model: str
+    critic_model: str
+    authoring_embedding_model: str
 
 
 def get_settings() -> Settings:
