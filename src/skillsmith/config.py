@@ -45,27 +45,18 @@ class Settings(BaseSettings):
     duckdb_path: str = Field(default_factory=lambda: str(_user_corpus_dir() / "skills.duck"))
     log_level: str = "INFO"
 
-    # Authoring pipeline (separate from runtime retrieval above). LM Studio
-    # hosts generation and embeddings via its OpenAI-compatible endpoint.
-    # Override via .env if you later split embeddings to FastFlowLM or similar.
+    # Authoring pipeline — requires explicit configuration; not part of the
+    # default install. Invoke authoring code paths only when these are set.
     lm_studio_base_url: str = "http://localhost:1234"
-    authoring_embed_base_url: str = "http://localhost:1234"
-    # Both roles use Qwen3.6-35B-A3B. MoE activates ~3B params per token so
-    # throughput is closer to a 3B dense model than to 14B dense. Author
-    # prompts include ``/no_think`` to suppress the reasoning loop (see
-    # authoring.driver); Critic prompts keep thinking enabled because
-    # dedup + effectiveness judgment benefits from it.
-    authoring_model: str = "qwen/qwen3.6-35b-a3b"
-    critic_model: str = "qwen/qwen3.6-35b-a3b"
-    authoring_embedding_model: str = "text-embedding-nomic-embed-text-v1.5"
+    authoring_embed_base_url: str | None = None
+    authoring_model: str | None = None
+    critic_model: str | None = None
+    authoring_embedding_model: str | None = None
 
-    # Runtime serving (retrieve / compose). Per v5.4 brief, the runtime path
-    # holds zero generative LLM dependency — only an embedding service. The
-    # NPU-resident Embedding-Gemma-300M is served by FastFlowLM at the OpenAI-
-    # compatible endpoint below. The inference model on the iGPU calls the
-    # skill API and assembles fragments in its own context.
-    runtime_embed_base_url: str = "http://127.0.0.1:52625"
-    runtime_embedding_model: str = "embed-gemma:300m"
+    # Runtime serving (retrieve / compose). The runtime path holds zero
+    # generative LLM dependency — only an embedding service.
+    runtime_embed_base_url: str = "http://localhost:11434"
+    runtime_embedding_model: str = "qwen3-embedding:0.6b"
     dedup_hard_threshold: float = 0.92
     dedup_soft_threshold: float = 0.80
     bounce_budget: int = 3

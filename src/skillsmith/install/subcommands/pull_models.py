@@ -125,7 +125,6 @@ def _collect_model_runner_pairs(option: dict[str, Any]) -> list[tuple[str, str]]
     seen: set[tuple[str, str]] = set()
     for model_key, runner_key in (
         ("embed_model", "embed_runner"),
-        ("ingest_model", "ingest_runner"),
     ):
         model = option.get(model_key, "")
         runner = option.get(runner_key, "")
