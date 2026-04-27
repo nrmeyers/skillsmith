@@ -81,7 +81,9 @@ class TestPortRecording:
 
 class TestOverrides:
     def test_valid_override_applied(self, repo_root: Path) -> None:
-        result = write_env("cpu", overrides={"RUNTIME_EMBEDDING_MODEL": "qwen3-embedding:0.6b"}, root=repo_root)
+        result = write_env(
+            "cpu", overrides={"RUNTIME_EMBEDDING_MODEL": "qwen3-embedding:0.6b"}, root=repo_root
+        )
         assert result["values_written"]["RUNTIME_EMBEDDING_MODEL"] == "qwen3-embedding:0.6b"
 
     def test_unknown_key_rejected(self) -> None:
