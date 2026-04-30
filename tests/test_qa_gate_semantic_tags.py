@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from skillsmith.authoring.prompt_loader import load_prompt
 from skillsmith.authoring.qa_gate import CriticVerdict
@@ -19,7 +20,7 @@ class TestCriticVerdictTagVerdicts:
         """Non-pass tag_verdicts should be appended to blocking_issues."""
         # Build a minimal JSON response that run_critic would parse
         # by going directly to the CriticVerdict build path
-        raw_data = {
+        raw_data: dict[str, Any] = {
             "verdict": "revise",
             "summary": "tag issues",
             "blocking_issues": [],
@@ -38,16 +39,15 @@ class TestCriticVerdictTagVerdicts:
             "prompt_version": "2026-04-30.1",
         }
         # Simulate how run_critic builds the CriticVerdict from parsed data
-        non_pass = [tv for tv in raw_data["tag_verdicts"] if tv.get("verdict", "pass") != "pass"]  # type: ignore[union-attr]
+        non_pass = [tv for tv in raw_data["tag_verdicts"] if tv.get("verdict", "pass") != "pass"]
         issues = [
-            f"tag [{tv['rule']}] '{tv['tag']}': {tv['verdict']} — {tv['detail']}"
-            for tv in non_pass  # type: ignore[index]
+            f"tag [{tv['rule']}] '{tv['tag']}': {tv['verdict']} — {tv['detail']}" for tv in non_pass
         ]
         cv = CriticVerdict(
             verdict="revise",
             summary="tag issues",
             blocking_issues=issues,
-            tag_verdicts=raw_data["tag_verdicts"],  # type: ignore[arg-type]
+            tag_verdicts=raw_data["tag_verdicts"],
             prompt_version="2026-04-30.1",
         )
         assert len(cv.blocking_issues) == 1

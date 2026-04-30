@@ -6,10 +6,10 @@ from pathlib import Path
 
 import pytest
 
-from skillsmith.ingest import (  # type: ignore[reportPrivateUsage]
+from skillsmith.ingest import (
     FragmentRecord,
     ReviewRecord,
-    _insert,
+    _insert,  # type: ignore[reportPrivateUsage]
 )
 from skillsmith.reads import active as reads_active
 from skillsmith.storage.ladybug import LadybugStore
