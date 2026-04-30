@@ -22,6 +22,7 @@ from typing import Any, cast
 from skillsmith.authoring.dedup import dedup_candidates
 from skillsmith.authoring.lm_client import LMClientError, OpenAICompatClient
 from skillsmith.authoring.paths import PipelinePaths
+from skillsmith.authoring.prompt_loader import load_prompt
 from skillsmith.config import get_settings
 from skillsmith.ingest import (
     ReviewRecord,
@@ -51,6 +52,8 @@ class CriticVerdict:
     per_fragment: list[dict[str, Any]] = field(default_factory=lambda: [])
     dedup_decisions: list[dict[str, Any]] = field(default_factory=lambda: [])
     suggested_edits: str = ""
+    tag_verdicts: list[dict] = field(default_factory=lambda: [])
+    prompt_version: str = ""
 
     @classmethod
     def unparseable(cls, raw: str, err: str) -> CriticVerdict:
@@ -253,13 +256,21 @@ def run_critic(
     if verdict not in ("approve", "revise", "reject"):
         return CriticVerdict.unparseable(raw, f"unknown verdict {verdict!r}")
 
+    base_issues = [str(x) for x in cast(list[Any], data.get("blocking_issues") or [])]
+    tag_verdict_issues = [
+        f"tag [{tv.get('rule','?')}] '{tv.get('tag','?')}': {tv.get('verdict','?')} — {tv.get('detail','')}"
+        for tv in cast(list[dict], data.get("tag_verdicts") or [])
+        if isinstance(tv, dict) and tv.get("verdict", "pass") != "pass"
+    ]
     return CriticVerdict(
         verdict=verdict,
         summary=str(data.get("summary", "")),
-        blocking_issues=[str(x) for x in cast(list[Any], data.get("blocking_issues") or [])],
+        blocking_issues=base_issues + tag_verdict_issues,
         per_fragment=cast(list[dict[str, Any]], data.get("per_fragment") or []),
         dedup_decisions=cast(list[dict[str, Any]], data.get("dedup_decisions") or []),
         suggested_edits=str(data.get("suggested_edits", "")),
+        tag_verdicts=cast(list[dict], data.get("tag_verdicts") or []),
+        prompt_version=str(data.get("prompt_version", "")),
     )
 
 
@@ -465,7 +476,8 @@ def run_qa(
     qa_fixture = repo_root / "fixtures" / "skill-qa-agent.md"
     if not qa_fixture.exists():
         raise FileNotFoundError(f"QA fixture missing: {qa_fixture}")
-    qa_prompt = qa_fixture.read_text(encoding="utf-8")
+    qa_prompt, _prompt_version = load_prompt(qa_fixture)
+    logger.debug("qa_gate loaded prompt version=%s", _prompt_version or "(none)")
 
     bounces = load_bounces(paths)
 
