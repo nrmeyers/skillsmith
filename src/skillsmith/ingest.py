@@ -179,9 +179,6 @@ def _single(yaml_path: Path, *, force: bool, yes: bool, strict: bool = False) ->
         if strict:
             return EXIT_VALIDATION
 
-    tier, _src = resolve_skill_tier(yaml_path)
-    record.tier = tier
-
     settings = get_settings()
     store = LadybugStore(settings.ladybug_db_path)
     try:
@@ -596,6 +593,7 @@ def _lint(record: ReviewRecord, yaml_path: Path | None = None) -> list[str]:
     tier: str | None = None
     if yaml_path is not None:
         tier, _source = resolve_skill_tier(yaml_path)
+        record.tier = tier  # propagate so callers don't need a second walk
     tag_verdicts = lint_tags_mechanical(
         tags=record.domain_tags,
         skill_class=record.skill_class,
