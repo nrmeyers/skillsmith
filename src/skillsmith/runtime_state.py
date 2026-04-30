@@ -63,7 +63,9 @@ class RuntimeCache:
     def get_active_skill_by_id(self, skill_id: str) -> ActiveSkill | None:
         return self._skills.get(skill_id)
 
-    def get_active_skills(self, *, skill_class: SkillClass | tuple[str, ...] | None = None) -> list[ActiveSkill]:
+    def get_active_skills(
+        self, *, skill_class: SkillClass | tuple[str, ...] | None = None
+    ) -> list[ActiveSkill]:
         skills = list(self._skills.values())
         if skill_class is not None:
             if isinstance(skill_class, tuple):

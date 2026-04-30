@@ -506,7 +506,9 @@ def test_system_skill_with_tags_warns_system_empty(tmp_path: Path) -> None:
     f.write_text(yaml_content)
     record = _load_yaml(f)
     warns = _lint(record, yaml_path=f)
-    assert any("system_has_tags" in w for w in warns), f"Expected system_has_tags warning, got: {warns}"
+    assert any("system_has_tags" in w for w in warns), (
+        f"Expected system_has_tags warning, got: {warns}"
+    )
 
 
 def test_domain_skill_tags_redundant_with_title_warns_r2(tmp_path: Path) -> None:

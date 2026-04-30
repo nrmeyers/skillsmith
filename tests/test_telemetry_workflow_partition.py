@@ -1,4 +1,5 @@
 """Phase D.5: tests for workflow_skill_ids partition in telemetry."""
+
 from __future__ import annotations
 
 from datetime import UTC, datetime
@@ -74,9 +75,9 @@ class TestWorkflowSkillIdPartition:
             FakeFragment("sdd-design", "f3", "workflow"),
             FakeFragment("sdd-design", "f4", "workflow"),  # duplicate skill_id
         ]
-        workflow_skill_ids = list(dict.fromkeys(
-            f.skill_id for f in candidates if f.skill_class == "workflow"
-        ))
+        workflow_skill_ids = list(
+            dict.fromkeys(f.skill_id for f in candidates if f.skill_class == "workflow")
+        )
         assert workflow_skill_ids == ["sdd-spec", "sdd-design"]  # deduped, order preserved
         assert "python-async" not in workflow_skill_ids
 
@@ -92,7 +93,7 @@ class TestWorkflowSkillIdPartition:
             FakeFragment("python-async", "domain"),
             FakeFragment("typescript-generics", "domain"),
         ]
-        workflow_skill_ids = list(dict.fromkeys(
-            f.skill_id for f in candidates if f.skill_class == "workflow"
-        ))
+        workflow_skill_ids = list(
+            dict.fromkeys(f.skill_id for f in candidates if f.skill_class == "workflow")
+        )
         assert workflow_skill_ids == []

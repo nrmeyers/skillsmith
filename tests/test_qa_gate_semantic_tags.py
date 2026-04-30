@@ -1,4 +1,5 @@
 """Tests for Phase C: CriticVerdict tag_verdicts + prompt_loader."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -26,17 +27,21 @@ class TestCriticVerdictTagVerdicts:
             "dedup_decisions": [],
             "suggested_edits": "",
             "tag_verdicts": [
-                {"tag": "prisma", "rule": "R2", "verdict": "redundant_with_title", "detail": "overlaps title"},
+                {
+                    "tag": "prisma",
+                    "rule": "R2",
+                    "verdict": "redundant_with_title",
+                    "detail": "overlaps title",
+                },
                 {"tag": "auth", "rule": "R1", "verdict": "pass", "detail": ""},
             ],
             "prompt_version": "2026-04-30.1",
         }
         # Simulate how run_critic builds the CriticVerdict from parsed data
-        non_pass = [
-            tv for tv in raw_data["tag_verdicts"]
-            if tv.get("verdict", "pass") != "pass"
+        non_pass = [tv for tv in raw_data["tag_verdicts"] if tv.get("verdict", "pass") != "pass"]
+        issues = [
+            f"tag [{tv['rule']}] '{tv['tag']}': {tv['verdict']} — {tv['detail']}" for tv in non_pass
         ]
-        issues = [f"tag [{tv['rule']}] '{tv['tag']}': {tv['verdict']} — {tv['detail']}" for tv in non_pass]
         cv = CriticVerdict(
             verdict="revise",
             summary="tag issues",

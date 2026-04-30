@@ -14,11 +14,11 @@ from skillsmith.ingest import TAG_POLICY_BY_TIER, WORKFLOW_POSITION_MARKERS, WOR
 
 @dataclass(frozen=True)
 class TagVerdict:
-    tag: str      # the tag being judged
-    rule: str     # e.g. "R2", "R3-stem", "W1", "tier-ceiling", "system-empty"
+    tag: str  # the tag being judged
+    rule: str  # e.g. "R2", "R3-stem", "W1", "tier-ceiling", "system-empty"
     verdict: str  # "redundant_with_title" | "synonym_of:<other>" | "missing_position_marker"
-                  # | "over_ceiling" | "system_has_tags"
-    detail: str   # human-readable explanation
+    # | "over_ceiling" | "system_has_tags"
+    detail: str  # human-readable explanation
 
 
 def _stems(text: str) -> set[str]:

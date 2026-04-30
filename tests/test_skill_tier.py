@@ -1,4 +1,5 @@
 """Tests for skillsmith.skill_tier.resolve_skill_tier."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -9,9 +10,7 @@ from skillsmith.skill_tier import resolve_skill_tier
 
 
 def _write_pack_yaml(directory: Path, content: dict) -> None:
-    (directory / "pack.yaml").write_text(
-        yaml.dump(content), encoding="utf-8"
-    )
+    (directory / "pack.yaml").write_text(yaml.dump(content), encoding="utf-8")
 
 
 def _write_skill_yaml(directory: Path, name: str = "skill.yaml") -> Path:

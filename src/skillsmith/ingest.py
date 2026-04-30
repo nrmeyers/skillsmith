@@ -60,26 +60,36 @@ _FRAG_WORDS_HARD_MIN = 20
 _FRAG_WORDS_HARD_MAX = 2000
 _TAGS_VALIDATE_HARD_CAP = 20
 
-WORKFLOW_POSITION_MARKERS = frozenset({
-    # SDD pipeline
-    "sdd",
-    "phase:spec", "phase:design", "phase:plan",
-    "phase:testgen", "phase:build", "phase:verify", "phase:deliver",
-    # General process positions
-    "code-review", "release", "incident", "rfc",
-})
+WORKFLOW_POSITION_MARKERS = frozenset(
+    {
+        # SDD pipeline
+        "sdd",
+        "phase:spec",
+        "phase:design",
+        "phase:plan",
+        "phase:testgen",
+        "phase:build",
+        "phase:verify",
+        "phase:deliver",
+        # General process positions
+        "code-review",
+        "release",
+        "incident",
+        "rfc",
+    }
+)
 
 TAG_POLICY_BY_TIER: dict[str, dict[str, int]] = {
-    "foundation":    {"soft_ceiling": 12, "rationale_above": 8},
-    "language":      {"soft_ceiling": 10, "rationale_above": 7},
-    "framework":     {"soft_ceiling": 10, "rationale_above": 7},
-    "store":         {"soft_ceiling": 10, "rationale_above": 7},
+    "foundation": {"soft_ceiling": 12, "rationale_above": 8},
+    "language": {"soft_ceiling": 10, "rationale_above": 7},
+    "framework": {"soft_ceiling": 10, "rationale_above": 7},
+    "store": {"soft_ceiling": 10, "rationale_above": 7},
     "cross-cutting": {"soft_ceiling": 12, "rationale_above": 8},
-    "platform":      {"soft_ceiling": 10, "rationale_above": 7},
-    "tooling":       {"soft_ceiling": 8,  "rationale_above": 6},
-    "domain":        {"soft_ceiling": 10, "rationale_above": 7},
-    "protocol":      {"soft_ceiling": 8,  "rationale_above": 6},
-    "workflow":      {"soft_ceiling": 8,  "rationale_above": 6},
+    "platform": {"soft_ceiling": 10, "rationale_above": 7},
+    "tooling": {"soft_ceiling": 8, "rationale_above": 6},
+    "domain": {"soft_ceiling": 10, "rationale_above": 7},
+    "protocol": {"soft_ceiling": 8, "rationale_above": 6},
+    "workflow": {"soft_ceiling": 8, "rationale_above": 6},
 }
 WORKFLOW_TAG_POLICY = TAG_POLICY_BY_TIER["workflow"]
 _HEADING_ONLY_MAX_WORDS = 8
@@ -601,9 +611,7 @@ def _lint(record: ReviewRecord, yaml_path: Path | None = None) -> list[str]:
         tier=tier,
     )
     for tv in tag_verdicts:
-        warnings.append(
-            f"tag lint [{tv.rule}] '{tv.tag}': {tv.verdict} — {tv.detail}"
-        )
+        warnings.append(f"tag lint [{tv.rule}] '{tv.tag}': {tv.verdict} — {tv.detail}")
 
     if record.skill_type != "domain" or not record.fragments:
         return warnings
@@ -660,7 +668,8 @@ def _lint(record: ReviewRecord, yaml_path: Path | None = None) -> list[str]:
                 code_lines = sum(
                     1
                     for line in frag.content.splitlines()
-                    if line.strip() and not line.lstrip().startswith("#")
+                    if line.strip()
+                    and not line.lstrip().startswith("#")
                     and not line.lstrip().startswith(">")
                 )
                 if fence_count >= 4 or (

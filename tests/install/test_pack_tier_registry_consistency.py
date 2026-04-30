@@ -4,6 +4,7 @@ migrate-seeds-to-packs PACK_TIERS, and PACK_METADATA.
 Phase A scaffolding: these three asserts catch the 'registry drift' risk
 described in the routing reform plan.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -15,9 +16,7 @@ from skillsmith.install.subcommands.install_pack import _VALID_PACK_TIERS
 # Load migrate-seeds-to-packs.py as a module without side effects
 # ---------------------------------------------------------------------------
 
-_SCRIPT_PATH = (
-    Path(__file__).resolve().parents[2] / "scripts" / "migrate-seeds-to-packs.py"
-)
+_SCRIPT_PATH = Path(__file__).resolve().parents[2] / "scripts" / "migrate-seeds-to-packs.py"
 
 
 def _load_migrate_module():

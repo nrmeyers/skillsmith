@@ -126,10 +126,9 @@ class ComposeOrchestrator:
         elapsed_ms = int((time.perf_counter_ns() - start_ns) // 1_000_000)
         domain_fragment_ids = [f.fragment_id for f in retrieval.candidates]
         source_skills = list(dict.fromkeys(f.skill_id for f in retrieval.candidates))
-        workflow_skill_ids = list(dict.fromkeys(
-            f.skill_id for f in retrieval.candidates
-            if f.skill_class == "workflow"
-        ))
+        workflow_skill_ids = list(
+            dict.fromkeys(f.skill_id for f in retrieval.candidates if f.skill_class == "workflow")
+        )
         self._telemetry.write(
             TelemetryRecord(
                 composition_id=str(uuid.uuid4()),

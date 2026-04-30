@@ -260,7 +260,7 @@ def run_critic(
 
     base_issues = [str(x) for x in cast(list[Any], data.get("blocking_issues") or [])]
     tag_verdict_issues = [
-        f"tag [{tv.get('rule','?')}] '{tv.get('tag','?')}': {tv.get('verdict','?')} — {tv.get('detail','')}"
+        f"tag [{tv.get('rule', '?')}] '{tv.get('tag', '?')}': {tv.get('verdict', '?')} — {tv.get('detail', '')}"
         for tv in cast(list[dict], data.get("tag_verdicts") or [])
         if isinstance(tv, dict) and tv.get("verdict", "pass") != "pass"
     ]

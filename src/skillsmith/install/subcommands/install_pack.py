@@ -163,16 +163,16 @@ _REQUIRED_MANIFEST_FIELDS = ("name", "version", "embed_model", "embedding_dim", 
 # retrieval scoping. See docs/PACK-AUTHORING.md §"Pack tier".
 _VALID_PACK_TIERS = frozenset(
     {
-        "foundation",   # always-installed process & generic engineering (core, engineering)
-        "language",     # standalone programming languages (nodejs, python, rust, go, typescript)
-        "framework",    # depends on a language (nestjs, react, fastify, vue, nextjs, fastapi)
-        "store",        # data stores & runtimes (postgres, mongodb, redis, s3, temporal)
+        "foundation",  # always-installed process & generic engineering (core, engineering)
+        "language",  # standalone programming languages (nodejs, python, rust, go, typescript)
+        "framework",  # depends on a language (nestjs, react, fastify, vue, nextjs, fastapi)
+        "store",  # data stores & runtimes (postgres, mongodb, redis, s3, temporal)
         "cross-cutting",  # capability domains usable from any stack (auth, security, observability)
-        "platform",     # infra/orchestration (containers, iac, cicd, monorepo)
-        "tooling",      # dev-loop tooling (testing, linting, vite, mocha-chai)
-        "domain",       # application-layer domains (agents, ui-design, data-engineering)
-        "protocol",     # wire-format / integration (graphql, webhooks, websockets)
-        "workflow",     # SDD pipeline workflows (spec → design → plan → testgen → build → verify → deliver)
+        "platform",  # infra/orchestration (containers, iac, cicd, monorepo)
+        "tooling",  # dev-loop tooling (testing, linting, vite, mocha-chai)
+        "domain",  # application-layer domains (agents, ui-design, data-engineering)
+        "protocol",  # wire-format / integration (graphql, webhooks, websockets)
+        "workflow",  # SDD pipeline workflows (spec → design → plan → testgen → build → verify → deliver)
     }
 )
 
@@ -195,8 +195,7 @@ def _read_pack_manifest(pack_dir: Path) -> tuple[dict[str, Any] | None, list[str
     tier = manifest.get("tier")
     if tier is None:
         errors.append(
-            f"pack.yaml missing required field: tier "
-            f"(must be one of {sorted(_VALID_PACK_TIERS)})"
+            f"pack.yaml missing required field: tier (must be one of {sorted(_VALID_PACK_TIERS)})"
         )
     elif tier not in _VALID_PACK_TIERS:
         errors.append(

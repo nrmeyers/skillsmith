@@ -165,7 +165,9 @@ def get_active_version_by_id(store: LadybugStore, version_id: str) -> dict[str, 
 # -------- consistency --------
 
 
-def _run_consistency_guard(store: LadybugStore, *, skill_class: SkillClass | tuple[str, ...] | None = None) -> None:
+def _run_consistency_guard(
+    store: LadybugStore, *, skill_class: SkillClass | tuple[str, ...] | None = None
+) -> None:
     """Scan for CURRENT_VERSION / active-version mismatches. Raises on first inconsistency.
 
     For solo-scale corpora (tens of skills) this is cheap. If the corpus grows, move

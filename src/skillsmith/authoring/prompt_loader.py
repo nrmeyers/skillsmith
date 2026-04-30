@@ -4,6 +4,7 @@ Reads a fixture markdown file, extracts the HTML-comment version pin,
 and returns (text, version). Emits a prompt_loaded event for telemetry
 (Phase D wires the actual table; here we just log it).
 """
+
 from __future__ import annotations
 
 import logging

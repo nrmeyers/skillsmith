@@ -82,9 +82,7 @@ def test_workflow_fragment_included_in_tuple_query(store: LadybugStore) -> None:
     """get_active_fragments(skill_class=("domain","workflow")) returns workflow fragments."""
     _insert(store, _workflow_record(), force=False)
 
-    fragments = reads_active.get_active_fragments(
-        store, skill_class=("domain", "workflow")
-    )
+    fragments = reads_active.get_active_fragments(store, skill_class=("domain", "workflow"))
     fragment_skill_ids = [f.skill_id for f in fragments]
     assert "test-workflow-skill" in fragment_skill_ids
 
@@ -112,9 +110,7 @@ def test_tuple_query_includes_both_classes(store: LadybugStore) -> None:
     _insert(store, _workflow_record(), force=False)
     _insert(store, _domain_record(), force=False)
 
-    fragments = reads_active.get_active_fragments(
-        store, skill_class=("domain", "workflow")
-    )
+    fragments = reads_active.get_active_fragments(store, skill_class=("domain", "workflow"))
     fragment_skill_ids = {f.skill_id for f in fragments}
     assert "test-workflow-skill" in fragment_skill_ids
     assert "test-domain-skill" in fragment_skill_ids
