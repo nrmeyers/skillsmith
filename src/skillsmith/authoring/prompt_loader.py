@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import re
+import time as _time
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -24,5 +25,10 @@ def load_prompt(path: Path | str) -> tuple[str, str]:
     text = Path(path).read_text(encoding="utf-8")
     m = _VERSION_RE.search(text)
     version = m.group(1) if m else ""
-    logger.debug("prompt_loaded path=%s version=%s", path, version or "(none)")
+    _emit_prompt_loaded(Path(path).name, version)
     return text, version
+
+
+def _emit_prompt_loaded(prompt_name: str, version: str) -> None:
+    """Log the prompt_loaded event. Phase D wires this into the DB; for now, just log."""
+    logger.debug("prompt_loaded name=%s version=%s ts=%d", prompt_name, version, int(_time.time()))
