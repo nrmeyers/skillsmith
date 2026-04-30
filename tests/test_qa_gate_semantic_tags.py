@@ -1,10 +1,10 @@
 """Tests for Phase C: CriticVerdict tag_verdicts + prompt_loader."""
 from __future__ import annotations
-import json
-import textwrap
+
 from pathlib import Path
-from skillsmith.authoring.qa_gate import CriticVerdict, run_critic
+
 from skillsmith.authoring.prompt_loader import load_prompt
+from skillsmith.authoring.qa_gate import CriticVerdict
 from skillsmith.lint_tags_semantic import parse_semantic_verdicts
 
 

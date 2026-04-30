@@ -1,17 +1,17 @@
 """Phase D.5: tests for workflow_skill_ids partition in telemetry."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from skillsmith.telemetry.writer import TelemetryRecord
 from skillsmith.storage.vector_store import CompositionTrace
+from skillsmith.telemetry.writer import TelemetryRecord
 
 
 class TestTelemetryRecordWorkflowFields:
     def test_workflow_skill_ids_defaults_none(self) -> None:
         rec = TelemetryRecord(
             composition_id="x",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             phase="build",
             task_prompt="test",
             result_type="compose",
@@ -22,7 +22,7 @@ class TestTelemetryRecordWorkflowFields:
     def test_workflow_skill_ids_can_be_set(self) -> None:
         rec = TelemetryRecord(
             composition_id="x",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             phase="build",
             task_prompt="test",
             result_type="compose",

@@ -7,10 +7,9 @@ described in the routing reform plan.
 from __future__ import annotations
 
 import importlib.util
-import sys
 from pathlib import Path
 
-import pytest
+from skillsmith.install.subcommands.install_pack import _VALID_PACK_TIERS
 
 # ---------------------------------------------------------------------------
 # Load migrate-seeds-to-packs.py as a module without side effects
@@ -32,8 +31,6 @@ def _load_migrate_module():
 _migrate = _load_migrate_module()
 PACK_TIERS: dict[str, str] = _migrate.PACK_TIERS
 PACK_METADATA: dict = _migrate.PACK_METADATA
-
-from skillsmith.install.subcommands.install_pack import _VALID_PACK_TIERS
 
 
 class TestPackTierRegistryConsistency:

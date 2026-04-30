@@ -8,7 +8,15 @@ from unittest.mock import patch
 
 import pytest
 
-from skillsmith.ingest import EXIT_DUPLICATE, EXIT_OK, EXIT_USAGE, EXIT_VALIDATION, _lint, _load_yaml, main
+from skillsmith.ingest import (
+    EXIT_DUPLICATE,
+    EXIT_OK,
+    EXIT_USAGE,
+    EXIT_VALIDATION,
+    _lint,
+    _load_yaml,
+    main,
+)
 from skillsmith.storage.ladybug import LadybugStore
 
 _DOMAIN_YAML = textwrap.dedent("""\
