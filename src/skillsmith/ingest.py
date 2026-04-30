@@ -51,6 +51,16 @@ _VALID_FRAGMENT_TYPES = frozenset(
 )
 _VALID_PHASES = frozenset({"design", "build", "review"})
 
+# Lint thresholds — derived from fixtures/skill-authoring-guidelines.md (R1–R8)
+# and fixtures/skill-authoring-agent.md "Hard fragmentation rules" / "Tag rules".
+_FRAG_WORDS_WARN_MIN = 80
+_FRAG_WORDS_WARN_MAX = 800
+_FRAG_WORDS_HARD_MIN = 20
+_FRAG_WORDS_HARD_MAX = 2000
+_TAGS_WARN_MAX = 5
+_TAGS_HARD_MAX = 8
+_HEADING_ONLY_MAX_WORDS = 8
+
 
 class IngestError(ValueError):
     pass
@@ -101,6 +111,16 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Skip confirmation prompt",
     )
+    parser.add_argument(
+        "--strict",
+        action="store_true",
+        help=(
+            "Promote authoring-contract warnings (fragment sizes, missing "
+            "rationale/verification, tag count, code-heavy execution fragments) "
+            "to errors. Recommended for new authoring; off by default for "
+            "compatibility with the legacy imported corpus."
+        ),
+    )
     args = parser.parse_args(argv)
 
     target = Path(args.path)
@@ -109,12 +129,12 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
 
     if target.is_dir():
-        return _batch(target, force=args.force, yes=args.yes)
+        return _batch(target, force=args.force, yes=args.yes, strict=args.strict)
 
-    return _single(target, force=args.force, yes=args.yes)
+    return _single(target, force=args.force, yes=args.yes, strict=args.strict)
 
 
-def _single(yaml_path: Path, *, force: bool, yes: bool) -> int:
+def _single(yaml_path: Path, *, force: bool, yes: bool, strict: bool = False) -> int:
     try:
         record = _load_yaml(yaml_path)
     except IngestError as exc:
@@ -126,6 +146,14 @@ def _single(yaml_path: Path, *, force: bool, yes: bool) -> int:
         for e in errors:
             print(f"validation error: {e}", file=sys.stderr)
         return EXIT_VALIDATION
+
+    warnings = _lint(record)
+    if warnings:
+        label = "validation error" if strict else "warning"
+        for w in warnings:
+            print(f"{label}: {w}", file=sys.stderr)
+        if strict:
+            return EXIT_VALIDATION
 
     settings = get_settings()
     store = LadybugStore(settings.ladybug_db_path)
@@ -187,7 +215,7 @@ def _single(yaml_path: Path, *, force: bool, yes: bool) -> int:
     return EXIT_OK
 
 
-def _batch(directory: Path, *, force: bool, yes: bool) -> int:
+def _batch(directory: Path, *, force: bool, yes: bool, strict: bool = False) -> int:
     yaml_files = sorted(directory.glob("*.yaml"))
     if not yaml_files:
         print(f"error: no YAML files found in {directory}", file=sys.stderr)
@@ -196,6 +224,7 @@ def _batch(directory: Path, *, force: bool, yes: bool) -> int:
     # --- Phase 1: parse + validate all files without touching the DB ---
     parsed: list[tuple[Path, ReviewRecord]] = []
     invalid: list[tuple[Path, list[str]]] = []
+    lint_warnings: list[tuple[Path, list[str]]] = []
 
     for f in yaml_files:
         try:
@@ -204,10 +233,16 @@ def _batch(directory: Path, *, force: bool, yes: bool) -> int:
             invalid.append((f, [str(exc)]))
             continue
         errs = _validate(record)
+        warns = _lint(record)
+        if strict:
+            errs = errs + warns
+            warns = []
         if errs:
             invalid.append((f, errs))
         else:
             parsed.append((f, record))
+            if warns:
+                lint_warnings.append((f, warns))
 
     # --- Phase 2: consolidated review summary ---
     print(f"\n{'=' * 60}")
@@ -221,6 +256,18 @@ def _batch(directory: Path, *, force: bool, yes: bool) -> int:
         print(f"\n  INVALID: {f.name}")
         for e in errs:
             print(f"    - {e}", file=sys.stderr)
+
+    if lint_warnings:
+        total = sum(len(ws) for _, ws in lint_warnings)
+        print(
+            f"\n  {total} lint warning(s) across {len(lint_warnings)} file(s) "
+            f"(use --strict to promote to errors):",
+            file=sys.stderr,
+        )
+        for f, ws in lint_warnings:
+            print(f"    {f.name}", file=sys.stderr)
+            for w in ws:
+                print(f"      - {w}", file=sys.stderr)
 
     if parsed:
         print("\n  Skills to load:")
@@ -452,8 +499,151 @@ def _validate(record: ReviewRecord) -> list[str]:
                     )
                 if not frag.content:
                     errors.append(f"fragment sequence {frag.sequence} has empty content")
+                    continue
+                wc = _word_count(frag.content)
+                if wc < _FRAG_WORDS_HARD_MIN:
+                    errors.append(
+                        f"fragment sequence {frag.sequence} is {wc} words; "
+                        f"hard floor is {_FRAG_WORDS_HARD_MIN} — merge with "
+                        f"adjacent fragment or expand"
+                    )
+                if wc > _FRAG_WORDS_HARD_MAX:
+                    errors.append(
+                        f"fragment sequence {frag.sequence} is {wc} words; "
+                        f"hard ceiling is {_FRAG_WORDS_HARD_MAX} — split at semantic boundary"
+                    )
+                if _is_heading_only(frag.content):
+                    errors.append(
+                        f"fragment sequence {frag.sequence} is a heading-only stub "
+                        f"({wc} words); merge with the next fragment or drop it"
+                    )
+        if len(record.domain_tags) > _TAGS_HARD_MAX:
+            errors.append(
+                f"domain_tags has {len(record.domain_tags)} entries; hard ceiling is "
+                f"{_TAGS_HARD_MAX} (target 2–{_TAGS_WARN_MAX} retrieval-oriented tags)"
+            )
 
     return errors
+
+
+def _word_count(text: str) -> int:
+    import re
+
+    return len(re.findall(r"\S+", text or ""))
+
+
+def _normalize_ws(text: str) -> str:
+    import re
+
+    return re.sub(r"\s+", " ", (text or "")).strip()
+
+
+def _is_heading_only(content: str) -> bool:
+    """A fragment is a heading-only stub if it contains nothing but a single
+    markdown heading (no body) — these embed under-discriminatively and should
+    be merged into the following fragment."""
+    stripped = (content or "").strip()
+    if not stripped.startswith("#"):
+        return False
+    # Single-line heading: '# Title' with no body
+    if "\n" not in stripped and _word_count(stripped) <= _HEADING_ONLY_MAX_WORDS:
+        return True
+    # Multi-line where every non-empty line is itself a heading
+    lines = [line for line in stripped.splitlines() if line.strip()]
+    if all(line.lstrip().startswith("#") for line in lines):
+        return _word_count(stripped) <= _HEADING_ONLY_MAX_WORDS
+    return False
+
+
+def _lint(record: ReviewRecord) -> list[str]:
+    """Quality-bar warnings derived from fixtures/skill-authoring-guidelines.md
+    (R1–R8) and fixtures/skill-authoring-agent.md. Non-blocking unless --strict.
+    """
+    warnings: list[str] = []
+
+    if len(record.domain_tags) > _TAGS_WARN_MAX:
+        warnings.append(
+            f"domain_tags has {len(record.domain_tags)} entries; "
+            f"target 2–{_TAGS_WARN_MAX} retrieval-oriented tags "
+            f"(fixtures/skill-authoring-agent.md §'Tag rules')"
+        )
+
+    if record.skill_type != "domain" or not record.fragments:
+        return warnings
+
+    normalized_prose = _normalize_ws(record.raw_prose)
+    for frag in record.fragments:
+        if _normalize_ws(frag.content) and _normalize_ws(frag.content) not in normalized_prose:
+            warnings.append(
+                f"fragment sequence {frag.sequence} content is not a contiguous "
+                f"slice of raw_prose (modulo whitespace) — drift breaks "
+                f"BM25/full-text retrieval against the canonical body "
+                f"(fixtures/skill-authoring-agent.md §'Domain skill rules')"
+            )
+
+    types = {f.fragment_type for f in record.fragments}
+
+    if types == {"execution"} and len(record.fragments) > 1:
+        warnings.append(
+            "all fragments are 'execution' — diversify into setup/example/"
+            "verification/guardrail/rationale per the 6-type taxonomy"
+        )
+
+    if "rationale" not in types:
+        warnings.append(
+            "no 'rationale' fragment — R8: rationale anchors retrieval for "
+            "'why' queries; add one with ≥3 obvious-query keywords"
+        )
+
+    if "verification" not in types:
+        warnings.append(
+            "no 'verification' fragment — R3: verification items are contracts "
+            "for downstream agents; add mechanically-checkable post-conditions"
+        )
+
+    for frag in record.fragments:
+        wc = _word_count(frag.content)
+        if wc < _FRAG_WORDS_WARN_MIN and wc >= _FRAG_WORDS_HARD_MIN:
+            warnings.append(
+                f"fragment sequence {frag.sequence} is {wc} words; below the "
+                f"{_FRAG_WORDS_WARN_MIN}-word floor — qwen3-embedding:0.6b "
+                f"produces under-discriminative vectors at this size"
+            )
+        elif wc < _FRAG_WORDS_HARD_MIN:
+            # Hard-fail surfaces in _validate; suppress dup warning here.
+            pass
+        if wc > _FRAG_WORDS_WARN_MAX and wc <= _FRAG_WORDS_HARD_MAX:
+            warnings.append(
+                f"fragment sequence {frag.sequence} is {wc} words; above the "
+                f"{_FRAG_WORDS_WARN_MAX}-word target — split at a semantic boundary"
+            )
+        if frag.fragment_type == "execution":
+            fence_count = frag.content.count("```")
+            if fence_count >= 2 and len(frag.content) > 200:
+                code_lines = sum(
+                    1
+                    for line in frag.content.splitlines()
+                    if line.strip() and not line.lstrip().startswith("#")
+                    and not line.lstrip().startswith(">")
+                )
+                if fence_count >= 4 or (
+                    fence_count >= 2 and code_lines >= _word_count(frag.content) // 4
+                ):
+                    warnings.append(
+                        f"fragment sequence {frag.sequence} ('execution') is "
+                        f"code-fence-heavy — likely should be 'example' per "
+                        f"fixtures/skill-authoring-agent.md §'Special cases'"
+                    )
+
+    cs = (record.change_summary or "").lower()
+    if "imported from" in cs and len(record.raw_prose) > 4000:
+        warnings.append(
+            "change_summary says 'imported from ...' but raw_prose >4000 chars — "
+            "verify per R6: if scaffolded, use 'scaffold by skillsmith around "
+            "upstream prose preserved in fragment <N>'"
+        )
+
+    return warnings
 
 
 def _print_summary(record: ReviewRecord, *, existing: bool) -> None:

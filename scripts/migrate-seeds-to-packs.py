@@ -246,6 +246,46 @@ PACK_VERSION = "1.0.0"
 EMBED_MODEL = "qwen3-embedding:0.6b"
 EMBED_DIM = 1024
 
+# Pack tier — see install_pack._VALID_PACK_TIERS and docs/PACK-AUTHORING.md.
+PACK_TIERS: dict[str, str] = {
+    "core": "foundation",
+    "engineering": "foundation",
+    "nodejs": "language",
+    "typescript": "language",
+    "python": "language",
+    "rust": "language",
+    "go": "language",
+    "nestjs": "framework",
+    "fastify": "framework",
+    "react": "framework",
+    "vue": "framework",
+    "nextjs": "framework",
+    "fastapi": "framework",
+    "postgres": "store",
+    "mongodb": "store",
+    "redis": "store",
+    "s3": "store",
+    "temporal": "store",
+    "auth": "cross-cutting",
+    "security": "cross-cutting",
+    "observability": "cross-cutting",
+    "containers": "platform",
+    "iac": "platform",
+    "cicd": "platform",
+    "monorepo": "platform",
+    "testing": "tooling",
+    "linting": "tooling",
+    "mocha-chai": "tooling",
+    "vite": "tooling",
+    "agents": "domain",
+    "ui-design": "domain",
+    "data-engineering": "domain",
+    "prisma": "store",
+    "graphql": "protocol",
+    "webhooks": "protocol",
+    "websockets": "protocol",
+}
+
 
 def classify(skill_id: str) -> str:
     for pattern, pack in PACK_RULES:
@@ -273,9 +313,16 @@ def load_skill(path: Path) -> dict:
 
 def write_pack_manifest(pack: str, entries: list[dict]) -> None:
     meta = PACK_METADATA.get(pack, {"description": f"{pack} pack.", "depends_on": []})
+    tier = PACK_TIERS.get(pack)
+    if tier is None:
+        raise ValueError(
+            f"pack '{pack}' has no entry in PACK_TIERS — add one in "
+            f"scripts/migrate-seeds-to-packs.py before regenerating manifests"
+        )
     manifest = {
         "name": pack,
         "version": PACK_VERSION,
+        "tier": tier,
         "description": meta["description"],
         "author": "navistone",
         "embed_model": EMBED_MODEL,

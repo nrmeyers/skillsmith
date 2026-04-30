@@ -17,23 +17,35 @@ _DOMAIN_YAML = textwrap.dedent("""\
     canonical_name: Test Domain Skill
     category: engineering
     skill_class: domain
-    domain_tags: [testing]
+    domain_tags: [testing, pytest]
     always_apply: false
     phase_scope: null
     category_scope: null
     author: test
     change_summary: unit test
     raw_prose: |
-      This skill teaches you how to test things.
+      Run pytest with the -x flag to stop on first failure. This is the
+      fastest way to get useful feedback during a debug loop because the
+      stack trace from the very first failing assertion is rarely buried
+      under cascading downstream failures.
+
+      All tests pass with exit code 0; non-zero indicates at least one
+      failure or collection error. Wire this exit code into your CI step
+      so a regression blocks the merge rather than emitting a green check.
     fragments:
       - sequence: 1
         fragment_type: execution
         content: |
-          Run pytest with the -x flag to stop on first failure.
+          Run pytest with the -x flag to stop on first failure. This is the
+          fastest way to get useful feedback during a debug loop because the
+          stack trace from the very first failing assertion is rarely buried
+          under cascading downstream failures.
       - sequence: 2
         fragment_type: verification
         content: |
-          All tests pass with exit code 0.
+          All tests pass with exit code 0; non-zero indicates at least one
+          failure or collection error. Wire this exit code into your CI step
+          so a regression blocks the merge rather than emitting a green check.
 """)
 
 _SYSTEM_YAML = textwrap.dedent("""\
@@ -296,6 +308,12 @@ def test_non_contiguous_sequences_is_validation_error(tmp_path: Path) -> None:
 
 
 def _write_domain(path: Path, skill_id: str, canonical_name: str) -> None:
+    body = (
+        f"Run the canonical workflow for {skill_id} end-to-end. Start by "
+        f"checking out a fresh branch, install dependencies with the project's "
+        f"package manager, and run the smoke test suite to confirm the local "
+        f"environment matches CI before making any changes."
+    )
     path.write_text(
         textwrap.dedent(f"""\
         skill_type: domain
@@ -303,14 +321,15 @@ def _write_domain(path: Path, skill_id: str, canonical_name: str) -> None:
         canonical_name: {canonical_name}
         category: engineering
         skill_class: domain
-        domain_tags: []
+        domain_tags: [testing]
         always_apply: false
         raw_prose: |
-          Content for {skill_id}.
+          {body}
         fragments:
           - sequence: 1
             fragment_type: execution
-            content: Core steps for {skill_id}.
+            content: |
+              {body}
     """)
     )
 
