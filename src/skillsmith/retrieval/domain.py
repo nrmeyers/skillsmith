@@ -187,7 +187,7 @@ def retrieve_domain_candidates(
     # Hydrate ActiveFragment metadata from the source. Pull domain fragments
     # for the eligible categories; intersect with the fused ids.
     metadata = frag_src.get_active_fragments(
-        skill_class="domain",
+        skill_class=("domain", "workflow"),
         categories=categories,
         domain_tags=domain_tags,
     )

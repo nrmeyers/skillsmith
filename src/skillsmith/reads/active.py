@@ -27,14 +27,18 @@ class InconsistentActiveVersion(Exception):
 
 
 def get_active_skills(
-    store: LadybugStore, *, skill_class: SkillClass | None = None
+    store: LadybugStore, *, skill_class: SkillClass | tuple[str, ...] | None = None
 ) -> list[ActiveSkill]:
     """Return every skill whose CURRENT_VERSION is active, after consistency checks."""
     _run_consistency_guard(store, skill_class=skill_class)
 
     filters = "WHERE v.status = 'active' AND s.deprecated = false"
     if skill_class is not None:
-        filters += f" AND s.skill_class = '{skill_class}'"
+        if isinstance(skill_class, tuple):
+            list_literal = "[" + ", ".join(f"'{v}'" for v in skill_class) + "]"
+            filters += f" AND s.skill_class IN {list_literal}"
+        else:
+            filters += f" AND s.skill_class = '{skill_class}'"
 
     cypher = f"""
     MATCH (s:Skill)-[:CURRENT_VERSION]->(v:SkillVersion)
@@ -68,7 +72,7 @@ def get_active_skill_by_id(store: LadybugStore, skill_id: str) -> ActiveSkill | 
 def get_active_fragments(
     store: LadybugStore,
     *,
-    skill_class: SkillClass | None = None,
+    skill_class: SkillClass | tuple[str, ...] | None = None,
     categories: list[str] | None = None,
     domain_tags: list[str] | None = None,
 ) -> list[ActiveFragment]:
@@ -78,7 +82,11 @@ def get_active_fragments(
     params: dict[str, Any] = {}
     filters = ["v.status = 'active'", "s.deprecated = false"]
     if skill_class is not None:
-        filters.append(f"s.skill_class = '{skill_class}'")
+        if isinstance(skill_class, tuple):
+            list_literal = "[" + ", ".join(f"'{v}'" for v in skill_class) + "]"
+            filters.append(f"s.skill_class IN {list_literal}")
+        else:
+            filters.append(f"s.skill_class = '{skill_class}'")
     if categories is not None:
         params["categories"] = list(categories)
         filters.append("s.category IN $categories")
@@ -157,13 +165,19 @@ def get_active_version_by_id(store: LadybugStore, version_id: str) -> dict[str, 
 # -------- consistency --------
 
 
-def _run_consistency_guard(store: LadybugStore, *, skill_class: SkillClass | None = None) -> None:
+def _run_consistency_guard(store: LadybugStore, *, skill_class: SkillClass | tuple[str, ...] | None = None) -> None:
     """Scan for CURRENT_VERSION / active-version mismatches. Raises on first inconsistency.
 
     For solo-scale corpora (tens of skills) this is cheap. If the corpus grows, move
     this to a startup-time check and a scheduled audit.
     """
-    class_filter = f" WHERE s.skill_class = '{skill_class}'" if skill_class is not None else ""
+    if skill_class is None:
+        class_filter = ""
+    elif isinstance(skill_class, tuple):
+        list_literal = "[" + ", ".join(f"'{v}'" for v in skill_class) + "]"
+        class_filter = f" WHERE s.skill_class IN {list_literal}"
+    else:
+        class_filter = f" WHERE s.skill_class = '{skill_class}'"
 
     # (a) CURRENT_VERSION points at non-active version.
     cypher_a = f"""
