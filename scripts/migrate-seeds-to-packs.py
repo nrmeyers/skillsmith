@@ -117,6 +117,8 @@ PACK_RULES: list[tuple[str, str]] = [
         r"cost-optimization)$",
         "engineering",
     ),
+    # ── SDD pipeline workflow skills ──
+    (r"^sdd-", "sdd"),
     # ── Everything else → core (process, governance, generic) ──
     (r".*", "core"),
 ]
@@ -240,6 +242,39 @@ PACK_METADATA = {
         "description": "Monorepo build tooling — Bazel, Nx, Turborepo, monorepo management patterns.",
         "depends_on": [],
     },
+    "mongodb": {
+        "description": "MongoDB — document modeling, aggregation pipelines, indexing, transactions.",
+        "depends_on": [],
+    },
+    "prisma": {
+        "description": "Prisma ORM — schema design, migrations, query API, type safety.",
+        "depends_on": [],
+    },
+    "graphql": {
+        "description": "GraphQL — schema design, resolvers, subscriptions, federation.",
+        "depends_on": [],
+    },
+    "webhooks": {
+        "description": "Webhook design — delivery guarantees, retries, signature verification, idempotency.",
+        "depends_on": [],
+    },
+    "websockets": {
+        "description": "WebSocket scaling — connection management, backpressure, pub/sub patterns.",
+        "depends_on": [],
+    },
+    "mocha-chai": {
+        "description": "Mocha + Chai testing — test structure, assertions, async patterns.",
+        "depends_on": [],
+    },
+    "vite": {
+        "description": "Vite — bundling, plugins, dev server, build optimisation.",
+        "depends_on": [],
+    },
+    "sdd": {
+        "description": "SDD pipeline workflow skills (spec → design → plan → testgen → build → verify → deliver)",
+        "depends_on": [],
+        "always_install": False,
+    },
 }
 
 PACK_VERSION = "1.0.0"
@@ -284,6 +319,7 @@ PACK_TIERS: dict[str, str] = {
     "graphql": "protocol",
     "webhooks": "protocol",
     "websockets": "protocol",
+    "sdd": "workflow",
 }
 
 

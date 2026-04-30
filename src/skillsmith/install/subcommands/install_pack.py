@@ -172,6 +172,7 @@ _VALID_PACK_TIERS = frozenset(
         "tooling",      # dev-loop tooling (testing, linting, vite, mocha-chai)
         "domain",       # application-layer domains (agents, ui-design, data-engineering)
         "protocol",     # wire-format / integration (graphql, webhooks, websockets)
+        "workflow",     # SDD pipeline workflows (spec → design → plan → testgen → build → verify → deliver)
     }
 )
 
