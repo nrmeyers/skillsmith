@@ -60,3 +60,45 @@ class TestResolveSkillTier:
 
         assert tier == "language"
         assert source == "pack.yaml"
+
+    def test_walks_up_to_parent_directory(self, tmp_path: Path) -> None:
+        """pack.yaml in parent dir is found when skill is in a subdirectory."""
+        _write_pack_yaml(tmp_path, {"name": "core", "tier": "foundation"})
+        subdir = tmp_path / "subdir"
+        subdir.mkdir()
+        skill_path = _write_skill_yaml(subdir)
+
+        tier, source = resolve_skill_tier(skill_path)
+
+        assert tier == "foundation"
+        assert source == "pack.yaml"
+
+    def test_corrupt_pack_yaml_returns_parse_error(self, tmp_path: Path) -> None:
+        """A YAML parse error in pack.yaml returns (None, 'pack.yaml:parse_error')."""
+        (tmp_path / "pack.yaml").write_text(":\tinvalid: yaml: [[", encoding="utf-8")
+        skill_path = _write_skill_yaml(tmp_path)
+
+        tier, source = resolve_skill_tier(skill_path)
+
+        assert tier is None
+        assert source == "pack.yaml:parse_error"
+
+    def test_empty_pack_yaml_returns_missing(self, tmp_path: Path) -> None:
+        """An empty pack.yaml has no tier key → (None, 'pack.yaml:missing')."""
+        (tmp_path / "pack.yaml").write_text("", encoding="utf-8")
+        skill_path = _write_skill_yaml(tmp_path)
+
+        tier, source = resolve_skill_tier(skill_path)
+
+        assert tier is None
+        assert source == "pack.yaml:missing"
+
+    def test_non_string_tier_returns_missing(self, tmp_path: Path) -> None:
+        """A non-string tier value (null, number) returns (None, 'pack.yaml:missing')."""
+        (tmp_path / "pack.yaml").write_text("tier: 123\n", encoding="utf-8")
+        skill_path = _write_skill_yaml(tmp_path)
+
+        tier, source = resolve_skill_tier(skill_path)
+
+        assert tier is None
+        assert source == "pack.yaml:missing"

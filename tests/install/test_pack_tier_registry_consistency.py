@@ -61,3 +61,12 @@ class TestPackTierRegistryConsistency:
             f"Pack(s) in PACK_METADATA but missing from PACK_TIERS: {sorted(missing)}. "
             f"Add tier entries in migrate-seeds-to-packs.py."
         )
+
+    def test_pack_rules_targets_all_have_metadata(self) -> None:
+        """Every routing target in PACK_RULES must have an entry in PACK_METADATA."""
+        rule_targets = {pack for _, pack in _migrate.PACK_RULES}
+        missing = rule_targets - set(PACK_METADATA.keys())
+        assert not missing, (
+            f"PACK_RULES routes to packs missing from PACK_METADATA: {sorted(missing)}. "
+            f"Add metadata entries in migrate-seeds-to-packs.py."
+        )
