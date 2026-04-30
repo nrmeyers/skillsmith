@@ -28,6 +28,7 @@ from typing import Any, cast
 import yaml
 
 from skillsmith.config import get_settings
+from skillsmith.skill_tier import resolve_skill_tier
 from skillsmith.storage.ladybug import LadybugStore
 
 EXIT_OK = 0
@@ -60,8 +61,12 @@ _FRAG_WORDS_HARD_MAX = 2000
 _TAGS_VALIDATE_HARD_CAP = 20
 
 WORKFLOW_POSITION_MARKERS = frozenset({
+    # SDD pipeline
+    "sdd",
     "phase:spec", "phase:design", "phase:plan",
     "phase:testgen", "phase:build", "phase:verify", "phase:deliver",
+    # General process positions
+    "code-review", "release", "incident", "rfc",
 })
 
 TAG_POLICY_BY_TIER: dict[str, dict[str, int]] = {
@@ -165,7 +170,7 @@ def _single(yaml_path: Path, *, force: bool, yes: bool, strict: bool = False) ->
             print(f"validation error: {e}", file=sys.stderr)
         return EXIT_VALIDATION
 
-    warnings = _lint(record)
+    warnings = _lint(record, yaml_path=yaml_path)
     if warnings:
         label = "validation error" if strict else "warning"
         for w in warnings:
@@ -251,7 +256,7 @@ def _batch(directory: Path, *, force: bool, yes: bool, strict: bool = False) -> 
             invalid.append((f, [str(exc)]))
             continue
         errs = _validate(record)
-        warns = _lint(record)
+        warns = _lint(record, yaml_path=f)
         if strict:
             errs = errs + warns
             warns = []
@@ -573,13 +578,28 @@ def _is_heading_only(content: str) -> bool:
     return False
 
 
-def _lint(record: ReviewRecord) -> list[str]:
+def _lint(record: ReviewRecord, yaml_path: Path | None = None) -> list[str]:
     """Quality-bar warnings derived from fixtures/skill-authoring-guidelines.md
     (R1–R8) and fixtures/skill-authoring-agent.md. Non-blocking unless --strict.
     """
+    from skillsmith.lint_tags_mechanical import lint_tags_mechanical
+
     warnings: list[str] = []
 
-    # NOTE: tier-aware tag ceiling moved to lint_tags_mechanical (Phase B)
+    # --- Mechanical tag lint ---
+    tier: str | None = None
+    if yaml_path is not None:
+        tier, _source = resolve_skill_tier(yaml_path)
+    tag_verdicts = lint_tags_mechanical(
+        tags=record.domain_tags,
+        skill_class=record.skill_class,
+        canonical_name=record.canonical_name,
+        tier=tier,
+    )
+    for tv in tag_verdicts:
+        warnings.append(
+            f"tag lint [{tv.rule}] '{tv.tag}': {tv.verdict} — {tv.detail}"
+        )
 
     if record.skill_type != "domain" or not record.fragments:
         return warnings
