@@ -111,6 +111,7 @@ class ReviewRecord:
     change_summary: str
     raw_prose: str
     fragments: list[FragmentRecord] = field(default_factory=lambda: cast(list[FragmentRecord], []))
+    tier: str | None = None
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -177,6 +178,9 @@ def _single(yaml_path: Path, *, force: bool, yes: bool, strict: bool = False) ->
             print(f"{label}: {w}", file=sys.stderr)
         if strict:
             return EXIT_VALIDATION
+
+    tier, _src = resolve_skill_tier(yaml_path)
+    record.tier = tier
 
     settings = get_settings()
     store = LadybugStore(settings.ladybug_db_path)
@@ -372,6 +376,8 @@ def _batch(directory: Path, *, force: bool, yes: bool, strict: bool = False) -> 
         failed = 0
         for f, record in to_load:
             try:
+                tier, _src = resolve_skill_tier(f)
+                record.tier = tier
                 _insert(store, record, force=force)
                 print(f"ok: {record.skill_id} ({record.canonical_name})")
                 loaded += 1
@@ -724,7 +730,8 @@ def _insert(store: LadybugStore, record: ReviewRecord, *, force: bool) -> None:
             deprecated: false,
             always_apply: $always_apply,
             phase_scope: $phase_scope,
-            category_scope: $category_scope
+            category_scope: $category_scope,
+            tier: $tier
         })
         """,
         {
@@ -736,6 +743,7 @@ def _insert(store: LadybugStore, record: ReviewRecord, *, force: bool) -> None:
             "always_apply": record.always_apply,
             "phase_scope": record.phase_scope,
             "category_scope": record.category_scope,
+            "tier": record.tier,
         },
     )
 

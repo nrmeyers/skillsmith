@@ -41,7 +41,7 @@ def get_active_skills(
     {filters}
     RETURN s.skill_id, s.canonical_name, s.category, s.skill_class,
            s.domain_tags, s.always_apply, s.phase_scope, s.category_scope,
-           v.version_id
+           v.version_id, s.tier
     ORDER BY s.skill_id
     """
     return [_row_to_active_skill(row) for row in store.execute(cypher)]
@@ -57,7 +57,7 @@ def get_active_skill_by_id(store: LadybugStore, skill_id: str) -> ActiveSkill | 
     WHERE v.status = 'active' AND s.deprecated = false
     RETURN s.skill_id, s.canonical_name, s.category, s.skill_class,
            s.domain_tags, s.always_apply, s.phase_scope, s.category_scope,
-           v.version_id
+           v.version_id, s.tier
     """
     rows = store.execute(cypher, {"skill_id": skill_id})
     if not rows:
@@ -237,6 +237,7 @@ def _row_to_active_skill(row: list[Any]) -> ActiveSkill:
         phase_scope=_optional_list(row[6]),
         category_scope=_optional_list(row[7]),
         active_version_id=cast("str", row[8]),
+        tier=cast("str | None", row[9]) if len(row) > 9 else None,
     )
 
 
