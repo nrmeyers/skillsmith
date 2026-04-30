@@ -214,13 +214,15 @@ def run_critic(
     source_md: str,
     draft_yaml_text: str,
     soft_dups: list[DedupHit],
+    semantic_tag_block: str = "",
 ) -> CriticVerdict:
     dedup_block = _format_dedup_for_prompt(soft_dups)
     user_prompt = (
         f"---SOURCE SKILL.md---\n{source_md}\n---END SOURCE---\n\n"
         f"---DRAFT REVIEW YAML---\n{draft_yaml_text}\n---END DRAFT---\n\n"
         f"---DEDUP CONTEXT (0.80-0.92 band)---\n{dedup_block}\n---END DEDUP---\n\n"
-        "Return JSON only. Schema per your system prompt."
+        + (f"{semantic_tag_block}\n\n" if semantic_tag_block else "")
+        + "Return JSON only. Schema per your system prompt."
     )
     try:
         raw = client.chat(
@@ -399,6 +401,8 @@ def qa_one(
             soft_threshold=soft_threshold,
         )
         if hard_dup is None:
+            from skillsmith.lint_tags_semantic import build_semantic_lint_block
+
             source_md = _find_source_md(record, draft_path)
             critic = run_critic(
                 client=lm_client,
@@ -407,6 +411,9 @@ def qa_one(
                 source_md=source_md,
                 draft_yaml_text=draft_path.read_text(encoding="utf-8"),
                 soft_dups=soft_dups,
+                semantic_tag_block=build_semantic_lint_block(
+                    record.domain_tags, record.canonical_name, record.raw_prose
+                ),
             )
 
     current_bounces = bounces.get(skill_id, 0)
