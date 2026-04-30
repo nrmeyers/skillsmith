@@ -34,7 +34,7 @@ class FragmentSource(Protocol):
     def get_active_fragments(
         self,
         *,
-        skill_class: SkillClass | None = None,
+        skill_class: SkillClass | tuple[str, ...] | None = None,
         categories: list[str] | None = None,
         domain_tags: list[str] | None = None,
     ) -> list[ActiveFragment]: ...
@@ -82,7 +82,7 @@ class StoreFragmentSource:
     def get_active_fragments(
         self,
         *,
-        skill_class: SkillClass | None = None,
+        skill_class: SkillClass | tuple[str, ...] | None = None,
         categories: list[str] | None = None,
         domain_tags: list[str] | None = None,
     ) -> list[ActiveFragment]:

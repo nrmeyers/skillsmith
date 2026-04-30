@@ -52,7 +52,7 @@ class CriticVerdict:
     per_fragment: list[dict[str, Any]] = field(default_factory=lambda: [])
     dedup_decisions: list[dict[str, Any]] = field(default_factory=lambda: [])
     suggested_edits: str = ""
-    tag_verdicts: list[dict] = field(default_factory=lambda: [])
+    tag_verdicts: list[dict[str, Any]] = field(default_factory=lambda: [])
     prompt_version: str = ""
 
     @classmethod
@@ -261,8 +261,8 @@ def run_critic(
     base_issues = [str(x) for x in cast(list[Any], data.get("blocking_issues") or [])]
     tag_verdict_issues = [
         f"tag [{tv.get('rule', '?')}] '{tv.get('tag', '?')}': {tv.get('verdict', '?')} — {tv.get('detail', '')}"
-        for tv in cast(list[dict], data.get("tag_verdicts") or [])
-        if isinstance(tv, dict) and tv.get("verdict", "pass") != "pass"
+        for tv in cast(list[dict[str, Any]], data.get("tag_verdicts") or [])
+        if tv.get("verdict", "pass") != "pass"
     ]
     return CriticVerdict(
         verdict=verdict,
@@ -271,7 +271,7 @@ def run_critic(
         per_fragment=cast(list[dict[str, Any]], data.get("per_fragment") or []),
         dedup_decisions=cast(list[dict[str, Any]], data.get("dedup_decisions") or []),
         suggested_edits=str(data.get("suggested_edits", "")),
-        tag_verdicts=cast(list[dict], data.get("tag_verdicts") or []),
+        tag_verdicts=cast(list[dict[str, Any]], data.get("tag_verdicts") or []),
         prompt_version=str(data.get("prompt_version", "")),
     )
 

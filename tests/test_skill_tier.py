@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import yaml
 
 from skillsmith.skill_tier import resolve_skill_tier
 
 
-def _write_pack_yaml(directory: Path, content: dict) -> None:
+def _write_pack_yaml(directory: Path, content: dict[str, Any]) -> None:
     (directory / "pack.yaml").write_text(yaml.dump(content), encoding="utf-8")
 
 

@@ -8,6 +8,7 @@ scaffolding only (Phase A).
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import yaml
 
@@ -35,7 +36,9 @@ def resolve_skill_tier(yaml_path: Path | str) -> tuple[str | None, str]:
         candidate = current / "pack.yaml"
         if candidate.is_file():
             try:
-                manifest = yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                manifest: dict[str, Any] = (
+                    yaml.safe_load(candidate.read_text(encoding="utf-8")) or {}
+                )
             except yaml.YAMLError:
                 return (None, "pack.yaml:parse_error")
             tier_val = manifest.get("tier")

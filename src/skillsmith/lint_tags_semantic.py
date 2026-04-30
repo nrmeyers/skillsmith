@@ -33,7 +33,7 @@ def build_semantic_lint_block(tags: list[str], canonical_name: str, raw_prose: s
     )
 
 
-def parse_semantic_verdicts(raw: str) -> list[dict]:
+def parse_semantic_verdicts(raw: str) -> list[dict[str, str]]:
     """Defensively parse an LLM response containing a JSON verdict array.
 
     Tolerates:
@@ -59,4 +59,4 @@ def parse_semantic_verdicts(raw: str) -> list[dict]:
     if not isinstance(result, list):
         return []
 
-    return [item for item in result if isinstance(item, dict) and "tag" in item]
+    return [item for item in result if isinstance(item, dict) and "tag" in item]  # type: ignore[return-value]

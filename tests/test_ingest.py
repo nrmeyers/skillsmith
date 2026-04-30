@@ -13,8 +13,8 @@ from skillsmith.ingest import (
     EXIT_OK,
     EXIT_USAGE,
     EXIT_VALIDATION,
-    _lint,
-    _load_yaml,
+    _lint,  # type: ignore[reportPrivateUsage]
+    _load_yaml,  # type: ignore[reportPrivateUsage]
     main,
 )
 from skillsmith.storage.ladybug import LadybugStore

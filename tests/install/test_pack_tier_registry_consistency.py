@@ -9,8 +9,11 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+from typing import Any
 
-from skillsmith.install.subcommands.install_pack import _VALID_PACK_TIERS
+from skillsmith.install.subcommands.install_pack import (
+    _VALID_PACK_TIERS,  # type: ignore[reportPrivateUsage]
+)
 
 # ---------------------------------------------------------------------------
 # Load migrate-seeds-to-packs.py as a module without side effects
@@ -28,8 +31,8 @@ def _load_migrate_module():
 
 
 _migrate = _load_migrate_module()
-PACK_TIERS: dict[str, str] = _migrate.PACK_TIERS
-PACK_METADATA: dict = _migrate.PACK_METADATA
+PACK_TIERS: dict[str, str] = _migrate.PACK_TIERS  # type: ignore[reportUnknownVariableType]
+PACK_METADATA: dict[str, Any] = _migrate.PACK_METADATA  # type: ignore[reportUnknownVariableType]
 
 
 class TestPackTierRegistryConsistency:
