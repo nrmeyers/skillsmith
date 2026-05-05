@@ -1,0 +1,244 @@
+$schema: task-fixture.v2
+task_id: T1
+
+description: |
+  ## Task
+
+  Implement a Stripe webhook receiver at the `POST /webhooks/stripe`
+  endpoint in `/workspace/app/main.py`. The route must verify the
+  HMAC-SHA256 signature carried in the `Stripe-Signature` request
+  header against the raw request body, using the shared secret
+  available at `os.environ["STRIPE_WEBHOOK_SECRET"]`. On a
+  valid signature, return HTTP 200 with the JSON body
+  `{"received": true}`. On any signature failure (invalid HMAC,
+  malformed header, stale timestamp), return HTTP 400 — or 401 for
+  missing/malformed header per the activated fragments' guardrail.
+
+  The seed file `app/main.py` currently contains only
+  `from fastapi import FastAPI` and `app = FastAPI()`. Add the
+  webhook route to that file. Add any imports the route needs
+  to the top of the same file. Do not create new modules; the
+  task is intentionally scoped to a single file.
+
+  ## Do
+
+  - Add a `POST /webhooks/stripe` route to `/workspace/app/main.py`.
+  - Read the raw request body as bytes (not JSON-parsed) before
+    invoking signature verification.
+  - Verify the signature via the procedure documented in the
+    skill fragments.
+  - Return 200 with `{"received": true}` on valid signature.
+  - Return 400 on invalid signature or any verification failure.
+
+  ## Do not
+
+  - Do not add replay protection, idempotency tables, or any
+    deduplication logic. This task is the signature-verification
+    path only; replay protection is a follow-up task.
+  - Do not add a dead-letter queue, retry logic, or sender-side
+    delivery code.
+  - Do not modify any file other than `app/main.py`.
+  - Do not import any third-party library that is not already
+    listed in the pinned `pyproject.toml` (`fastapi`, `stripe`,
+    `uvicorn`, `asyncpg`, `pyjwt`).
+  - Do not return any HTTP status other than 200 (success) or
+    400/401 (rejection) from this route. Use 400 for cryptographic
+    or parse-level signature failure; 401 is acceptable for missing-
+    or malformed-header rejection per the webhook-patterns guardrail.
+
+  ## Mechanical success criteria
+
+  - A POST to `/webhooks/stripe` with a body whose `Stripe-Signature`
+    header carries a valid HMAC over that body returns HTTP 200
+    with a JSON body containing `received: true`.
+  - A POST with the same body but a tampered (cryptographically
+    invalid) `Stripe-Signature` header returns HTTP 400.
+  - A POST with no `Stripe-Signature` header returns HTTP 400 or 401.
+  - The FastAPI app starts cleanly under uvicorn after the
+    modification.
+
+skills_activated:
+  - webhook-patterns
+
+app_skeleton:
+  seed_branch: pilot-seed/T1
+  seed_files:
+    - pyproject.toml
+    - app/__init__.py
+    - app/main.py
+    - seed/test-secrets.env
+    - seed/fixtures/stripe-event.json
+
+arm_fragments:
+  arm_a:
+    - { skill_id: webhook-patterns, sequence: 1 }   # rationale
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution: HMAC primitives
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution: per-vendor schemes
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution: replay protection
+    - { skill_id: webhook-patterns, sequence: 6 }   # example
+    - { skill_id: webhook-patterns, sequence: 7 }   # verification
+    - { skill_id: webhook-patterns, sequence: 8 }   # guardrail
+  arm_b:
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution
+    - { skill_id: webhook-patterns, sequence: 7 }   # verification
+    - { skill_id: webhook-patterns, sequence: 8 }   # guardrail
+  arm_c:
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution
+  baseline: []
+  # M7: arm_b + 4 anti-pattern fragments targeting the M5 T1 bug list
+  arm_b_plus:
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution
+    - { skill_id: webhook-patterns, sequence: 7 }   # verification
+    - { skill_id: webhook-patterns, sequence: 8 }   # guardrail
+    - { skill_id: webhook-patterns, sequence: 9 }   # anti-pattern: positional sig parsing
+    - { skill_id: webhook-patterns, sequence: 10 }  # anti-pattern: status codes
+    - { skill_id: webhook-patterns, sequence: 11 }  # anti-pattern: hallucinated SDK behavior
+    - { skill_id: webhook-patterns, sequence: 12 }  # anti-pattern: structural marker contamination
+
+mechanical_checks:
+
+  - id: app-starts
+    type: app_starts
+    timeout_s: 15
+
+  - id: happy-path-valid-sig
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        received: true
+
+  - id: rejects-tampered-sig
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature_tampered}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 400
+
+  - id: rejects-missing-sig-header
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      # Webhook-patterns guardrail explicitly permits 400 OR 401 for
+      # rejection. Tampered-sig stays at status: 400 (cryptographic
+      # failure is unambiguously a 400 per fragment 3); missing-header
+      # gets the latitude the guardrail allows.
+      status_in: [400, 401]
+
+  - id: only-main-modified
+    type: diff
+    expect:
+      file_changes_min: 1
+      file_changes_max: 1
+      files_touched:
+        - app/main.py
+      files_must_touch:
+        - app/main.py
+
+  - id: no-foreign-imports
+    type: diff_imports
+    file: app/main.py
+    expect:
+      forbidden_imports:
+        - redis
+        - cachetools
+        - functools.lru_cache
+        - jwt
+        - pyjwt
+        - asyncpg
+
+  - id: raw-body-read
+    type: code_grep
+    file: app/main.py
+    pattern: 'await\s+request\.body\s*\(\s*\)'
+    expect:
+      min_matches: 1
+
+  - id: no-pre-verify-json-parse
+    type: code_grep
+    file: app/main.py
+    pattern: 'await\s+request\.json\s*\(\s*\)'
+    expect:
+      max_matches: 0
+
+task_specific_faithfulness_items:
+  - "Raw body bytes are read via `await request.body()` BEFORE any signature verification call (not after, not concurrently)."
+  - "Signature verification uses the procedure documented in the activated webhook-patterns fragments — either the `stripe.Webhook.construct_event` SDK helper or a manual HMAC implementation that follows the fragment's described shape (signed string is `<ts>.<raw-body>`, comparison via `hmac.compare_digest`)."
+  - "On signature failure, the response is HTTP 400. No code path returns 200 for a tampered or missing signature."
+  - "The route handler does not perform replay protection, idempotency, or any work documented in fragments outside the signature-verification scope. T1's scope is the verification path only; presence of dedup-table inserts or explicit timestamp comparison logic outside the SDK helper counts as scope reach. Note: passing `tolerance=300` to `stripe.Webhook.construct_event` is correct SDK usage, not scope reach — the SDK's internal tolerance check is part of signature verification, not a manual replay-protection layer."
+  - "The Stripe webhook secret is read from `os.environ`, not hard-coded into the file."
+
+notes: |
+  T1 is the single-skill baseline (pilot spec §4.2 first row). It
+  exists to anchor the rest of the trial set: T2 builds on T1 by
+  adding replay protection, T3a builds on T1 by composing with
+  fastapi-middleware, T4 refactors T1's signature comparison,
+  T5 attempts to extend T1 out-of-scope. A clean T1 pass at high
+  rates across all arms is the precondition for trusting any
+  composition or scope-recognition signal in the rest.
+
+  Fragment selection rationale:
+    - webhook-patterns is the only activated skill — single-skill
+      task per spec §4.2.
+    - Arm A includes all 8 fragments of webhook-patterns even
+      though some (replay protection sequence 5, the dedup-row
+      lifecycle in the example sequence 6) are not strictly
+      necessary for T1. This is intentional per spec §5.1 — Arm A
+      tests whether more context helps or hurts. If T1 Arm A
+      passes at a materially lower rate than Arm B, that is a
+      C1 (anchoring fragments are not load-bearing for execution)
+      signal worth investigating.
+    - Arms B and C apply the spec §5.1 type filters.
+    - Baseline is empty per spec invariant.
+
+  No `negative_faithfulness_criteria` — T1 has no tempting-but-
+  out-of-scope adjacency that requires explicit blocklisting. The
+  generic faithfulness criteria + the do-not list in the
+  description carry the scope-discipline weight.
+
+  T1 does not exercise the database. The Postgres container the
+  harness brings up for the pilot duration is unused by T1's
+  mechanical checks; T2 onwards uses it. The seed branch
+  pilot-seed/T1 still includes the asyncpg dependency in
+  pyproject.toml so the import surface is consistent across
+  tasks (a model that imports asyncpg in T1 is making a scope
+  reach we want visible in faithfulness review).
+
+  forbidden_imports composition rationale: `stripe` is intentionally
+  NOT on the blocklist because the activated webhook-patterns
+  fragments explicitly use `stripe.Webhook.construct_event` (fragment
+  4) and import `stripe` at the top of the example fragment (fragment
+  6). A model importing `stripe` in T1 is following the fragments
+  faithfully, not reaching out of scope. By contrast, `pyjwt` / `jwt`
+  are blocklisted because no T1 fragment references JWT — importing
+  one is a T3b-territory scope reach. `asyncpg` is blocklisted for
+  the same reason — T2-territory dedup. `redis` / `cachetools` /
+  `functools.lru_cache` are blocklisted as T5-territory caching
+  temptations even though T5 doesn't activate this skill set.

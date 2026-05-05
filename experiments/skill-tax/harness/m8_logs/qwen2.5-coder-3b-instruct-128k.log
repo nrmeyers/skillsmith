@@ -1,0 +1,14 @@
+=== 16:17:18 START qwen2.5-coder-3b-instruct-128k (M8 arm_b_plus + review) ===
+Unloading "qwen2.5-coder-1.5b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading qwen2.5-coder-3b-instruct-128k ⠙[?25lLoading qwen2.5-coder-3b-instruct-128k ⠹[?25lLoading qwen2.5-coder-3b-instruct-128k ⠸[?25lLoading qwen2.5-coder-3b-instruct-128k ⠼[?25lLoading qwen2.5-coder-3b-instruct-128k ⠴[?25lLoading qwen2.5-coder-3b-instruct-128k ⠦[?25lLoading qwen2.5-coder-3b-instruct-128k ⠧[?25lLoading qwen2.5-coder-3b-instruct-128k ⠇[?25lLoading qwen2.5-coder-3b-instruct-128k ⠏[?25lLoading qwen2.5-coder-3b-instruct-128k ⠋[?25lLoading qwen2.5-coder-3b-instruct-128k ⠙[?25lLoading qwen2.5-coder-3b-instruct-128k ⠹[?25lLoading qwen2.5-coder-3b-instruct-128k ⠸[?25lLoading qwen2.5-coder-3b-instruct-128k ⠼[?25lLoading qwen2.5-coder-3b-instruct-128k ⠴[?25lLoading qwen2.5-coder-3b-instruct-128k ⠦[K[?25hModel loaded successfully in 1.35s.
+(5.75 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-3b-instruct-128k".
+--- T1 arm_b_plus × 5 runs (with self-review pass) ---
+trial=2b46f9ea-c218-423a-95a4-402644fda5c3 task=T1 arm=arm_b_plus run=1 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=244 lm_ms=31854 total_ms=36026 review_lm_ms=3453 review_in_tok=5860 review_out_tok=26
+trial=0c4aed55-6301-4c48-a46c-ed3485aac4b3 task=T1 arm=arm_b_plus run=2 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=244 lm_ms=23386 total_ms=27475 review_lm_ms=3434 review_in_tok=5860 review_out_tok=26
+trial=61d0a205-eb6f-48c0-b0a3-8bba36e47e5d task=T1 arm=arm_b_plus run=3 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=244 lm_ms=22968 total_ms=27023 review_lm_ms=3358 review_in_tok=5860 review_out_tok=26
+trial=41f979ac-eacc-429f-86b1-63df5a68bbf3 task=T1 arm=arm_b_plus run=4 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=244 lm_ms=23208 total_ms=27224 review_lm_ms=3375 review_in_tok=5860 review_out_tok=26
+trial=ffeeb938-ee92-4036-89f1-d6e9f386a2a9 task=T1 arm=arm_b_plus run=5 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=244 lm_ms=22974 total_ms=27037 review_lm_ms=3359 review_in_tok=5860 review_out_tok=26
+=== 16:19:50 END qwen2.5-coder-3b-instruct-128k ===

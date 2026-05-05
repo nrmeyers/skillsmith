@@ -1,0 +1,32 @@
+=== run_m4 start: 2026-05-01T22:43:48Z ===
+trial=43d5e5c2-f9a7-4c4a-acee-2ff5ee770b6b task=T3a arm=arm_a run=1 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=246
+trial=5c08c508-bb32-415c-b3d7-c348e4f3b372 task=T3a arm=arm_a run=2 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=246
+trial=7ecb8384-3f9b-4cf1-9372-29e1d08dcaac task=T3a arm=arm_a run=3 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=246
+trial=6fba6fdc-4ad1-4823-93d1-750123f9a619 task=T3a arm=arm_b run=1 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=856
+trial=a6b458e9-2544-446f-99ea-b1ee583a5c53 task=T3a arm=arm_b run=2 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=388
+trial=35ae717d-b1b5-4349-899b-1af68f2d7ba0 task=T3a arm=arm_b run=3 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=388
+trial=64e4971e-4469-4c8b-9778-40d05a41a903 task=T3a arm=arm_c run=1 parses=True functional_pass=False frags=8 in_tok=4752 out_tok=231
+trial=7063c19a-cf50-4ad3-90c0-09882be8f601 task=T3a arm=arm_c run=2 parses=True functional_pass=False frags=8 in_tok=4752 out_tok=231
+trial=fbdab70a-b25a-452b-b0b6-5e7579208030 task=T3a arm=arm_c run=3 parses=True functional_pass=False frags=8 in_tok=4752 out_tok=231
+=== MILESTONE: 9 / 27 trials complete (parse_fails=0) ===
+trial=4534123d-bdbd-4b1e-aab2-4a74866240c9 task=T3b arm=arm_a run=1 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=521
+trial=4253348f-8f7b-4511-a5c4-e006c89fd94c task=T3b arm=arm_a run=2 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=603
+trial=efebcf47-0cff-405b-8d90-2466707db9f7 task=T3b arm=arm_a run=3 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=603
+trial=3ced2fd5-1825-4752-bcfe-4fabb249295a task=T3b arm=arm_b run=1 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=539
+trial=7f4430a2-9321-4243-b5de-38d81c99e92e task=T3b arm=arm_b run=2 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=538
+trial=33c51369-cd01-44c5-b402-6ac28e7074bf task=T3b arm=arm_b run=3 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=538
+trial=dd3cfcda-7329-44a2-9eb9-87e31f50625d task=T3b arm=arm_c run=1 parses=True functional_pass=False frags=12 in_tok=6380 out_tok=527
+trial=8c5d11c5-e3fe-42b9-ad6f-e3fbfeb58e98 task=T3b arm=arm_c run=2 parses=True functional_pass=False frags=12 in_tok=6380 out_tok=527
+trial=5bd7380d-c9a4-45b1-a8cd-7b4fd8d72b97 task=T3b arm=arm_c run=3 parses=True functional_pass=False frags=12 in_tok=6380 out_tok=527
+=== MILESTONE: 18 / 27 trials complete (parse_fails=0) ===
+trial=ae1de921-a2fe-44a4-a0da-fb27fda83fec task=T4 arm=arm_a run=1 parses=True functional_pass=True frags=8 in_tok=4910 out_tok=357
+trial=503c3b12-18e2-4301-ae94-d3292ee319b9 task=T4 arm=arm_a run=2 parses=True functional_pass=True frags=8 in_tok=4910 out_tok=419
+trial=2ab389b6-1973-4cc0-9c3b-4c96a13e4dbb task=T4 arm=arm_a run=3 parses=True functional_pass=True frags=8 in_tok=4910 out_tok=357
+trial=aea74525-e484-4b01-85f3-5f02c04ea6c5 task=T4 arm=arm_b run=1 parses=True functional_pass=False frags=6 in_tok=4098 out_tok=277
+trial=5a50e42b-03ec-4b0a-9ed9-0fc18e19a8d4 task=T4 arm=arm_b run=2 parses=True functional_pass=False frags=6 in_tok=4098 out_tok=278
+trial=3a8c551d-5321-43bd-9228-d2fa1f5b4f3e task=T4 arm=arm_b run=3 parses=True functional_pass=False frags=6 in_tok=4098 out_tok=278
+trial=f7cf3d10-1ba9-4e94-bf94-86cd4c6be278 task=T4 arm=arm_c run=1 parses=True functional_pass=False frags=4 in_tok=2794 out_tok=274
+trial=e024ed75-5428-497f-bc65-eda964407407 task=T4 arm=arm_c run=2 parses=True functional_pass=False frags=4 in_tok=2794 out_tok=274
+trial=a98aaeb9-040a-4efd-b04b-3f883b1b785a task=T4 arm=arm_c run=3 parses=True functional_pass=False frags=4 in_tok=2794 out_tok=274
+=== MILESTONE: 27 / 27 trials complete (parse_fails=0) ===
+=== run_m4 complete: 2026-05-01T22:57:55Z parse_fails=0 / 27 ===

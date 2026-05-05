@@ -1,0 +1,377 @@
+skill_type: domain
+skill_id: jwt-validation-patterns
+canonical_name: JWT Validation Patterns (HS256, RS256, Claim Verification)
+category: engineering
+skill_class: domain
+domain_tags: [pyjwt, rfc-8725, algorithm-confusion, key-rotation, jwks, expiration, audience, issuer]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Initial authoring 2026-05-01 for the skill-tax pilot (experiments/skill-tax/skills/). PyJWT-flavored Python receiver-side JWT validation; covers HS256 (HMAC) and RS256 (RSA) verification paths plus claim validation (exp, iss, aud, nbf, iat), JWKS key rotation, and the algorithm-confusion attack surface called out in RFC 8725 §3.1. See experiments/skill-tax/skills/AUTHORING_LOG.md for primary sources and pilot context.
+raw_prose: |
+  # JWT Validation Patterns
+
+  ## Why this skill exists
+
+  JWT validation patterns center on three procedures: algorithm whitelisting on the receiver (never trust the token's `alg` header), full claim validation (`exp`, `iss`, `aud`, `nbf`), and disciplined key management (sufficient HS256 secret entropy, JWKS rotation for RS256). Skip any of the three and the signature check becomes security theatre — the token validates but the receiver still accepts forged or replayed tokens.
+
+  This skill is PyJWT-flavored (PyJWT 2.x) because the Python ecosystem's reference library exposes algorithm enforcement, claim validation, and exception taxonomy as first-class arguments — there is no "right" way to use it without those arguments set, and most JWT vulnerabilities in the wild come from receivers that omit them.
+
+  Use this skill when accepting JWTs from any source (frontend SPAs, mobile apps, B2B partners, internal services); reviewing existing JWT validation code for the algorithm-confusion family of attacks (RFC 8725); or implementing a new authentication middleware that must reject expired, foreign-issued, or wrong-audience tokens.
+
+  The skill covers receiver-side validation only. JWT issuance (key generation, signing, claim selection) is a separate concern handled by the identity provider; pair this skill with the identity provider's documentation when the same service does both.
+
+  ## Setup: environment, imports, secret strength
+
+  HS256 receivers carry a shared secret with the issuer; RS256 receivers carry the issuer's public key (or fetch it from a JWKS endpoint). Required env vars per scheme:
+
+  ```
+  JWT_HS256_SECRET=...         # HMAC shared secret — minimum 32 bytes random
+  JWT_RS256_JWKS_URI=...       # https URL to issuer's JWKS document
+  JWT_EXPECTED_ISSUER=...      # iss claim value to require, e.g. https://issuer.example
+  JWT_EXPECTED_AUDIENCE=...    # aud claim value to require, e.g. api://my-service
+  ```
+
+  PyJWT is the reference Python library; install `pyjwt[crypto]` to pick up the optional `cryptography` backend required for RS256/ES256/PS256 (verified 2026-05-01 against pyjwt.readthedocs.io). HS256 works with `pyjwt` alone.
+
+  ```python
+  import os
+  import jwt                                       # PyJWT >= 2.10
+  from jwt import PyJWKClient
+  from jwt.exceptions import (
+      InvalidTokenError, ExpiredSignatureError, InvalidSignatureError,
+      InvalidAudienceError, InvalidIssuerError, MissingRequiredClaimError,
+      ImmatureSignatureError,
+  )
+  ```
+
+  HS256 secret strength matters. RFC 8725 §3.5 (verified 2026-05-01) requires keys with entropy at least equal to the digest size — HS256 needs 256 bits (32 bytes). Generate with `secrets.token_bytes(32)`; never use a passphrase or short string. RS256 keys must be at least 2048 bits per RFC 8725 §3.5; 4096 is preferred for new deployments.
+
+  ## Algorithm whitelisting and the decode call
+
+  Every JWT validation in PyJWT goes through `jwt.decode(token, key, algorithms=[...], options=..., audience=..., issuer=...)`. The `algorithms` argument is required; passing an empty list or omitting it raises `DecodeError`. RFC 8725 §3.1 (verified 2026-05-01) is unambiguous: receivers must whitelist exactly the algorithms they accept and reject all others — including `none` and any algorithm that uses a different key type than the configured key.
+
+  ```python
+  def decode_hs256(token: str, secret: bytes) -> dict:
+      return jwt.decode(
+          token,
+          key=secret,
+          algorithms=["HS256"],            # whitelist — never accept the alg header's claim
+          options={"require": ["exp", "iss", "aud"]},
+          issuer=os.environ["JWT_EXPECTED_ISSUER"],
+          audience=os.environ["JWT_EXPECTED_AUDIENCE"],
+          leeway=30,                       # tolerate 30s of clock skew on exp/nbf
+      )
+  ```
+
+  PyJWT raises a typed exception per failure mode: `ExpiredSignatureError` (exp < now), `ImmatureSignatureError` (nbf > now), `InvalidIssuerError` (iss mismatch), `InvalidAudienceError` (aud mismatch), `MissingRequiredClaimError` (require list not satisfied), `InvalidSignatureError` (HMAC/RSA verify failed), and the parent `InvalidTokenError`. Catching `InvalidTokenError` covers all of them; catch the specific subclasses when you need to log distinct telemetry per failure mode.
+
+  ## RS256 and JWKS-driven key rotation
+
+  Asymmetric verification splits issuer and receiver: the issuer signs with a private key, the receiver verifies with the corresponding public key. The public key is published at a JWKS (JSON Web Key Set) URL, typically `<issuer>/.well-known/jwks.json`. The token's `kid` (key id) header tells the receiver which key in the set to use for verification — required because issuers rotate keys and publish multiple simultaneously during the rotation window.
+
+  PyJWT ships a `PyJWKClient` (verified 2026-05-01 against pyjwt.readthedocs.io) that fetches and caches the JWKS document and resolves `kid` to a signing key:
+
+  ```python
+  jwks_client = PyJWKClient(os.environ["JWT_RS256_JWKS_URI"])
+
+  def decode_rs256(token: str) -> dict:
+      signing_key = jwks_client.get_signing_key_from_jwt(token)   # JWKS lookup by kid
+      return jwt.decode(
+          token,
+          key=signing_key.key,
+          algorithms=["RS256"],
+          options={"require": ["exp", "iss", "aud"]},
+          issuer=os.environ["JWT_EXPECTED_ISSUER"],
+          audience=os.environ["JWT_EXPECTED_AUDIENCE"],
+          leeway=30,
+      )
+  ```
+
+  `PyJWKClient` caches keys by `kid` for a default 5 minutes; tokens signed with a key that's not yet in the cache trigger a re-fetch. If a token's `kid` is not in the cache or the JWKS document, the client raises `PyJWKClientError`. Catch it and reject the token — never bypass the lookup or accept an unsigned fallback.
+
+  ## Claim validation: exp, iss, aud, nbf, iat
+
+  PyJWT validates `exp`, `nbf`, and `iat` automatically when present, but does NOT validate `iss` or `aud` unless explicitly told to via the `issuer=` and `audience=` arguments. RFC 8725 §3.10–§3.12 (verified 2026-05-01) require all four to be checked on every receive. The defensive pattern uses `options={"require": ["exp", "iss", "aud"]}` so missing claims are rejected even if PyJWT would otherwise default-validate-as-missing.
+
+  - **`exp`** (expiration) — Unix seconds; reject if `exp <= now()`. PyJWT default leeway is 0; use `leeway=30` to tolerate small clock skew on receivers.
+  - **`nbf`** (not-before) — Unix seconds; reject if `nbf > now()`. Same leeway treatment.
+  - **`iat`** (issued-at) — Unix seconds; informational. Reject tokens with `iat` from the future.
+  - **`iss`** (issuer) — must match `JWT_EXPECTED_ISSUER` exactly. Cross-issuer substitution attacks (RFC 8725 §3.12) get blocked here.
+  - **`aud`** (audience) — must match `JWT_EXPECTED_AUDIENCE`. Tokens issued for a different relying party of the same identity provider get rejected here. PyJWT accepts a list for `audience=`; the token's `aud` claim (which can itself be a string or list per RFC 7519 §4.1.3) must intersect the expected set.
+
+  Tokens lacking `exp` should be rejected categorically — a JWT without an expiration is a bearer token forever, and revocation requires a server-side block list which defeats the stateless point of JWT.
+
+  ## End-to-end example: FastAPI dependency for HS256 JWT validation
+
+  The case-space coverage: valid token, expired token, invalid signature — three paths in one FastAPI dependency. The dependency raises `HTTPException` on any failure; FastAPI translates that to the appropriate status code, and the route handler only ever runs with a verified payload.
+
+  ```python
+  import os
+  import jwt
+  from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
+  from fastapi import Depends, FastAPI, HTTPException, Request
+  from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+  app = FastAPI()
+  bearer_scheme = HTTPBearer(auto_error=False)
+  HS256_SECRET = os.environ["JWT_HS256_SECRET"].encode("utf-8")
+  EXPECTED_ISS = os.environ["JWT_EXPECTED_ISSUER"]
+  EXPECTED_AUD = os.environ["JWT_EXPECTED_AUDIENCE"]
+
+  async def verified_jwt(
+      credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+  ) -> dict:
+      # PATH 1: missing or non-bearer header → 401
+      if credentials is None or credentials.scheme.lower() != "bearer":
+          raise HTTPException(status_code=401, detail="missing bearer token")
+      try:
+          claims = jwt.decode(
+              credentials.credentials,
+              key=HS256_SECRET,
+              algorithms=["HS256"],
+              options={"require": ["exp", "iss", "aud"]},
+              issuer=EXPECTED_ISS,
+              audience=EXPECTED_AUD,
+              leeway=30,
+          )
+      # PATH 2: expired token → 401 with specific detail (operator can distinguish in logs)
+      except ExpiredSignatureError:
+          raise HTTPException(status_code=401, detail="token expired")
+      # PATH 3: invalid signature OR any other validation failure → 401, single response shape
+      except (InvalidSignatureError, InvalidTokenError):
+          raise HTTPException(status_code=401, detail="invalid token")
+      return claims
+
+  @app.get("/me")
+  async def me(claims: dict = Depends(verified_jwt)) -> dict:
+      return {"sub": claims["sub"], "iss": claims["iss"]}
+  ```
+
+  Returning a single 401 status for all signature/claim failures avoids enumeration: an attacker probing the endpoint cannot distinguish "expired" from "wrong audience" from "invalid signature" via response codes alone. The detail string is for operator logs, not for the client UI.
+
+  ## Verification checklist
+
+  Mechanical checks for any PyJWT receiver in a FastAPI app:
+
+  - [ ] Every `jwt.decode` call passes a non-empty `algorithms=[...]` list. `grep -nE 'jwt\.decode\(' src/ | grep -v 'algorithms=' returns nothing` — every decode site explicitly whitelists.
+  - [ ] No call site allows `none` as an algorithm. `grep -rnE 'algorithms\s*=\s*\[[^]]*none' src/` returns nothing (case-insensitive).
+  - [ ] HS256 secret is loaded from environment as bytes, not hard-coded. `grep -rn 'JWT_HS256_SECRET' src/` shows env reads; literal multi-byte secrets do not appear in source.
+  - [ ] Required claims include `exp` and `iss` and `aud`. `grep -rnE 'options\s*=\s*\{[^}]*require' src/` returns each decode site; review each match for the three claim names.
+  - [ ] `issuer=` and `audience=` arguments are passed on every decode site. `grep -nE 'issuer\s*=' src/` and `grep -nE 'audience\s*=' src/` each return at least one hit per JWT-handling module.
+  - [ ] RS256 key resolution uses `PyJWKClient` (or equivalent JWKS client), not a hard-coded public key. `grep -rn 'PyJWKClient\|get_signing_key_from_jwt' src/` returns hits in any RS256 path; `grep -rn 'BEGIN PUBLIC KEY' src/` returns nothing in source files.
+  - [ ] Failure paths return 401 (not 200, not 500). Inspect each `except.*InvalidTokenError\|ExpiredSignatureError\|InvalidSignatureError` block: response status must be 401, never 200.
+  - [ ] Failure responses do not enumerate the failure cause to clients. `grep -B2 -A8 'ExpiredSignatureError\|InvalidSignatureError' src/` — operator detail strings can differ, but the HTTP status and visible body must be uniform.
+  - [ ] Clock skew leeway is bounded and explicit. `grep -nE 'leeway\s*=' src/` returns hits ≤ 60 (seconds); larger leeway values are tagged for review.
+  - [ ] No code path treats the token's `alg` header as authoritative for selecting the verification key. The receiver picks the algorithm; the token does not.
+
+  ## Guardrails: never do these
+
+  These are the lines you do not cross when validating JWTs. Each item below has bitten production systems; the execution and example sections show the right shape.
+
+  - Never call `jwt.decode(token, key)` without `algorithms=[...]`. PyJWT 2.x requires it; older code that omitted it accepted whatever the token's `alg` header claimed — including `none` or an attacker-chosen algorithm. RFC 8725 §3.1 makes algorithm whitelisting normative.
+  - Never include `none` in the algorithm whitelist. The `none` algorithm produces a token with no signature; accepting it accepts any forged token. There is no legitimate use case for `none` on a receiver.
+  - Never accept HS256 and RS256 simultaneously with the same configured key. The classic algorithm-confusion attack signs an HS256 token using the issuer's RS256 public key as the HMAC secret; if the receiver tries HS256 with that public key as the secret, it validates. Per scheme, one whitelist with one matching key.
+  - Never trust the `kid` header to resolve to a local file path or arbitrary URL. `kid` is an opaque identifier scoped to the issuer's JWKS; treat it as a lookup key, never as a filesystem or network resource. `PyJWKClient` does this correctly.
+  - Never skip claim validation. `exp` is non-optional. `iss` and `aud` must match server expectations. Tokens lacking `exp` are forever-valid bearer tokens; tokens with mismatched `iss` come from the wrong identity provider; tokens with mismatched `aud` were minted for a different relying party.
+  - Never reuse a JWT as a long-lived API key. JWTs are designed for short-lived authorization (minutes to hours). If you need long-lived credentials, issue an opaque API key with server-side revocation; do not extend `exp` for convenience.
+  - Never log full JWT tokens at info level. The token grants the bearer the rights it carries; logs are a credential exfiltration surface. Log the `sub` claim and the first 8 chars of the signature for correlation; redact the rest.
+  - Never use a passphrase or short string as the HS256 secret. RFC 8725 §3.5 requires entropy ≥ digest size — 256 bits (32 bytes) for HS256. Use `secrets.token_bytes(32)` at issuance and store as raw bytes.
+  - Never hard-code RSA public keys in source for production. JWKS endpoints exist so issuers can rotate keys without coordinated deploys; pinning the public key to a source file means rotation requires a deploy, which means rotations get postponed, which means key compromise stays exploitable longer. Use `PyJWKClient`.
+  - Never enumerate failure causes to unauthenticated clients. "Token expired" is a different attacker signal than "invalid signature"; respond with a uniform 401 body and put the detail in operator logs.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      ## Why this skill exists
+
+      JWT validation patterns center on three procedures: algorithm whitelisting on the receiver (never trust the token's `alg` header), full claim validation (`exp`, `iss`, `aud`, `nbf`), and disciplined key management (sufficient HS256 secret entropy, JWKS rotation for RS256). Skip any of the three and the signature check becomes security theatre — the token validates but the receiver still accepts forged or replayed tokens.
+
+      This skill is PyJWT-flavored (PyJWT 2.x) because the Python ecosystem's reference library exposes algorithm enforcement, claim validation, and exception taxonomy as first-class arguments — there is no "right" way to use it without those arguments set, and most JWT vulnerabilities in the wild come from receivers that omit them.
+
+      Use this skill when accepting JWTs from any source (frontend SPAs, mobile apps, B2B partners, internal services); reviewing existing JWT validation code for the algorithm-confusion family of attacks (RFC 8725); or implementing a new authentication middleware that must reject expired, foreign-issued, or wrong-audience tokens.
+
+      The skill covers receiver-side validation only. JWT issuance (key generation, signing, claim selection) is a separate concern handled by the identity provider; pair this skill with the identity provider's documentation when the same service does both.
+
+  - sequence: 2
+    fragment_type: setup
+    content: |
+      ## Setup: environment, imports, secret strength
+
+      HS256 receivers carry a shared secret with the issuer; RS256 receivers carry the issuer's public key (or fetch it from a JWKS endpoint). Required env vars per scheme:
+
+      ```
+      JWT_HS256_SECRET=...         # HMAC shared secret — minimum 32 bytes random
+      JWT_RS256_JWKS_URI=...       # https URL to issuer's JWKS document
+      JWT_EXPECTED_ISSUER=...      # iss claim value to require, e.g. https://issuer.example
+      JWT_EXPECTED_AUDIENCE=...    # aud claim value to require, e.g. api://my-service
+      ```
+
+      PyJWT is the reference Python library; install `pyjwt[crypto]` to pick up the optional `cryptography` backend required for RS256/ES256/PS256 (verified 2026-05-01 against pyjwt.readthedocs.io). HS256 works with `pyjwt` alone.
+
+      ```python
+      import os
+      import jwt                                       # PyJWT >= 2.10
+      from jwt import PyJWKClient
+      from jwt.exceptions import (
+          InvalidTokenError, ExpiredSignatureError, InvalidSignatureError,
+          InvalidAudienceError, InvalidIssuerError, MissingRequiredClaimError,
+          ImmatureSignatureError,
+      )
+      ```
+
+      HS256 secret strength matters. RFC 8725 §3.5 (verified 2026-05-01) requires keys with entropy at least equal to the digest size — HS256 needs 256 bits (32 bytes). Generate with `secrets.token_bytes(32)`; never use a passphrase or short string. RS256 keys must be at least 2048 bits per RFC 8725 §3.5; 4096 is preferred for new deployments.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## Algorithm whitelisting and the decode call
+
+      Every JWT validation in PyJWT goes through `jwt.decode(token, key, algorithms=[...], options=..., audience=..., issuer=...)`. The `algorithms` argument is required; passing an empty list or omitting it raises `DecodeError`. RFC 8725 §3.1 (verified 2026-05-01) is unambiguous: receivers must whitelist exactly the algorithms they accept and reject all others — including `none` and any algorithm that uses a different key type than the configured key.
+
+      ```python
+      def decode_hs256(token: str, secret: bytes) -> dict:
+          return jwt.decode(
+              token,
+              key=secret,
+              algorithms=["HS256"],            # whitelist — never accept the alg header's claim
+              options={"require": ["exp", "iss", "aud"]},
+              issuer=os.environ["JWT_EXPECTED_ISSUER"],
+              audience=os.environ["JWT_EXPECTED_AUDIENCE"],
+              leeway=30,                       # tolerate 30s of clock skew on exp/nbf
+          )
+      ```
+
+      PyJWT raises a typed exception per failure mode: `ExpiredSignatureError` (exp < now), `ImmatureSignatureError` (nbf > now), `InvalidIssuerError` (iss mismatch), `InvalidAudienceError` (aud mismatch), `MissingRequiredClaimError` (require list not satisfied), `InvalidSignatureError` (HMAC/RSA verify failed), and the parent `InvalidTokenError`. Catching `InvalidTokenError` covers all of them; catch the specific subclasses when you need to log distinct telemetry per failure mode.
+
+  - sequence: 4
+    fragment_type: execution
+    content: |
+      ## RS256 and JWKS-driven key rotation
+
+      Asymmetric verification splits issuer and receiver: the issuer signs with a private key, the receiver verifies with the corresponding public key. The public key is published at a JWKS (JSON Web Key Set) URL, typically `<issuer>/.well-known/jwks.json`. The token's `kid` (key id) header tells the receiver which key in the set to use for verification — required because issuers rotate keys and publish multiple simultaneously during the rotation window.
+
+      PyJWT ships a `PyJWKClient` (verified 2026-05-01 against pyjwt.readthedocs.io) that fetches and caches the JWKS document and resolves `kid` to a signing key:
+
+      ```python
+      jwks_client = PyJWKClient(os.environ["JWT_RS256_JWKS_URI"])
+
+      def decode_rs256(token: str) -> dict:
+          signing_key = jwks_client.get_signing_key_from_jwt(token)   # JWKS lookup by kid
+          return jwt.decode(
+              token,
+              key=signing_key.key,
+              algorithms=["RS256"],
+              options={"require": ["exp", "iss", "aud"]},
+              issuer=os.environ["JWT_EXPECTED_ISSUER"],
+              audience=os.environ["JWT_EXPECTED_AUDIENCE"],
+              leeway=30,
+          )
+      ```
+
+      `PyJWKClient` caches keys by `kid` for a default 5 minutes; tokens signed with a key that's not yet in the cache trigger a re-fetch. If a token's `kid` is not in the cache or the JWKS document, the client raises `PyJWKClientError`. Catch it and reject the token — never bypass the lookup or accept an unsigned fallback.
+
+  - sequence: 5
+    fragment_type: execution
+    content: |
+      ## Claim validation: exp, iss, aud, nbf, iat
+
+      PyJWT validates `exp`, `nbf`, and `iat` automatically when present, but does NOT validate `iss` or `aud` unless explicitly told to via the `issuer=` and `audience=` arguments. RFC 8725 §3.10–§3.12 (verified 2026-05-01) require all four to be checked on every receive. The defensive pattern uses `options={"require": ["exp", "iss", "aud"]}` so missing claims are rejected even if PyJWT would otherwise default-validate-as-missing.
+
+      - **`exp`** (expiration) — Unix seconds; reject if `exp <= now()`. PyJWT default leeway is 0; use `leeway=30` to tolerate small clock skew on receivers.
+      - **`nbf`** (not-before) — Unix seconds; reject if `nbf > now()`. Same leeway treatment.
+      - **`iat`** (issued-at) — Unix seconds; informational. Reject tokens with `iat` from the future.
+      - **`iss`** (issuer) — must match `JWT_EXPECTED_ISSUER` exactly. Cross-issuer substitution attacks (RFC 8725 §3.12) get blocked here.
+      - **`aud`** (audience) — must match `JWT_EXPECTED_AUDIENCE`. Tokens issued for a different relying party of the same identity provider get rejected here. PyJWT accepts a list for `audience=`; the token's `aud` claim (which can itself be a string or list per RFC 7519 §4.1.3) must intersect the expected set.
+
+      Tokens lacking `exp` should be rejected categorically — a JWT without an expiration is a bearer token forever, and revocation requires a server-side block list which defeats the stateless point of JWT.
+
+  - sequence: 6
+    fragment_type: example
+    content: |
+      ## End-to-end example: FastAPI dependency for HS256 JWT validation
+
+      The case-space coverage: valid token, expired token, invalid signature — three paths in one FastAPI dependency. The dependency raises `HTTPException` on any failure; FastAPI translates that to the appropriate status code, and the route handler only ever runs with a verified payload.
+
+      ```python
+      import os
+      import jwt
+      from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError, InvalidTokenError
+      from fastapi import Depends, FastAPI, HTTPException, Request
+      from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
+      app = FastAPI()
+      bearer_scheme = HTTPBearer(auto_error=False)
+      HS256_SECRET = os.environ["JWT_HS256_SECRET"].encode("utf-8")
+      EXPECTED_ISS = os.environ["JWT_EXPECTED_ISSUER"]
+      EXPECTED_AUD = os.environ["JWT_EXPECTED_AUDIENCE"]
+
+      async def verified_jwt(
+          credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+      ) -> dict:
+          # PATH 1: missing or non-bearer header → 401
+          if credentials is None or credentials.scheme.lower() != "bearer":
+              raise HTTPException(status_code=401, detail="missing bearer token")
+          try:
+              claims = jwt.decode(
+                  credentials.credentials,
+                  key=HS256_SECRET,
+                  algorithms=["HS256"],
+                  options={"require": ["exp", "iss", "aud"]},
+                  issuer=EXPECTED_ISS,
+                  audience=EXPECTED_AUD,
+                  leeway=30,
+              )
+          # PATH 2: expired token → 401 with specific detail (operator can distinguish in logs)
+          except ExpiredSignatureError:
+              raise HTTPException(status_code=401, detail="token expired")
+          # PATH 3: invalid signature OR any other validation failure → 401, single response shape
+          except (InvalidSignatureError, InvalidTokenError):
+              raise HTTPException(status_code=401, detail="invalid token")
+          return claims
+
+      @app.get("/me")
+      async def me(claims: dict = Depends(verified_jwt)) -> dict:
+          return {"sub": claims["sub"], "iss": claims["iss"]}
+      ```
+
+      Returning a single 401 status for all signature/claim failures avoids enumeration: an attacker probing the endpoint cannot distinguish "expired" from "wrong audience" from "invalid signature" via response codes alone. The detail string is for operator logs, not for the client UI.
+
+  - sequence: 7
+    fragment_type: verification
+    content: |
+      ## Verification checklist
+
+      Mechanical checks for any PyJWT receiver in a FastAPI app:
+
+      - [ ] Every `jwt.decode` call passes a non-empty `algorithms=[...]` list. `grep -nE 'jwt\.decode\(' src/ | grep -v 'algorithms=' returns nothing` — every decode site explicitly whitelists.
+      - [ ] No call site allows `none` as an algorithm. `grep -rnE 'algorithms\s*=\s*\[[^]]*none' src/` returns nothing (case-insensitive).
+      - [ ] HS256 secret is loaded from environment as bytes, not hard-coded. `grep -rn 'JWT_HS256_SECRET' src/` shows env reads; literal multi-byte secrets do not appear in source.
+      - [ ] Required claims include `exp` and `iss` and `aud`. `grep -rnE 'options\s*=\s*\{[^}]*require' src/` returns each decode site; review each match for the three claim names.
+      - [ ] `issuer=` and `audience=` arguments are passed on every decode site. `grep -nE 'issuer\s*=' src/` and `grep -nE 'audience\s*=' src/` each return at least one hit per JWT-handling module.
+      - [ ] RS256 key resolution uses `PyJWKClient` (or equivalent JWKS client), not a hard-coded public key. `grep -rn 'PyJWKClient\|get_signing_key_from_jwt' src/` returns hits in any RS256 path; `grep -rn 'BEGIN PUBLIC KEY' src/` returns nothing in source files.
+      - [ ] Failure paths return 401 (not 200, not 500). Inspect each `except.*InvalidTokenError\|ExpiredSignatureError\|InvalidSignatureError` block: response status must be 401, never 200.
+      - [ ] Failure responses do not enumerate the failure cause to clients. `grep -B2 -A8 'ExpiredSignatureError\|InvalidSignatureError' src/` — operator detail strings can differ, but the HTTP status and visible body must be uniform.
+      - [ ] Clock skew leeway is bounded and explicit. `grep -nE 'leeway\s*=' src/` returns hits ≤ 60 (seconds); larger leeway values are tagged for review.
+      - [ ] No code path treats the token's `alg` header as authoritative for selecting the verification key. The receiver picks the algorithm; the token does not.
+
+  - sequence: 8
+    fragment_type: guardrail
+    content: |
+      ## Guardrails: never do these
+
+      These are the lines you do not cross when validating JWTs. Each item below has bitten production systems; the execution and example sections show the right shape.
+
+      - Never call `jwt.decode(token, key)` without `algorithms=[...]`. PyJWT 2.x requires it; older code that omitted it accepted whatever the token's `alg` header claimed — including `none` or an attacker-chosen algorithm. RFC 8725 §3.1 makes algorithm whitelisting normative.
+      - Never include `none` in the algorithm whitelist. The `none` algorithm produces a token with no signature; accepting it accepts any forged token. There is no legitimate use case for `none` on a receiver.
+      - Never accept HS256 and RS256 simultaneously with the same configured key. The classic algorithm-confusion attack signs an HS256 token using the issuer's RS256 public key as the HMAC secret; if the receiver tries HS256 with that public key as the secret, it validates. Per scheme, one whitelist with one matching key.
+      - Never trust the `kid` header to resolve to a local file path or arbitrary URL. `kid` is an opaque identifier scoped to the issuer's JWKS; treat it as a lookup key, never as a filesystem or network resource. `PyJWKClient` does this correctly.
+      - Never skip claim validation. `exp` is non-optional. `iss` and `aud` must match server expectations. Tokens lacking `exp` are forever-valid bearer tokens; tokens with mismatched `iss` come from the wrong identity provider; tokens with mismatched `aud` were minted for a different relying party.
+      - Never reuse a JWT as a long-lived API key. JWTs are designed for short-lived authorization (minutes to hours). If you need long-lived credentials, issue an opaque API key with server-side revocation; do not extend `exp` for convenience.
+      - Never log full JWT tokens at info level. The token grants the bearer the rights it carries; logs are a credential exfiltration surface. Log the `sub` claim and the first 8 chars of the signature for correlation; redact the rest.
+      - Never use a passphrase or short string as the HS256 secret. RFC 8725 §3.5 requires entropy ≥ digest size — 256 bits (32 bytes) for HS256. Use `secrets.token_bytes(32)` at issuance and store as raw bytes.
+      - Never hard-code RSA public keys in source for production. JWKS endpoints exist so issuers can rotate keys without coordinated deploys; pinning the public key to a source file means rotation requires a deploy, which means rotations get postponed, which means key compromise stays exploitable longer. Use `PyJWKClient`.
+      - Never enumerate failure causes to unauthenticated clients. "Token expired" is a different attacker signal than "invalid signature"; respond with a uniform 401 body and put the detail in operator logs.

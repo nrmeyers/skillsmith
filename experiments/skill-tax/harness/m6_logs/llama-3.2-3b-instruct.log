@@ -1,0 +1,46 @@
+=== 13:49:22 START llama-3.2-3b-instruct (M6 SHOW_SEED=1) ===
+Unloading "qwen2.5-coder-3b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[K[?25hModel loaded successfully in 2.61s.
+(5.99 GiB)
+To use the model in the API/SDK, use the identifier "llama-3.2-3b-instruct".
+--- Frag arms (T3a/T3b/T4 ×3 ×3) with seed injected ---
+trial=4e3a3807-e418-4f1b-b641-dbbd7b1d3a90 task=T3a arm=arm_a run=1 parses=False functional_pass=False frags=16 in_tok=9465 out_tok=835 lm_ms=113629 total_ms=114328
+trial=9b9f963f-11ce-4c63-93dc-1de9c6d48cf8 task=T3a arm=arm_a run=2 parses=False functional_pass=False frags=16 in_tok=9465 out_tok=835 lm_ms=97692 total_ms=98385
+trial=4f515ed9-ec37-4df7-bd6d-90aff2f4f103 task=T3a arm=arm_a run=3 parses=False functional_pass=False frags=16 in_tok=9465 out_tok=835 lm_ms=99077 total_ms=99784
+trial=7996345a-43f9-4562-8acf-54486887198a task=T3a arm=arm_b run=1 parses=False functional_pass=False frags=12 in_tok=7802 out_tok=462 lm_ms=65942 total_ms=66640
+trial=73484b55-805a-4f50-91d9-9ac97e0ef5b7 task=T3a arm=arm_b run=2 parses=False functional_pass=False frags=12 in_tok=7802 out_tok=462 lm_ms=51897 total_ms=52660
+trial=28406725-5b6b-46dd-8b4e-f16414d952ef task=T3a arm=arm_b run=3 parses=False functional_pass=False frags=12 in_tok=7802 out_tok=462 lm_ms=52991 total_ms=53683
+trial=9395cdb9-67e1-424e-9c26-f16c595d7431 task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=5185 out_tok=1722 lm_ms=197784 total_ms=198505
+trial=7c62c390-b11c-461d-89f7-1198319e717e task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=5185 out_tok=904 lm_ms=101785 total_ms=102498
+trial=f823a3e6-db37-4f0a-b364-b4a7ae2f09f1 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=5185 out_tok=904 lm_ms=103281 total_ms=103986
+trial=c942cb84-5426-4397-bcc4-182943ce7fed task=T3b arm=arm_a run=1 parses=False functional_pass=False frags=24 in_tok=13179 out_tok=616 lm_ms=110405 total_ms=111515
+trial=832450c5-d916-4436-ba85-d7e38544f5af task=T3b arm=arm_a run=2 parses=False functional_pass=False frags=24 in_tok=13179 out_tok=616 lm_ms=71648 total_ms=72448
+trial=8a24618a-eeb3-44f7-bce5-af30a2308de5 task=T3b arm=arm_a run=3 parses=False functional_pass=False frags=24 in_tok=13179 out_tok=616 lm_ms=75638 total_ms=76431
+trial=59ca6573-8a25-4c4b-9b78-bea05f0c26b0 task=T3b arm=arm_b run=1 parses=False functional_pass=False frags=18 in_tok=10699 out_tok=927 lm_ms=131429 total_ms=132238
+trial=7a54d6c6-438c-4b06-9d55-1afdc19ff255 task=T3b arm=arm_b run=2 parses=False functional_pass=False frags=18 in_tok=10699 out_tok=927 lm_ms=111349 total_ms=112154
+trial=bf195a4d-1637-4b47-8b55-f42d9647c071 task=T3b arm=arm_b run=3 parses=False functional_pass=False frags=18 in_tok=10699 out_tok=927 lm_ms=111838 total_ms=112591
+trial=ad3f002d-140b-4b91-a94e-976a68dfaced task=T3b arm=arm_c run=1 parses=False functional_pass=False frags=12 in_tok=6848 out_tok=903 lm_ms=105653 total_ms=106453
+trial=479ec88d-65eb-46e4-afec-4eaa9193d7aa task=T3b arm=arm_c run=2 parses=False functional_pass=False frags=12 in_tok=6848 out_tok=903 lm_ms=103961 total_ms=104770
+trial=1ead625e-fb8f-4960-ac1f-283ff2b75b64 task=T3b arm=arm_c run=3 parses=False functional_pass=False frags=12 in_tok=6848 out_tok=903 lm_ms=105212 total_ms=106023
+trial=738c4fbf-bd5b-4af4-a088-0ffd88fb7198 task=T4 arm=arm_a run=1 parses=False functional_pass=False frags=8 in_tok=5105 out_tok=350 lm_ms=39804 total_ms=40548
+trial=5a3ae087-68fb-49c0-a6bd-045ca99bd2e5 task=T4 arm=arm_a run=2 parses=False functional_pass=False frags=8 in_tok=5105 out_tok=350 lm_ms=38863 total_ms=39495
+trial=53ed7890-7b1c-4ff7-88a4-48b66a6eea6b task=T4 arm=arm_a run=3 parses=False functional_pass=False frags=8 in_tok=5105 out_tok=350 lm_ms=39164 total_ms=39859
+trial=ab72bd7d-5af4-4628-9df9-7d0c1305781c task=T4 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=4309 out_tok=959 lm_ms=108996 total_ms=109620
+trial=db597f06-7b33-4347-bf60-822c5d8c5afa task=T4 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=4309 out_tok=959 lm_ms=107372 total_ms=108013
+trial=5793628d-4e95-498a-9f58-68c4ae5655f1 task=T4 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=4309 out_tok=959 lm_ms=108046 total_ms=108806
+trial=42d00983-c0fc-4181-8570-e4dd7b854837 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=3052 out_tok=947 lm_ms=104943 total_ms=105585
+trial=32e0040c-fc2d-425f-b975-9bacdbb3c13f task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=3052 out_tok=947 lm_ms=104370 total_ms=105059
+trial=9bd971c5-d109-4a5e-af73-e80a7ed48bd6 task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=3052 out_tok=947 lm_ms=103838 total_ms=104582
+--- Baseline (T3a/T3b/T4 ×3) with seed injected ---
+trial=bd4e0d5f-9f8c-415c-95c0-fe1e651a71f5 task=T3a arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1992 out_tok=1556 lm_ms=170806 total_ms=171271
+trial=bba9f1ee-6e0a-44e9-8af6-53713344b95c task=T3a arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1992 out_tok=1556 lm_ms=170247 total_ms=170726
+trial=ff9c6872-aae1-4e7d-a189-e82384ea8065 task=T3a arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1992 out_tok=1556 lm_ms=170051 total_ms=170526
+trial=fb8c54bd-0ed8-4956-a228-c4aa82505bc2 task=T3b arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=2120 out_tok=896 lm_ms=98409 total_ms=99205
+trial=c673df88-6199-4c1f-ba37-1d72eac6bbe1 task=T3b arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=2120 out_tok=896 lm_ms=96784 total_ms=97570
+trial=2f96a443-2d3f-44ec-a12a-2aecccce2966 task=T3b arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=2120 out_tok=896 lm_ms=96407 total_ms=97197
+trial=3b4f5c1d-49b3-42f8-8e7c-20e76c6305a5 task=T4 arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1531 out_tok=292 lm_ms=31335 total_ms=31950
+trial=dfe4cb0d-4b6d-4be0-abbc-6cc238638c11 task=T4 arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1531 out_tok=292 lm_ms=30792 total_ms=31422
+trial=0192963d-b5c5-4ad1-b2bd-2407cf90d374 task=T4 arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1531 out_tok=292 lm_ms=30604 total_ms=31339
+=== 14:47:43 END llama-3.2-3b-instruct ===

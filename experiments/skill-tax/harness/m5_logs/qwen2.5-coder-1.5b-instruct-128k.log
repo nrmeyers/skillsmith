@@ -1,0 +1,147 @@
+=== 04:18:11 START qwen2.5-coder-1.5b-instruct-128k ===
+Unloading "llama-3.2-3b-instruct"...
+Unloading "text-embedding-qwen3-embedding-0.6b"...
+Unloaded 5 models.
+
+[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠧[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠇[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠏[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠋[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠧[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠇[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠏[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠋[K[?25hModel loaded successfully in 1.67s.
+(2.88 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-1.5b-instruct-128k".
+--- Q10 precheck (T1 arm_b ×10) ---
+trial=96ebbb19-91a7-4366-a1b5-d147de09b6c5 task=T1 arm=arm_b run=1 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=70b3d4bf-21de-4a4f-a94f-6760ca148998 task=T1 arm=arm_b run=2 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=bcc8d30c-4bf9-4144-bb67-c1d0c2fe82c9 task=T1 arm=arm_b run=3 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=97d2cf57-e33d-46d5-9d50-d36d4120fb1d task=T1 arm=arm_b run=4 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=4a465b95-23d6-4d33-9605-dcb8b3387c5b task=T1 arm=arm_b run=5 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=2eb1697a-3491-4c51-8b41-db3fd92d3219 task=T1 arm=arm_b run=6 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=b08140a5-bcbd-4d42-8a2a-f714cee028af task=T1 arm=arm_b run=7 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=da286313-8bb9-4ada-91ef-1366cb9fa455 task=T1 arm=arm_b run=8 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=a5cdb168-1981-4027-aa19-3f8dde5e3e71 task=T1 arm=arm_b run=9 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+trial=d7e13bac-d03e-4cc4-b470-b2efb6848691 task=T1 arm=arm_b run=10 parses=True functional_pass=False frags=6 in_tok=4079 out_tok=212
+--- Frag arms (T3a/T3b/T4 ×3 ×3) ---
+Traceback (most recent call last):
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py", line 103, in handle_request
+    return self._connection.handle_request(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 136, in handle_request
+    raise exc
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 106, in handle_request
+    ) = self._receive_response_headers(**kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 177, in _receive_response_headers
+    event = self._receive_event(timeout=timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_sync/http11.py", line 217, in _receive_event
+    data = self._network_stream.read(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_backends/sync.py", line 126, in read
+    with map_exceptions(exc_map):
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 245, in _post_json
+    resp = self._client.post(path, json=payload)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1144, in post
+    return self.request(
+           ^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+  File "/usr/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/nmeyers/dev/skillsmith/.venv/lib/python3.12/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ReadTimeout: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/nmeyers/dev/skillsmith/experiments/skill-tax/harness/run_trial.py", line 782, in <module>
+    f"lm_ms={_lm_ms} total_ms={_total_ms}"
+^^^^^^
+  File "/home/nmeyers/dev/skillsmith/experiments/skill-tax/harness/run_trial.py", line 666, in main
+    full_prompt = f"[SYSTEM]\n{system_msg}\n\n[USER]\n{user_msg}"
+                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 192, in chat_with_stats
+    data = self._post_json("/v1/chat/completions", payload)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 247, in _post_json
+    raise LMTimeout(str(e)) from e
+skillsmith.authoring.lm_client.LMTimeout: timed out
+=== 04:36:49 START qwen2.5-coder-1.5b-instruct-128k (skip_q10=1) ===
+Unloading "qwen2.5-coder-1.5b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠧[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠇[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠏[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠋[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[K[?25hModel loaded successfully in 930.00ms.
+(2.88 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-1.5b-instruct-128k".
+--- Q10 precheck SKIPPED (already in DB) ---
+--- Frag arms (T3a/T3b/T4 ×3 ×3) ---
+trial=d8898ff8-5c14-4feb-bc32-1230e4ddf5ba task=T3a arm=arm_a run=1 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=16384 lm_ms=928491 total_ms=929193
+trial=8eb054bf-1b85-4295-911a-68766aac35cf task=T3a arm=arm_a run=2 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=803 lm_ms=42286 total_ms=42964
+trial=68d89244-d306-4897-80d2-01b96bc7f16f task=T3a arm=arm_a run=3 parses=True functional_pass=False frags=16 in_tok=9123 out_tok=803 lm_ms=42241 total_ms=42913
+trial=a5816bcd-6864-4d91-af86-e20aa87d8c7b task=T3a arm=arm_b run=1 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=16384 lm_ms=902979 total_ms=904015
+trial=ebab37b2-b04e-4fd6-942d-43baa08c33c5 task=T3a arm=arm_b run=2 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=2048 lm_ms=106700 total_ms=107374
+trial=2b3069dc-c719-4a26-93a2-6797198e5858 task=T3a arm=arm_b run=3 parses=True functional_pass=False frags=12 in_tok=7428 out_tok=2048 lm_ms=106547 total_ms=107237
+trial=22b7ccde-3386-4d02-9efa-8e4bf72a6866 task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=4752 out_tok=14 lm_ms=1590 total_ms=2271
+trial=3462d272-825d-4863-a97f-16a434d8091e task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=4752 out_tok=14 lm_ms=761 total_ms=1448
+trial=8d46d760-8011-4f23-99ce-0c86ae7d5637 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=4752 out_tok=14 lm_ms=736 total_ms=1435
+trial=3af0dec4-e900-4702-9fb9-108b05030b9c task=T3b arm=arm_a run=1 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=2048 lm_ms=123690 total_ms=124183
+trial=8c90ee4d-82cc-47e8-bcf8-674301754bcf task=T3b arm=arm_a run=2 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=2048 lm_ms=110370 total_ms=110846
+trial=599d128e-bd02-4c24-ad38-f40a88536829 task=T3b arm=arm_a run=3 parses=True functional_pass=False frags=24 in_tok=12831 out_tok=2048 lm_ms=110402 total_ms=110890
+trial=02d51c7d-ee15-4ea3-9188-7bf647b456fa task=T3b arm=arm_b run=1 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=2048 lm_ms=118169 total_ms=118652
+trial=807478cb-5882-4ea7-89c4-9d90f4f51c3b task=T3b arm=arm_b run=2 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=2048 lm_ms=108559 total_ms=109045
+trial=d913d7e9-b580-462e-94bb-f3117ac27ee6 task=T3b arm=arm_b run=3 parses=True functional_pass=False frags=18 in_tok=10294 out_tok=2048 lm_ms=108219 total_ms=108708
+trial=22141d85-156c-4250-9b5d-fb3cb1e7c4e6 task=T3b arm=arm_c run=1 parses=False functional_pass=False frags=12 in_tok=6380 out_tok=93 lm_ms=4928 total_ms=5707
+trial=a94214d8-5093-4e6b-8df7-670c18161293 task=T3b arm=arm_c run=2 parses=False functional_pass=False frags=12 in_tok=6380 out_tok=93 lm_ms=4841 total_ms=5514
+trial=79c2f607-617a-4d06-9f96-98e0c8f55d2f task=T3b arm=arm_c run=3 parses=False functional_pass=False frags=12 in_tok=6380 out_tok=93 lm_ms=4991 total_ms=5767
+trial=9fe7e61b-0f2c-4ec2-b045-306ecf79df08 task=T4 arm=arm_a run=1 parses=True functional_pass=False frags=8 in_tok=4910 out_tok=393 lm_ms=20507 total_ms=21238
+trial=687d079d-41f7-41a8-a567-6aeb66abb989 task=T4 arm=arm_a run=2 parses=True functional_pass=False frags=8 in_tok=4910 out_tok=393 lm_ms=19823 total_ms=20563
+trial=da27756a-439b-446b-93ea-d935aa623b68 task=T4 arm=arm_a run=3 parses=True functional_pass=False frags=8 in_tok=4910 out_tok=393 lm_ms=19954 total_ms=20612
+trial=decb6dce-1a4a-464f-b0d8-e674834117b2 task=T4 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=4098 out_tok=18 lm_ms=2612 total_ms=3334
+trial=1d499e69-2be3-421c-b4e5-deb1ee863a8a task=T4 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=4098 out_tok=18 lm_ms=936 total_ms=1640
+trial=38d23cd0-2706-41bf-bb9d-1d6e14608cd9 task=T4 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=4098 out_tok=18 lm_ms=925 total_ms=1541
+trial=1a3e78f0-6c14-48a0-aaf0-e380acd8cbf1 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=2794 out_tok=25 lm_ms=1288 total_ms=2006
+trial=b2a84a1f-b965-4fba-992f-ba5ac143ff00 task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=2794 out_tok=18 lm_ms=931 total_ms=1650
+trial=384bca61-12b8-4d1a-a98f-d72ef9e61ea9 task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=2794 out_tok=18 lm_ms=923 total_ms=1596
+--- Baseline (T3a/T3b/T4 ×3) ---
+trial=630e50b6-45a2-4033-8da7-8a530ffd83fb task=T3a arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1466 out_tok=20 lm_ms=1711 total_ms=2376
+trial=250bf743-06c5-4698-ab5a-5473d5aae1f8 task=T3a arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1466 out_tok=20 lm_ms=992 total_ms=1665
+trial=215975c9-a219-44c5-a06e-f839761f3311 task=T3a arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1466 out_tok=20 lm_ms=991 total_ms=1689
+trial=0c7c1deb-bde0-44fd-8724-c078bf60c21f task=T3b arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1505 out_tok=142 lm_ms=7690 total_ms=8334
+trial=1d037eb4-ab02-45a1-87d9-49d8ca9cbea1 task=T3b arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1505 out_tok=142 lm_ms=6973 total_ms=7730
+trial=71e8f6e4-a5b3-474f-a899-d2badb648f87 task=T3b arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1505 out_tok=142 lm_ms=6984 total_ms=7734
+trial=cdaac647-c56a-40dc-9dc3-3ba1cf4ce074 task=T4 arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1204 out_tok=77 lm_ms=4302 total_ms=5008
+trial=8ac4b208-146a-40d6-8341-c489376d8f4a task=T4 arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1204 out_tok=77 lm_ms=3768 total_ms=4364
+trial=e5873281-5bd4-435c-90b8-d12162d8d633 task=T4 arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1204 out_tok=77 lm_ms=3867 total_ms=4590
+=== 05:26:15 END qwen2.5-coder-1.5b-instruct-128k ===

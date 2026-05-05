@@ -1,0 +1,46 @@
+=== 12:56:32 START qwen2.5-coder-3b-instruct-128k (M6 SHOW_SEED=1) ===
+Unloading "qwen2.5-coder-1.5b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading qwen2.5-coder-3b-instruct-128k ⠙[?25lLoading qwen2.5-coder-3b-instruct-128k ⠹[?25lLoading qwen2.5-coder-3b-instruct-128k ⠸[?25lLoading qwen2.5-coder-3b-instruct-128k ⠼[?25lLoading qwen2.5-coder-3b-instruct-128k ⠴[?25lLoading qwen2.5-coder-3b-instruct-128k ⠦[?25lLoading qwen2.5-coder-3b-instruct-128k ⠧[?25lLoading qwen2.5-coder-3b-instruct-128k ⠇[?25lLoading qwen2.5-coder-3b-instruct-128k ⠏[?25lLoading qwen2.5-coder-3b-instruct-128k ⠋[?25lLoading qwen2.5-coder-3b-instruct-128k ⠙[?25lLoading qwen2.5-coder-3b-instruct-128k ⠹[?25lLoading qwen2.5-coder-3b-instruct-128k ⠸[?25lLoading qwen2.5-coder-3b-instruct-128k ⠼[?25lLoading qwen2.5-coder-3b-instruct-128k ⠴[?25lLoading qwen2.5-coder-3b-instruct-128k ⠦[?25lLoading qwen2.5-coder-3b-instruct-128k ⠧[?25lLoading qwen2.5-coder-3b-instruct-128k ⠇[?25lLoading qwen2.5-coder-3b-instruct-128k ⠏[?25lLoading qwen2.5-coder-3b-instruct-128k ⠋[?25lLoading qwen2.5-coder-3b-instruct-128k ⠙[?25lLoading qwen2.5-coder-3b-instruct-128k ⠹[K[?25hModel loaded successfully in 1.82s.
+(5.75 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-3b-instruct-128k".
+--- Frag arms (T3a/T3b/T4 ×3 ×3) with seed injected ---
+trial=9152b2e1-3255-4b38-ba39-01706430448b task=T3a arm=arm_a run=1 parses=False functional_pass=False frags=16 in_tok=9650 out_tok=183 lm_ms=35677 total_ms=36376
+trial=8d1fb30d-36cc-495d-a5ca-fd339361fbef task=T3a arm=arm_a run=2 parses=False functional_pass=False frags=16 in_tok=9650 out_tok=183 lm_ms=17522 total_ms=18223
+trial=09764039-5d57-4864-aef3-4b003f253ba1 task=T3a arm=arm_a run=3 parses=False functional_pass=False frags=16 in_tok=9650 out_tok=183 lm_ms=17627 total_ms=18376
+trial=9d2fd0c4-421c-4398-a509-0dd4ef349ead task=T3a arm=arm_b run=1 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=193 lm_ms=32757 total_ms=33254
+trial=8c5cd33e-f8b3-43e3-8323-501c4878ed2e task=T3a arm=arm_b run=2 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=655 lm_ms=62716 total_ms=63190
+trial=a6d88f5f-bbf7-4e26-a180-3ce8623216a7 task=T3a arm=arm_b run=3 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=655 lm_ms=63004 total_ms=63482
+trial=a93e5896-38b0-427d-9375-b4d3d3648767 task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=2048 lm_ms=197075 total_ms=197771
+trial=0b25fabb-9664-467b-8439-7a4f2bf11d41 task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=2048 lm_ms=195509 total_ms=196211
+trial=e752ab2f-9878-4b03-b780-f71c1e255816 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=2048 lm_ms=194181 total_ms=194901
+trial=12fda416-418c-4077-a875-1324e1bb027f task=T3b arm=arm_a run=1 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=850 lm_ms=113086 total_ms=113589
+trial=aaca2e2a-8ea4-4322-b178-7418aa58da62 task=T3b arm=arm_a run=2 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=850 lm_ms=83900 total_ms=84392
+trial=a07dfcfa-bff0-48d9-ab8a-d4f9836543dc task=T3b arm=arm_a run=3 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=850 lm_ms=83859 total_ms=84355
+trial=fe43ef62-0c27-4968-9a55-ab1073c2d560 task=T3b arm=arm_b run=1 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=2048 lm_ms=222326 total_ms=222828
+trial=bd2bbde7-0091-4c5f-bdc9-25c9570b23e7 task=T3b arm=arm_b run=2 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=581 lm_ms=57904 total_ms=58398
+trial=57ac2fe0-2ae4-4590-bd6c-1825ab55de12 task=T3b arm=arm_b run=3 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=581 lm_ms=58474 total_ms=58967
+trial=3564d168-76fd-4d66-8b8a-0db216fcbf6d task=T3b arm=arm_c run=1 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=727 lm_ms=71972 total_ms=72782
+trial=dc8749ce-c727-485f-becb-43a68f230688 task=T3b arm=arm_c run=2 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=704 lm_ms=69850 total_ms=70644
+trial=884f4a95-2fd0-4ec5-b1b5-d70ef9cc6e67 task=T3b arm=arm_c run=3 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=727 lm_ms=72083 total_ms=72777
+trial=0857d50a-b22c-4a5c-83fa-acd8a0ef65f7 task=T4 arm=arm_a run=1 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=347 lm_ms=34963 total_ms=35618
+trial=beaa0acd-24ad-48c1-860c-71e1a3f24313 task=T4 arm=arm_a run=2 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=347 lm_ms=33356 total_ms=34096
+trial=e02983af-0def-4bef-b74e-886a25a30535 task=T4 arm=arm_a run=3 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=347 lm_ms=33484 total_ms=34160
+trial=716d9c79-a30c-400c-9b2a-ef78e4d6c251 task=T4 arm=arm_b run=1 parses=True functional_pass=True frags=6 in_tok=4434 out_tok=318 lm_ms=32033 total_ms=32727
+trial=ec1c7f87-e965-44be-85e9-94b94dfcd21e task=T4 arm=arm_b run=2 parses=True functional_pass=True frags=6 in_tok=4434 out_tok=318 lm_ms=30548 total_ms=31183
+trial=b7078f48-03e3-49e9-aa2b-749e6838e48f task=T4 arm=arm_b run=3 parses=True functional_pass=True frags=6 in_tok=4434 out_tok=318 lm_ms=30502 total_ms=31206
+trial=139aea8a-1b79-4022-9a63-86a786f543f5 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=1663 lm_ms=164109 total_ms=164733
+trial=a1845c2d-9572-407e-82ba-622fa050c010 task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=1426 lm_ms=141401 total_ms=142101
+trial=09bae417-5348-4076-b0bc-2d3d5c6f96fc task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=1301 lm_ms=129099 total_ms=129741
+--- Baseline (T3a/T3b/T4 ×3) with seed injected ---
+trial=b2e404f6-34ee-46a9-a13a-ce847b2cc47f task=T3a arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=894 lm_ms=88855 total_ms=89552
+trial=b70b088d-efe8-48d1-8001-bca500e5b22d task=T3a arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=895 lm_ms=87739 total_ms=88530
+trial=32775b05-0765-4e19-87da-6562e50eccb8 task=T3a arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=895 lm_ms=87704 total_ms=88382
+trial=bb3a568b-b9f5-45d5-9f50-269e773c6814 task=T3b arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=341 lm_ms=34198 total_ms=34999
+trial=c696a1b6-49d4-46f1-8587-94f0ab8911f9 task=T3b arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=130 lm_ms=11987 total_ms=13070
+trial=d3d24e98-d92c-4d81-a8c3-838cb2e1c1e0 task=T3b arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=130 lm_ms=12054 total_ms=12858
+trial=279f3b0a-10f7-4486-a1a2-673a5bb55bd5 task=T4 arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1540 out_tok=1497 lm_ms=147334 total_ms=147962
+trial=b5424ee7-1554-4be0-a465-a0cc7e3de784 task=T4 arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1540 out_tok=2010 lm_ms=199995 total_ms=200731
+trial=3e257213-62b0-45c9-b1c2-d54ea8f5b51d task=T4 arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1540 out_tok=1874 lm_ms=186208 total_ms=186951
+=== 13:49:22 END qwen2.5-coder-3b-instruct-128k ===

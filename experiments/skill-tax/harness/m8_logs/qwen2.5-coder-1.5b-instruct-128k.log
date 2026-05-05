@@ -1,0 +1,13 @@
+=== 16:14:33 START qwen2.5-coder-1.5b-instruct-128k (M8 arm_b_plus + review) ===
+No models to unload.
+
+[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠧[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠇[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠏[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠋[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[K[?25hModel loaded successfully in 974.00ms.
+(2.88 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-1.5b-instruct-128k".
+--- T1 arm_b_plus × 5 runs (with self-review pass) ---
+trial=ae9c8cdb-cec8-4166-bfe0-c1c9863e2424 task=T1 arm=arm_b_plus run=1 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=292 lm_ms=19586 total_ms=35583 review_lm_ms=15496 review_in_tok=5908 review_out_tok=287
+trial=0452b2b3-1fbe-433f-bd6b-524b03ff7dc6 task=T1 arm=arm_b_plus run=2 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=292 lm_ms=15029 total_ms=30865 review_lm_ms=15341 review_in_tok=5908 review_out_tok=287
+trial=6d723e43-91d2-4782-87ea-e936dc8281d8 task=T1 arm=arm_b_plus run=3 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=292 lm_ms=14975 total_ms=30747 review_lm_ms=15297 review_in_tok=5908 review_out_tok=287
+trial=e2090db7-846e-4af9-a9cf-6db939a57311 task=T1 arm=arm_b_plus run=4 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=292 lm_ms=14820 total_ms=30486 review_lm_ms=15169 review_in_tok=5908 review_out_tok=287
+trial=939d7cb4-4977-414e-b2f1-c191f05b5dff task=T1 arm=arm_b_plus run=5 parses=True functional_pass=False frags=10 in_tok=5386 out_tok=292 lm_ms=15016 total_ms=30762 review_lm_ms=15268 review_in_tok=5908 review_out_tok=287
+=== 16:17:18 END qwen2.5-coder-1.5b-instruct-128k ===

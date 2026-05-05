@@ -1,0 +1,420 @@
+$schema: task-fixture.v4
+task_id: T3b
+
+description: |
+  ## Task
+
+  Add a JWT-protected async endpoint at `GET /protected` to
+  `/workspace/app/main.py`. The route must:
+
+  1. Accept HS256 JWTs from the `Authorization: Bearer <token>`
+     header.
+  2. Validate the token's signature against the secret at
+     `os.environ["JWT_HS256_SECRET"]`, with the algorithm whitelist
+     restricted to `["HS256"]`.
+  3. Validate `exp`, `iss`, and `aud` claims. Required `iss` value
+     comes from `os.environ["JWT_EXPECTED_ISSUER"]`; required `aud`
+     from `os.environ["JWT_EXPECTED_AUDIENCE"]`.
+  4. Be implemented as an `async def` route function, with the JWT
+     validation expressed as a FastAPI dependency injected via
+     `Depends(...)`.
+  5. Return 200 with `{"sub": <subject>, "iss": <issuer>}` on a
+     valid token. Return 401 on any signature, claim, or
+     algorithm-whitelist failure.
+
+  The seed `app/main.py` carries the existing FastAPI app
+  construction with the lifespan context, the TrustedHost +
+  CORS middleware stack from T3a, and the included webhook router.
+  T3b extends that app with the protected endpoint and its
+  authentication dependency. The webhook handler and middleware
+  must remain functional after the modification — adding auth to
+  one route must not regress the others.
+
+  ## Do
+
+  - Add a `GET /protected` route to `/workspace/app/main.py`,
+    declared as `async def`.
+  - Implement a FastAPI dependency function (decorated with the
+    bearer-scheme dependency, e.g. `HTTPBearer(auto_error=False)`)
+    that resolves a verified JWT claims dict.
+  - Inject the dependency into `/protected` via `Depends(...)`.
+  - Inside the dependency, call `jwt.decode(...)` with
+    `algorithms=["HS256"]`, `options={"require": ["exp", "iss", "aud"]}`,
+    `issuer=...`, `audience=...`, and a small `leeway` value
+    (e.g., `leeway=30`).
+  - Return 200 with `{"sub": claims["sub"], "iss": claims["iss"]}`
+    on success.
+  - Map every JWT validation failure to HTTP 401.
+
+  ## Do not
+
+  - Do not put the JWT verification in middleware. The
+    fastapi-middleware-patterns guardrail is explicit:
+    authentication belongs in dependencies, not middleware.
+  - Do not include `none` in the `algorithms` whitelist. The
+    jwt-validation-patterns guardrail forbids it categorically.
+  - Do not accept HS256 and RS256 simultaneously with the same
+    configured key — that is the algorithm-confusion attack
+    described in the activated fragments.
+  - Do not enumerate failure causes to clients. The body returned
+    on auth failure must be uniform across signature, expiry,
+    audience, issuer, and missing-required-claim failures —
+    operator detail strings can differ in logs, but the
+    HTTP status and visible response body must not distinguish
+    failure modes to the requester.
+  - Do not modify `app/webhooks.py` or any file other than
+    `app/main.py`.
+  - Do not import any third-party library not already listed in
+    the pinned `pyproject.toml`.
+  - Do not add `HTTPSRedirectMiddleware`, rate limiting, or any
+    cross-cutting middleware not present in the seed; T3b's scope
+    is JWT auth on a single route, not a security-baseline
+    expansion.
+
+  ## Mechanical success criteria
+
+  - GET `/protected` with a valid HS256 JWT bearer token returns
+    200 with a body containing `sub` and `iss` fields populated
+    from the token's claims.
+  - GET `/protected` with an expired JWT returns 401.
+  - GET `/protected` with a JWT signed by a different secret
+    returns 401.
+  - GET `/protected` with a JWT whose `aud` claim does not match
+    the expected audience returns 401.
+  - GET `/protected` with no `Authorization` header returns 401.
+  - The webhook route from the seed (POST `/webhooks/stripe`)
+    continues to work — adding the protected endpoint does not
+    regress the webhook flow.
+  - The FastAPI app starts cleanly under uvicorn after the
+    modification.
+
+skills_activated:
+  - jwt-validation-patterns
+  - fastapi-middleware-patterns
+  - python-async-patterns
+
+app_skeleton:
+  seed_branch: pilot-seed/T3b
+  seed_files:
+    - pyproject.toml
+    - app/__init__.py
+    - app/main.py
+    - app/webhooks.py
+    - seed/test-secrets.env
+    - seed/test-host-config.yaml
+    - seed/test-jwt-config.yaml
+    - seed/fixtures/stripe-event.json
+
+arm_fragments:
+  arm_a:
+    - { skill_id: jwt-validation-patterns, sequence: 1 }
+    - { skill_id: jwt-validation-patterns, sequence: 2 }
+    - { skill_id: jwt-validation-patterns, sequence: 3 }
+    - { skill_id: jwt-validation-patterns, sequence: 4 }
+    - { skill_id: jwt-validation-patterns, sequence: 5 }
+    - { skill_id: jwt-validation-patterns, sequence: 6 }
+    - { skill_id: jwt-validation-patterns, sequence: 7 }
+    - { skill_id: jwt-validation-patterns, sequence: 8 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 1 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 6 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 7 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 8 }
+    - { skill_id: python-async-patterns, sequence: 1 }
+    - { skill_id: python-async-patterns, sequence: 2 }
+    - { skill_id: python-async-patterns, sequence: 3 }
+    - { skill_id: python-async-patterns, sequence: 4 }
+    - { skill_id: python-async-patterns, sequence: 5 }
+    - { skill_id: python-async-patterns, sequence: 6 }
+    - { skill_id: python-async-patterns, sequence: 7 }
+    - { skill_id: python-async-patterns, sequence: 8 }
+  arm_b:
+    - { skill_id: jwt-validation-patterns, sequence: 2 }
+    - { skill_id: jwt-validation-patterns, sequence: 3 }
+    - { skill_id: jwt-validation-patterns, sequence: 4 }
+    - { skill_id: jwt-validation-patterns, sequence: 5 }
+    - { skill_id: jwt-validation-patterns, sequence: 7 }
+    - { skill_id: jwt-validation-patterns, sequence: 8 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 7 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 8 }
+    - { skill_id: python-async-patterns, sequence: 2 }
+    - { skill_id: python-async-patterns, sequence: 3 }
+    - { skill_id: python-async-patterns, sequence: 4 }
+    - { skill_id: python-async-patterns, sequence: 5 }
+    - { skill_id: python-async-patterns, sequence: 7 }
+    - { skill_id: python-async-patterns, sequence: 8 }
+  arm_c:
+    - { skill_id: jwt-validation-patterns, sequence: 2 }
+    - { skill_id: jwt-validation-patterns, sequence: 3 }
+    - { skill_id: jwt-validation-patterns, sequence: 4 }
+    - { skill_id: jwt-validation-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+    - { skill_id: python-async-patterns, sequence: 2 }
+    - { skill_id: python-async-patterns, sequence: 3 }
+    - { skill_id: python-async-patterns, sequence: 4 }
+    - { skill_id: python-async-patterns, sequence: 5 }
+  baseline: []
+
+# Order matters: webhook-still-works (#7) is informational and must
+# run after the protected-route checks have completed without
+# corrupting state. All other checks are independent.
+mechanical_checks:
+
+  - id: app-starts
+    type: app_starts
+    timeout_s: 15
+
+  - id: protected-valid-jwt-200
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+        Authorization: Bearer ${jwt_hs256_valid}
+    expect:
+      status: 200
+      body_json_matches:
+        sub: pilot-test-user
+
+  - id: protected-expired-jwt-401
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+        Authorization: Bearer ${jwt_hs256_expired}
+    expect:
+      status: 401
+
+  - id: protected-bad-sig-jwt-401
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+        Authorization: Bearer ${jwt_hs256_bad_sig}
+    expect:
+      status: 401
+
+  - id: protected-wrong-aud-jwt-401
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+        Authorization: Bearer ${jwt_hs256_wrong_aud}
+    expect:
+      status: 401
+
+  - id: protected-no-auth-header-401
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+    expect:
+      status: 401
+
+  - id: webhook-still-works
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Host: api.example.com
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        received: true
+
+  - id: failure-bodies-are-uniform
+    type: http
+    request:
+      method: GET
+      path: /protected
+      headers:
+        Host: api.example.com
+        Authorization: Bearer not-a-jwt-at-all
+    expect:
+      # Malformed token → 401, same uniform body shape as the typed
+      # failures above. The harness will additionally compare the
+      # response body bytes across the four 401 cases (expired,
+      # bad-sig, wrong-aud, no-auth, malformed) and flag any case
+      # where the body string differs from the others as a
+      # failure-mode-enumeration leak. Captured as a faithfulness
+      # item rather than a hard mechanical assertion because some
+      # FastAPI defaults (e.g., the auto-generated WWW-Authenticate
+      # challenge) carry small non-secret-leaking variations.
+      status: 401
+
+  - id: only-main-modified
+    type: diff
+    expect:
+      file_changes_min: 1
+      file_changes_max: 1
+      files_touched:
+        - app/main.py
+      files_must_touch:
+        - app/main.py
+
+  - id: no-foreign-imports
+    type: diff_imports
+    file: app/main.py
+    expect:
+      forbidden_imports:
+        - redis
+        - cachetools
+        - functools.lru_cache
+      # T3b NEEDS pyjwt (the JWT library), asyncpg (the lifespan pool
+      # is still active for the webhook route), stripe (still used
+      # via the included webhook router). Only redis/cachetools/
+      # lru_cache stay blocklisted as T5 caching reach.
+
+  - id: jwt-decode-with-algorithms-list
+    type: code_grep
+    file: app/main.py
+    pattern: 'jwt\.decode\([^)]*algorithms\s*=\s*\['
+    expect:
+      min_matches: 1
+
+  - id: jwt-no-none-algorithm
+    type: code_grep
+    file: app/main.py
+    pattern: 'algorithms\s*=\s*\[[^\]]*[\"\x27]none[\"\x27]'
+    expect:
+      max_matches: 0
+
+  - id: protected-route-is-async-def
+    type: code_grep
+    file: app/main.py
+    pattern: 'async\s+def\s+\w+\s*\([^)]*\)\s*->\s*[^:]*:[^@]*Depends'
+    expect:
+      min_matches: 1
+
+  - id: jwt-not-in-middleware
+    type: code_grep
+    file: app/main.py
+    pattern: '@app\.middleware\([^)]*\)[^@]*jwt\.decode'
+    expect:
+      max_matches: 0
+
+  - id: no-deprecated-on-event
+    type: code_grep
+    file: app/main.py
+    pattern: '@app\.on_event'
+    expect:
+      max_matches: 0
+
+task_specific_faithfulness_items:
+  - "JWT validation is implemented as a FastAPI dependency function injected via `Depends(...)` on the `/protected` route. The fastapi-middleware-patterns guardrail explicitly says authentication belongs in dependencies; the jwt-validation-patterns example fragment shows the dependency pattern. Mechanical check #11 (`jwt-not-in-middleware`) catches the `@app.middleware` failure mode; this faithfulness item additionally verifies the dependency's shape: it returns a claims dict (not the raw token bytes), uses `HTTPBearer` (or equivalent fastapi.security primitive) for bearer-scheme extraction, and is wired via `Depends()` rather than passed imperatively or threaded through `request.state`."
+  - "`jwt.decode(...)` is called with an explicit `algorithms=['HS256']` argument. The argument is a list with exactly the value `'HS256'` — not a wildcard, not `None`, not omitted. The jwt-validation-patterns guardrail makes this normative per RFC 8725 §3.1."
+  - "`options={'require': ['exp', 'iss', 'aud']}` (or the equivalent shape per PyJWT) is passed to `jwt.decode`. The three required claims must be enforced; missing any of them must raise `MissingRequiredClaimError`. A model that omits the require list silently accepts tokens missing those claims, which is a faithfulness failure even when all the test JWTs happen to carry them."
+  - "`issuer=...` and `audience=...` arguments are passed to `jwt.decode`. PyJWT does not validate iss/aud unless told to via these arguments; the require list above only enforces presence, not value-match. Both arguments must be set to the values from `os.environ['JWT_EXPECTED_ISSUER']` and `os.environ['JWT_EXPECTED_AUDIENCE']`."
+  - "Every JWT validation failure (signature, expiry, audience, issuer, missing-required-claim, malformed token, missing Authorization header) maps to HTTP 401. No 200 response is reachable on any failure path; no 500 is reachable on a recognized failure type."
+  - "The 401 response body is uniform across failure modes. The detail string can vary in operator logs (and SHOULD differ for telemetry) but the bytes returned to the client must not distinguish 'expired token' from 'wrong audience' from 'invalid signature'. Enumeration of failure causes to unauthenticated clients is a faithfulness failure per the jwt-validation-patterns guardrail."
+  - "The HS256 secret is read from `os.environ`, not hard-coded. Per the jwt-validation-patterns guardrail, the receiver reads from env or a secret manager — pinning to source is a faithfulness failure."
+  - "The seed's existing webhook flow (POST /webhooks/stripe through TrustedHost + CORS + the included router) is unchanged in behavior after T3b's diff. The diff adds a new route + dependency; it does not alter the webhook route's path, middleware order, or response shape. Tri-state tick: yes if webhook still works AND the diff demonstrably did not touch webhook-related code; not-required-but-acceptable if the model added a small refactor (e.g., extracting a shared exception handler) that doesn't break the webhook; no if the webhook flow regressed."
+
+negative_faithfulness_criteria:
+  - "Do not implement RS256/JWKS handling. T3b is HS256-only per the task description; adding RS256 support is fragment-permitted but task-out-of-scope reach. A model that adds JWKS-fetching code on top of HS256 validation is implementing T3b's hypothetical follow-up rather than T3b itself."
+  - "Do not implement token refresh, blacklist/revocation, or session storage. The jwt-validation-patterns rationale explicitly says 'JWT issuance is a separate concern' — receiving a token is in scope, issuing or revoking is not."
+
+cross_checks:
+  - id: failure-bodies-uniform-across-modes
+    type: body_bytes_match
+    check_ids:
+      - protected-expired-jwt-401
+      - protected-bad-sig-jwt-401
+      - protected-wrong-aud-jwt-401
+      - protected-no-auth-header-401
+      - failure-bodies-are-uniform
+
+notes: |
+  T3b is the 3-skill composition task per spec §4.2 row 4, the most
+  stress-tested case in the trial set. Activates jwt-validation-
+  patterns + fastapi-middleware-patterns + python-async-patterns —
+  one protocol-tier, one framework-tier, one language-tier skill.
+  Fragment count: Arm A 24 (8+8+8), Arm B 18 (6+6+6), Arm C 12
+  (4+4+4). Concatenation order is jwt → fastapi → python-async per
+  the order in skills_activated.
+
+  This is the C3 sub-claim test for 3-skill composition. T3a is
+  the 2-skill counterpart. T3a vs T3b pass-rate gap surfaces
+  whether composition difficulty scales with skill count (per
+  spec §1.1: "T3a − T3b gap is < 2 trials per arm" is the C3
+  threshold).
+
+  Status code dispositions (Change-1 reasoning per check):
+    - protected-valid-jwt-200: status 200 (single correct code)
+    - protected-expired-jwt-401: status 401 (jwt-validation-patterns
+      guardrail pins 401 for every JWT failure; no latitude)
+    - protected-bad-sig-jwt-401: status 401 (same)
+    - protected-wrong-aud-jwt-401: status 401 (same)
+    - protected-no-auth-header-401: status 401 (same — explicit in
+      the example fragment's PATH 1)
+    - webhook-still-works: status 200 (unchanged regression check)
+    - failure-bodies-are-uniform (malformed JWT): status 401 (same)
+
+  401 has no latitude in T3b because the jwt-validation-patterns
+  guardrail explicitly says "Never enumerate failure causes to
+  unauthenticated clients" — a 400 here would already be an
+  enumeration leak (failure-shape-via-status-code). 401 is the
+  one correct code for every JWT-validation failure.
+
+  Forbidden_imports composition for T3b: only redis/cachetools/
+  lru_cache remain blocklisted (T5 caching reach). pyjwt, asyncpg,
+  stripe are all permitted because all three skills' scopes need
+  them — pyjwt for JWT, asyncpg for the existing pool the seed
+  carries forward, stripe via the included webhook router.
+
+  Header-absence checks not used in T3b (the v3 schema feature is
+  available, but T3b's failure modes are all status-and-body, not
+  header-presence). The v3 bump still pays off because T3a
+  validates against the same schema.
+
+  failure-bodies-are-uniform (#8) status-only assertion is weaker
+  than the body-uniformity claim the description and faithfulness
+  item 6 make. The body-byte equality assertion is captured at the
+  schema level via the `cross_checks` block (v4+) — see the
+  `failure-bodies-uniform-across-modes` cross-check, which names
+  the five 401-response checks (#3, #4, #5, #6, #8) and asserts
+  pairwise body-bytes equality across them. This is a load-bearing
+  faithfulness assertion the schema must commit to; leaving it as
+  a harness-implementation detail in fixture notes was the failure
+  mode the v3→v4 bump prevents. Future tasks (T4, T5) likely will
+  not need cross-checks (body-uniformity is JWT-specific), but the
+  v4 schema field is now available if they do.
+
+  Tri-state faithfulness items:
+    - Item 9 (webhook regression check) is tri-state: yes if webhook
+      works unchanged, not-required-but-acceptable if a small
+      refactor was added that doesn't break, no if the webhook
+      regressed. The fragments don't forbid touching the webhook
+      area; they don't recommend it either.
+  Other items are binary.
+
+  No async-cancellation patterns are exercised by T3b's mechanical
+  checks. The python-async-patterns skill's TaskGroup / cancellation
+  / timeout content is in the prompt but the task surface doesn't
+  force its use. A model that ignores those fragments and writes
+  a straightforward async route is fragment-faithful for T3b
+  specifically. This isolates the C3 composition test from a
+  more-async-stress test that would belong in a hypothetical T6+.
