@@ -16,3 +16,15 @@ skills:
   - skill_id: verification-before-completion
     file: verification-before-completion.yaml
     fragment_count: 8
+  - skill_id: code-review-practices
+    file: code-review-practices.yaml
+    fragment_count: 9
+  - skill_id: debugging-systematic
+    file: debugging-systematic.yaml
+    fragment_count: 9
+  - skill_id: planning-and-task-breakdown
+    file: planning-and-task-breakdown.yaml
+    fragment_count: 10
+  - skill_id: incremental-implementation
+    file: incremental-implementation.yaml
+    fragment_count: 9
