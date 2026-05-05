@@ -1,0 +1,657 @@
+# Task fixture schema for the skill-tax pilot.
+#
+# DO NOT EDIT WITHOUT BUMPING $id — schema versions are pinned per fixture.
+# Task fixtures must declare `$schema: task-fixture.v<N>` to claim
+# conformance. Versions are accepted in `properties.$schema.enum` below;
+# pre-existing fixtures pinned to older versions remain valid as long as
+# their version is still listed.
+#
+# Versions:
+#   v4 (2026-05-01) — additive: top-level `cross_checks` field, parallel to
+#       `mechanical_checks`, asserts properties that span multiple checks
+#       (currently `body_bytes_match` for response-body uniformity across
+#       failure modes — load-bearing for JWT anti-enumeration). Optional
+#       field; v3 fixtures remain valid.
+#   v3 (2026-05-01) — additive: `headers_does_not_contain` field added to
+#       the http check's expect block, parallel to `headers_contains`.
+#       Asserts the response does NOT carry a specific header-name to
+#       header-value mapping. Use for negative CORS preflight assertions
+#       and similar header-absence semantics. v2 fixtures remain valid.
+#   v2 (2026-05-01) — additive: `expect` may use `status_in: [...]` instead
+#       of `status: int` to allow a status set when fragments leave HTTP-
+#       code latitude (e.g., guardrail says "400 or 401"). Exactly one of
+#       {status, status_in} must be present.
+#   v1 (2026-05-01) — initial schema.
+#
+# Locked: 2026-05-01 for skill-tax pilot v2.4.
+
+$id: task-fixture.v4
+$schema: https://json-schema.org/draft/2020-12/schema
+title: skill-tax pilot task fixture
+description: |
+  One YAML per pilot task (T1, T2, T3a, T3b, T4, T5). The fixture
+  encodes everything the harness needs to run the trial without any
+  Claude-Code-side judgment: the user-message description, the
+  skill-activation call (manual per spec §5.1 step 1), the per-arm
+  fragment selection (manual, pre-expanded — no harness derivation),
+  the seed-commit reference, the mechanical checks the harness runs
+  after applying the model's response, and the pre-populated
+  faithfulness checklist for the trial.md report.
+
+type: object
+additionalProperties: false
+required:
+  - $schema
+  - task_id
+  - description
+  - skills_activated
+  - app_skeleton
+  - arm_fragments
+  - mechanical_checks
+  - task_specific_faithfulness_items
+
+properties:
+
+  $schema:
+    enum: [task-fixture.v2, task-fixture.v3, task-fixture.v4]
+    description: |
+      Pin to a supported schema version. Each fixture pins the version
+      it was authored against; the schema doc lists every version still
+      supported in this enum. New versions append; deprecation removes
+      the old value from the enum and forces fixture migration.
+
+  task_id:
+    type: string
+    enum: [T1, T2, T3a, T3b, T4, T5]
+    description: |
+      Pilot task ID per pilot spec §4.2. Drives `pilot_trials.task_variation`.
+
+  description:
+    type: string
+    minLength: 200
+    description: |
+      Free-text markdown description, used verbatim as the USER message
+      in every trial of this task. Must include:
+        - One-paragraph task statement (the "what")
+        - "## Do" section: explicit positive scope items
+        - "## Do not" section: explicit out-of-scope items
+        - "## Mechanical success criteria" section: human-readable form
+          of the structured `mechanical_checks` field below
+      Reference files by absolute paths inside the worktree
+      (e.g., /workspace/app/main.py). The harness substitutes the
+      worktree's mount point at trial time.
+
+      The 200-char minimum applies to T5 as well as T1-T4. The pilot
+      tests whether Tier 2 recognizes out-of-scope when the task sounds
+      like a plausible engineering ask. A terse "add caching" prompt
+      tests scope-recognition on vague tasks, which is a different
+      question. T5's description must be specific enough — concrete
+      file paths, motivating context, plausible engineering framing —
+      to be a fair test of whether the model declines a substantive-
+      sounding but out-of-fragment-scope request.
+
+  skills_activated:
+    type: array
+    minItems: 0
+    maxItems: 4
+    items:
+      type: string
+      enum:
+        - webhook-patterns
+        - jwt-validation-patterns
+        - fastapi-middleware-patterns
+        - python-async-patterns
+    description: |
+      Skills this task activates, identified manually per pilot spec
+      §5.1 step 1. The MANUAL CALL — the harness makes no judgment
+      about activation. T5's empty list is valid (scope-recognition
+      task; no skill should activate).
+
+  app_skeleton:
+    type: object
+    additionalProperties: false
+    required: [seed_branch, seed_files]
+    properties:
+      seed_branch:
+        type: string
+        description: |
+          Git ref the per-trial worktree branches from. The seed branch
+          carries the FastAPI skeleton + pinned dependencies + any
+          fixture data files (Stripe event JSON, JWT keypair, etc.).
+          Convention: pilot-seed/T1, pilot-seed/T2, ..., one branch
+          per task so seeds can diverge per-task without cross-talk.
+      seed_files:
+        type: array
+        minItems: 1
+        items:
+          type: string
+        description: |
+          Files present in the seed commit, paths relative to the
+          worktree root. Listed for reproducibility — the harness
+          asserts each file exists in the worktree before applying
+          the model's response. Drift between this list and the
+          actual seed branch fails harness pre-flight.
+
+  arm_fragments:
+    type: object
+    additionalProperties: false
+    required: [arm_a, arm_b, arm_c, baseline]
+    properties:
+      arm_a:
+        $ref: "#/$defs/fragment_list"
+        description: |
+          Arm A (full skill) per pilot spec §5.1 — all fragments from
+          every skill in skills_activated. Pre-expanded; no harness
+          derivation.
+      arm_b:
+        $ref: "#/$defs/fragment_list"
+        description: |
+          Arm B (load-bearing-only) per pilot spec §5.1 — setup +
+          execution + verification + guardrail fragments only. Drops
+          rationale + example.
+      arm_c:
+        $ref: "#/$defs/fragment_list"
+        description: |
+          Arm C (execution-minimal) per pilot spec §5.1 — setup +
+          execution fragments only. Drops verification + guardrail
+          + rationale + example.
+      baseline:
+        type: array
+        maxItems: 0
+        description: |
+          Baseline arm (no fragments). Must be the empty list `[]`.
+          Pinned in the fixture so harness sanity-checks every fixture
+          carries the baseline shape.
+    description: |
+      Pre-expanded per-arm fragment selection. Manual, locked in the
+      fixture. Each fragment is identified by {skill_id, sequence}
+      pairs referencing files in experiments/skill-tax/skills/. The
+      harness loads the named YAML files, extracts the listed
+      fragments by sequence, and concatenates them in the order they
+      appear here (skill-order then sequence-order, per spec §5.1
+      step 3) to build the system-prompt fragments block.
+
+  mechanical_checks:
+    type: array
+    minItems: 0
+    items:
+      $ref: "#/$defs/check"
+    description: |
+      Automated functional verification per pilot spec §7.2. The
+      harness runs every check after applying the model's diff to
+      the worktree and starting the FastAPI app via uvicorn (where
+      relevant). Functional_pass = true iff every check passes.
+      An empty array is valid only for T5 (scope-decline) where no
+      mechanical assertion is meaningful and faithfulness review is
+      the sole pass criterion.
+
+  task_specific_faithfulness_items:
+    type: array
+    minItems: 0
+    items:
+      type: string
+      minLength: 10
+    description: |
+      Task-specific yes/no items for the trial.md report's
+      faithfulness section. Each item is a question the operator
+      ticks/crosses during manual review.
+
+      Generic faithfulness criteria from pilot spec §7.2 (output stays
+      within fragment scope, no invented patterns, no commentary
+      preamble, import discipline, etc.) live in
+      `experiments/skill-tax/faithfulness-criteria.yaml` and apply to
+      every trial uniformly. The harness composes the generic file +
+      this task-specific list into the trial.md report at trial time;
+      task fixtures must NOT redeclare generic items (drift surface).
+
+      Use this field for items that are specific to the task's surface
+      and would not apply to other tasks. Examples:
+        - T2: "Dedup row inserted BEFORE process_event call (review
+          source order)"
+        - T3b: "JWT decode call passes algorithms=['HS256'] explicitly"
+        - T4: "Old `==` comparison is removed, not just supplemented
+          with hmac.compare_digest"
+
+      An empty list is valid (`[]`) for tasks where no task-specific
+      faithfulness item applies — the generic criteria still apply.
+
+  negative_faithfulness_criteria:
+    type: array
+    items:
+      type: string
+    description: |
+      OPTIONAL. Items the model must NOT implement for faithfulness
+      to pass. If model output contains evidence of these,
+      faithfulness_pass=false even when mechanical_checks pass. T5
+      uses this heavily ("Must not add Redis", "Must not add
+      @lru_cache", etc.). Other tasks may use it sparingly for
+      tempting-but-out-of-scope adjacencies (e.g., T4 "Must not also
+      change replay-protection logic while doing the timing-safe
+      refactor").
+
+  cross_checks:
+    type: array
+    items:
+      $ref: "#/$defs/cross_check"
+    description: |
+      OPTIONAL (v4+). Assertions that span multiple `mechanical_checks`
+      entries by their `id`. Used for properties that don't fit the
+      per-check shape — currently only `body_bytes_match` for
+      anti-enumeration body-uniformity claims. Cross-checks run after
+      every referenced mechanical check has completed; their pass/fail
+      status contributes to `pilot_trials.functional_pass` alongside
+      the per-check results.
+
+  notes:
+    type: string
+    description: |
+      OPTIONAL. Free-form operator notes about the task —
+      authoring rationale, known ambiguities, fragment-selection
+      reasoning. Not consumed by the harness.
+
+# ---------------------------------------------------------------------
+# Reusable definitions
+# ---------------------------------------------------------------------
+
+$defs:
+
+  fragment_list:
+    type: array
+    items:
+      type: object
+      additionalProperties: false
+      required: [skill_id, sequence]
+      properties:
+        skill_id:
+          type: string
+          enum:
+            - webhook-patterns
+            - jwt-validation-patterns
+            - fastapi-middleware-patterns
+            - python-async-patterns
+        sequence:
+          type: integer
+          minimum: 1
+          maximum: 12
+          description: |
+            1-indexed fragment sequence within the named skill, per
+            the skill YAML's `fragments[].sequence` field. Pilot
+            skills currently have at most 8 fragments; cap at 12
+            to leave room without forcing schema bumps for trivial
+            skill expansions.
+
+  check:
+    oneOf:
+      - $ref: "#/$defs/check_http"
+      - $ref: "#/$defs/check_db"
+      - $ref: "#/$defs/check_code_grep"
+      - $ref: "#/$defs/check_diff"
+      - $ref: "#/$defs/check_diff_imports"
+      - $ref: "#/$defs/check_app_starts"
+
+  check_http:
+    type: object
+    additionalProperties: false
+    required: [id, type, request, expect]
+    properties:
+      id:
+        type: string
+        description: "Stable identifier; appears in trial.md per-check rows."
+      type:
+        const: http
+      request:
+        type: object
+        required: [method, path]
+        properties:
+          method:
+            type: string
+            enum: [GET, POST, PUT, PATCH, DELETE, OPTIONS]
+          path:
+            type: string
+          headers:
+            type: object
+            additionalProperties: { type: string }
+            description: |
+              Header values may contain `${...}` substitutions. The harness
+              resolves substitutions using fixture data files referenced
+              by `body_fixture` (e.g., for Stripe-Signature computed at
+              trial time from the fixture payload + secret).
+          body_fixture:
+            type: string
+            description: |
+              Path to a JSON/text file in the seed commit that supplies
+              the request body. Mutually exclusive with body_inline.
+          body_inline:
+            type: string
+            description: "Inline body content. Mutually exclusive with body_fixture."
+      expect:
+        type: object
+        oneOf:
+          - required: [status]
+          - required: [status_in]
+        properties:
+          status:
+            type: integer
+            minimum: 100
+            maximum: 599
+            description: |
+              Exact status the response must return. Use when fragments
+              prescribe a single correct code.
+          status_in:
+            type: array
+            minItems: 2
+            items:
+              type: integer
+              minimum: 100
+              maximum: 599
+            description: |
+              Set of acceptable status codes. Use when activated fragments
+              leave latitude — e.g., the webhook-patterns guardrail says
+              "Reject with 400 or 401, no exception." A check pinning
+              status: 400 in that situation would mismeasure faithfulness
+              by penalizing a fragment-faithful 401. Reserve for genuine
+              fragment-permitted latitude; do not use to absorb model
+              variance.
+          body_contains:
+            type: array
+            items: { type: string }
+          body_json_matches:
+            type: object
+            description: "Subset-match against parsed JSON response body."
+          headers_contains:
+            type: object
+            additionalProperties: { type: string }
+            description: |
+              Positive header assertion. Each name/value pair must be
+              present in the response headers (header-name comparison
+              is case-insensitive per RFC 7230; value comparison is
+              exact-match unless extended in a future schema version).
+          headers_does_not_contain:
+            type: object
+            additionalProperties: { type: string }
+            description: |
+              Negative header assertion (v3+). Each name/value pair must
+              NOT be present in the response headers as an exact pairing.
+              A response that returns header NAME with a DIFFERENT value
+              passes this check; only the exact name/value pairing is
+              forbidden. Use for CORS preflight rejection
+              (`access-control-allow-origin: <disallowed-origin>`)
+              and similar negative-presence checks.
+
+  check_db:
+    type: object
+    additionalProperties: false
+    required: [id, type, query, expect]
+    properties:
+      id: { type: string }
+      type: { const: db }
+      query:
+        type: string
+        description: "Parameterized SQL with $1, $2, ... placeholders."
+      args:
+        type: array
+        description: "Positional arguments for the query placeholders."
+      expect:
+        type: object
+        properties:
+          rows:
+            type: integer
+            minimum: 0
+            description: "Exact row count expected."
+          first_row:
+            type: array
+            description: "Subset-match against the first returned row."
+          exists:
+            type: boolean
+            description: "Shorthand for rows >= 1."
+
+  check_code_grep:
+    type: object
+    additionalProperties: false
+    required: [id, type, file, pattern, expect]
+    properties:
+      id: { type: string }
+      type: { const: code_grep }
+      file:
+        type: string
+        description: "Path relative to worktree root."
+      pattern:
+        type: string
+        description: "POSIX extended regex (grep -E)."
+      expect:
+        type: object
+        properties:
+          min_matches:
+            type: integer
+            minimum: 0
+          max_matches:
+            type: integer
+            minimum: 0
+
+  check_diff:
+    type: object
+    additionalProperties: false
+    required: [id, type, expect]
+    properties:
+      id: { type: string }
+      type: { const: diff }
+      expect:
+        type: object
+        properties:
+          file_changes_min:
+            type: integer
+            minimum: 0
+            description: "Minimum number of files modified vs seed commit."
+          file_changes_max:
+            type: integer
+            minimum: 0
+            description: "Maximum number of files modified vs seed commit."
+          files_touched:
+            type: array
+            items: { type: string }
+            description: |
+              Exhaustive list of files the diff is allowed to modify.
+              Any file outside this list appearing in the diff fails
+              the check.
+          files_must_touch:
+            type: array
+            items: { type: string }
+            description: |
+              Files the diff MUST modify. Useful for refactor tasks
+              (T4) where a specific file is the target.
+
+  check_diff_imports:
+    type: object
+    additionalProperties: false
+    required: [id, type, file, expect]
+    properties:
+      id: { type: string }
+      type: { const: diff_imports }
+      file:
+        type: string
+      expect:
+        type: object
+        properties:
+          forbidden_imports:
+            type: array
+            items: { type: string }
+            description: |
+              Module/symbol names that must not appear in the file's
+              imports after the diff is applied. Use for T5
+              ("no caching libs") and scope-discipline tasks.
+          required_imports:
+            type: array
+            items: { type: string }
+            description: |
+              Modules/symbols that must appear in the file's imports
+              after the diff is applied. Use for T4 ("must import
+              hmac.compare_digest") and execution tasks.
+
+  check_app_starts:
+    type: object
+    additionalProperties: false
+    required: [id, type]
+    properties:
+      id: { type: string }
+      type: { const: app_starts }
+      timeout_s:
+        type: number
+        default: 10
+        description: |
+          Seconds the harness gives the app to start under uvicorn
+          before declaring start failure.
+    description: |
+      Implicit pre-check the harness runs before any HTTP check.
+      Including it in mechanical_checks explicitly is optional; the
+      harness inserts an app_starts check at index 0 if not present.
+      Listing it explicitly lets the operator override timeout_s.
+
+  # ----- cross-check types (v4+) ---------------------------------------
+
+  cross_check:
+    oneOf:
+      - $ref: "#/$defs/cross_check_body_bytes_match"
+
+  cross_check_body_bytes_match:
+    type: object
+    additionalProperties: false
+    required: [id, type, check_ids]
+    properties:
+      id:
+        type: string
+        description: "Stable identifier; appears in trial.md."
+      type:
+        const: body_bytes_match
+      check_ids:
+        type: array
+        minItems: 2
+        items: { type: string }
+        description: |
+          IDs of `mechanical_checks` entries (must all be `type: http`)
+          whose response bodies must be byte-identical. The harness
+          captures each named check's response body bytes during its
+          pass and, after all named checks have run, compares them
+          pairwise. Failure of the cross-check means at least one
+          pair of bodies differs.
+
+          Used for JWT anti-enumeration: the response body returned
+          on every JWT-failure path (signature, expiry, audience,
+          missing-header, malformed) must be byte-identical so a
+          probing client cannot infer the failure mode from the
+          response. Operator-side telemetry can carry richer detail
+          via logs, not via the visible body.
+    description: |
+      Cross-check that asserts response-body byte equality across a
+      set of HTTP checks. The check IDs must reference http-typed
+      entries in `mechanical_checks`; referencing non-http checks
+      (db, code_grep, diff, ...) is a fixture validation error.
+
+# ---------------------------------------------------------------------
+# Substitution variables
+# ---------------------------------------------------------------------
+#
+# `mechanical_checks[].request.headers` and `request.body_inline` may
+# reference substitution variables of the form `${name}`. The harness
+# resolves them at trial time using fixture data files in the seed
+# commit + a wall-clock anchor frozen at trial start. The set below
+# is exhaustive for task-fixture.v1; new substitutions require a
+# schema bump.
+#
+# Reproducibility model: every substitution within a single trial
+# resolves against the SAME anchor moment (`time.time()` read once
+# at trial start) plus pinned constants from
+# `seed/test-secrets.env` and `seed/test-jwt-config.yaml`. Two
+# trial runs of the same fixture produce byte-identical *semantics*
+# (correct sig over correct body for the trial's anchor; stale sig
+# 600s before that anchor; JWT exp 300s after) but NOT byte-identical
+# payloads — the embedded timestamps differ across runs because real
+# wall-clock advances between runs and the receiver's verifier
+# (Stripe SDK, PyJWT) reads its own real `time.time()`. Anchor-aligned
+# substitution is what makes the verifier's tolerance window mean
+# what the test intends.
+#
+# Records: the harness writes the resolved anchor + every computed
+# substitution value to `pilot_trials.prompt` (rendered into the
+# system/user message) and to the per-trial `trial.md` report's
+# `## Resolved substitutions` section, so any failed trial is
+# investigable post-hoc.
+#
+# `consistency_hash` (per spec §7.1) is computed on the model's
+# response (the unified diff), not the prompt. Substitution-induced
+# prompt variance does not affect it; hash divergence reflects
+# real model variance.
+
+substitutions:
+
+  stripe_signature:
+    description: |
+      Valid Stripe webhook signature header value over the request
+      body, computed at trial time per docs.stripe.com/webhooks/
+      signatures (verified 2026-05-01). Resolves to
+      `t=<anchor>,v1=<hex-hmac-sha256>` where:
+        - `<anchor>` is the trial's anchor unix timestamp (real
+          wall-clock at trial start, frozen for the duration of
+          this trial's checks)
+        - the signed string is `<anchor>.<raw-body-bytes>`
+        - the secret is the value of `STRIPE_WEBHOOK_SECRET` in
+          `seed/test-secrets.env`
+        - the body bytes come from the check's `body_fixture` file
+      The signature is correct — passes `stripe.Webhook.construct_event`
+      with the same secret and the SDK's real-now wall-clock view.
+    used_by: [T1, T2, T3a, T4, T5]
+
+  stripe_signature_tampered:
+    description: |
+      Syntactically valid Stripe-Signature header with a cryptographically
+      WRONG signature. Same shape as `stripe_signature` (using the
+      trial anchor for the timestamp) but the v1 hex payload is
+      replaced with 64 zero hex chars. Used to test that the receiver
+      rejects bad signatures with 400.
+    used_by: [T1, T4]
+
+  stripe_signature_stale:
+    description: |
+      Valid Stripe-Signature header but with a timestamp 600 seconds
+      BEFORE the trial's anchor — outside the default 300-second
+      tolerance. The HMAC is computed correctly against the stale
+      timestamp; only the timestamp itself is rejection-worthy. The
+      receiver's `stripe.Webhook.construct_event` reads its own real
+      wall-clock and rejects on the >300s gap. Used to test replay-
+      window enforcement.
+    used_by: [T2]
+
+  jwt_hs256_valid:
+    description: |
+      Valid HS256 JWT bearer token. Header `{"alg":"HS256","typ":"JWT"}`,
+      claims include `iss` from `seed/test-jwt-config.yaml`'s
+      `expected_issuer`, `aud` from `expected_audience`, `exp` set
+      300 seconds after the trial's anchor, `iat` and `nbf` at the
+      anchor, `sub` as `pilot-test-user`. Signed with the secret
+      from `seed/test-secrets.env`'s `JWT_HS256_SECRET`. The
+      receiver's `jwt.decode` reads its own real wall-clock; with
+      the anchor aligned to real-now, exp validation passes.
+    used_by: [T3b]
+
+  jwt_hs256_expired:
+    description: |
+      Same shape as `jwt_hs256_valid` but with `exp` set 3600 seconds
+      BEFORE the trial's anchor. Signature is valid; only expiration
+      is rejection-worthy. Receiver's real-now read sees exp far in
+      the past and raises ExpiredSignatureError.
+    used_by: [T3b]
+
+  jwt_hs256_bad_sig:
+    description: |
+      Same shape as `jwt_hs256_valid` (claims valid, exp 300s after
+      anchor) but signed with a DIFFERENT secret than the receiver
+      expects. The header and payload encode correctly; only the
+      HMAC fails to verify against the receiver's `JWT_HS256_SECRET`.
+    used_by: [T3b]
+
+  jwt_hs256_wrong_aud:
+    description: |
+      Same shape as `jwt_hs256_valid` but `aud` is set to
+      `api://wrong-relying-party` instead of the expected audience.
+      Signature is valid, exp is current — only the audience claim
+      fails verification.
+    used_by: [T3b]

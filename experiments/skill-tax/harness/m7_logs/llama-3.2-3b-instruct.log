@@ -1,0 +1,14 @@
+=== 16:05:15 START llama-3.2-3b-instruct (M7 arm_b_plus) ===
+Unloading "qwen2.5-coder-3b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[K[?25hModel loaded successfully in 2.66s.
+(5.99 GiB)
+To use the model in the API/SDK, use the identifier "llama-3.2-3b-instruct".
+--- T1 arm_b_plus × 5 runs ---
+trial=8a90b225-a9a1-4c65-aa61-7cc4afb7077f task=T1 arm=arm_b_plus run=1 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=73446 total_ms=74094
+trial=c1b8a69d-1ec3-4141-9203-8f8ffc837073 task=T1 arm=arm_b_plus run=2 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=65314 total_ms=65955
+trial=96139c91-6b99-4d21-86ac-7fdd4ebfae1f task=T1 arm=arm_b_plus run=3 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=69130 total_ms=69817
+trial=6000de7a-bc29-44b7-a3f1-a8c699a87bb2 task=T1 arm=arm_b_plus run=4 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=70061 total_ms=70698
+trial=9071bb0c-be7a-4536-85bb-cde1c55f0d90 task=T1 arm=arm_b_plus run=5 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=70868 total_ms=71566
+=== 16:11:16 END llama-3.2-3b-instruct ===

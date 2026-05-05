@@ -1,0 +1,311 @@
+$schema: task-fixture.v2
+task_id: T2
+
+description: |
+  ## Task
+
+  Implement a Stripe webhook receiver at the `POST /webhooks/stripe`
+  endpoint in `/workspace/app/main.py` that performs BOTH HMAC
+  signature verification AND replay protection. The handler must:
+
+  1. Verify the `Stripe-Signature` header against the raw request
+     body using the procedure documented in the activated fragments,
+     reading the secret from `os.environ["STRIPE_WEBHOOK_SECRET"]`.
+  2. Persist a row keyed on `(provider, delivery_id)` in the
+     pre-existing `webhook_deliveries` Postgres table BEFORE doing
+     any business work. The harness creates the table at trial
+     start using the schema documented in fragment 5; the model
+     does NOT write a CREATE TABLE statement.
+  3. On valid signature + new delivery_id, return HTTP 200 with
+     `{"received": true}`.
+  4. On valid signature + duplicate delivery_id (replay), return
+     HTTP 200 with a body containing a duplicate marker
+     (`{"duplicate": true}` or equivalent) — never 4xx, per the
+     activated guardrail.
+  5. On invalid signature or stale timestamp (>300s old), return
+     HTTP 400. On missing-or-malformed header, HTTP 400 or 401 per
+     the guardrail's stated latitude.
+
+  The seed `app/main.py` carries an empty FastAPI app plus a lifespan
+  context that initializes a module-level `db: asyncpg.Pool` from
+  `os.environ["DATABASE_URL"]`. The pool is open while the app is
+  running; close it via the lifespan exit. Use the existing pool —
+  do not initialize a second one.
+
+  ## Do
+
+  - Add a `POST /webhooks/stripe` route to `/workspace/app/main.py`.
+  - Read raw body bytes via `await request.body()` BEFORE any
+    signature verification or JSON parsing.
+  - Verify the signature using the procedure documented in
+    fragments (SDK helper `stripe.Webhook.construct_event` with
+    `tolerance=300`, OR a manual HMAC implementation following
+    fragment 4's described shape).
+  - Insert a row into `webhook_deliveries` with `provider='stripe'`
+    and the delivery_id from the verified event payload, using the
+    module-level `db` pool. The insert must occur AFTER signature
+    verification and BEFORE any business-logic call.
+  - On unique-constraint violation (replay), return 200 with a
+    duplicate marker.
+  - On valid happy-path completion, return 200 with `received: true`.
+
+  ## Do not
+
+  - Do not create the `webhook_deliveries` table from your code.
+    The harness creates it at trial start with the schema from
+    fragment 5; a model-issued CREATE TABLE is scope reach.
+  - Do not add a dead-letter queue, retry policy, or sender-side
+    delivery code. T2 covers receiver-side replay protection only;
+    sender-side concerns are out of fragment scope for this skill.
+  - Do not add timestamp-based logic OUTSIDE the SDK helper. The
+    SDK's `tolerance=300` parameter is the documented mechanism for
+    timestamp tolerance; adding a manual `time.time() - ts >= 300`
+    check on top of (or instead of) the SDK's check is scope reach.
+  - Do not modify any file other than `app/main.py`.
+  - Do not import any third-party library not already listed in the
+    pinned `pyproject.toml` (`fastapi`, `stripe`, `uvicorn`,
+    `asyncpg`, `pyjwt`).
+  - Do not return 4xx for a duplicate delivery — that tells the
+    sender to retry, contradicting the activated guardrail.
+
+  ## Mechanical success criteria
+
+  - First POST with a valid `Stripe-Signature` header returns 200
+    with `received: true`. A row appears in `webhook_deliveries`
+    with the corresponding delivery_id.
+  - Second POST with the SAME body and signature (replay) returns
+    200 with a body containing `duplicate: true`.
+  - POST with a tampered signature returns 400; no row is inserted.
+  - POST with a stale timestamp (>300s old) returns 400.
+  - POST with no `Stripe-Signature` header returns 400 or 401.
+  - The FastAPI app starts cleanly under uvicorn after the
+    modification.
+
+skills_activated:
+  - webhook-patterns
+
+app_skeleton:
+  seed_branch: pilot-seed/T2
+  seed_files:
+    - pyproject.toml
+    - app/__init__.py
+    - app/main.py
+    - seed/test-secrets.env
+    - seed/fixtures/stripe-event.json
+
+arm_fragments:
+  arm_a:
+    - { skill_id: webhook-patterns, sequence: 1 }   # rationale
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution: HMAC primitives
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution: per-vendor schemes
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution: replay protection
+    - { skill_id: webhook-patterns, sequence: 6 }   # example
+    - { skill_id: webhook-patterns, sequence: 7 }   # verification
+    - { skill_id: webhook-patterns, sequence: 8 }   # guardrail
+  arm_b:
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution
+    - { skill_id: webhook-patterns, sequence: 7 }   # verification
+    - { skill_id: webhook-patterns, sequence: 8 }   # guardrail
+  arm_c:
+    - { skill_id: webhook-patterns, sequence: 2 }   # setup
+    - { skill_id: webhook-patterns, sequence: 3 }   # execution
+    - { skill_id: webhook-patterns, sequence: 4 }   # execution
+    - { skill_id: webhook-patterns, sequence: 5 }   # execution
+  baseline: []
+
+# Order matters: happy-path (#2) must run before replay (#3) and
+# before the db-row-exists check (#7). Other checks are
+# order-independent. Harness contract: mechanical_checks runs in
+# declared list order.
+mechanical_checks:
+
+  - id: app-starts
+    type: app_starts
+    timeout_s: 15
+
+  - id: happy-path-valid-sig
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        received: true
+
+  - id: replay-returns-200-duplicate
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        duplicate: true
+
+  - id: rejects-tampered-sig
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature_tampered}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 400
+
+  - id: rejects-stale-timestamp
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature_stale}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      # Fragment 4: "The helper raises SignatureVerificationError on
+      # bad signature OR stale timestamp; both should map to HTTP 400."
+      # Unambiguous — single status, no latitude.
+      status: 400
+
+  - id: rejects-missing-sig-header
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      # Webhook-patterns guardrail permits 400 OR 401 for missing/
+      # malformed header — same latitude as T1.
+      status_in: [400, 401]
+
+  - id: dedup-row-inserted
+    type: db
+    query: |
+      SELECT count(*) FROM webhook_deliveries
+      WHERE provider = $1 AND delivery_id = $2
+    args: [stripe, evt_test_pilot_T2]
+    expect:
+      rows: 1
+      first_row: [1]
+
+  - id: only-main-modified
+    type: diff
+    expect:
+      file_changes_min: 1
+      file_changes_max: 1
+      files_touched:
+        - app/main.py
+      files_must_touch:
+        - app/main.py
+
+  - id: no-foreign-imports
+    type: diff_imports
+    file: app/main.py
+    expect:
+      forbidden_imports:
+        - redis
+        - cachetools
+        - functools.lru_cache
+        - jwt
+        - pyjwt
+      # asyncpg dropped from blocklist for T2 — T2 needs it for the
+      # dedup INSERT/handling. pyjwt/jwt remain (T3b territory),
+      # redis/cachetools/lru_cache remain (T5 caching territory).
+
+  - id: raw-body-read
+    type: code_grep
+    file: app/main.py
+    pattern: 'await\s+request\.body\s*\(\s*\)'
+    expect:
+      min_matches: 1
+
+  - id: no-pre-verify-json-parse
+    type: code_grep
+    file: app/main.py
+    pattern: 'await\s+request\.json\s*\(\s*\)'
+    expect:
+      max_matches: 0
+
+  - id: dedup-insert-present
+    type: code_grep
+    file: app/main.py
+    pattern: 'INSERT\s+INTO\s+webhook_deliveries'
+    expect:
+      min_matches: 1
+
+task_specific_faithfulness_items:
+  - "Raw body bytes are read via `await request.body()` BEFORE any signature verification call (not after, not concurrently)."
+  - "Signature verification uses the procedure documented in fragments — either `stripe.Webhook.construct_event` (with `tolerance=300` parameter on the SDK call) OR a manual HMAC implementation matching fragment 4's `<ts>.<raw-body>` signed-string shape."
+  - "The dedup-row INSERT into `webhook_deliveries` happens AFTER signature verification and BEFORE any business-logic call. Source order should show: read body → verify signature → INSERT → process. An INSERT that runs before verification, or that runs concurrently with business logic, is a faithfulness failure."
+  - "On a unique-constraint violation, the duplicate-delivery path catches the unique-constraint exception specific to the DB driver in use (`asyncpg.exceptions.UniqueViolationError`, or the equivalent typed exception class) — not a generic `Exception` catch or a string-match on error message. The response is HTTP 200 with a duplicate marker; no 4xx on duplicate delivery (per guardrail: 'Never return 4xx on duplicate delivery')."
+  - "On signature failure (tampered or stale timestamp), the response is HTTP 400 — the dedup row is NOT inserted, because the INSERT runs only after verification succeeds."
+  - "The handler reads from the existing module-level `db` pool established by the lifespan context. It does not call `asyncpg.create_pool` itself, and does not open a per-request connection outside the pool's `acquire()` mechanism."
+  - "If the model wires a handler-failure rollback (DELETE the dedup row when the business-logic call raises), that is fragment-faithful per fragment 5 — but T2's mechanical checks do not exercise it because the seed has no business logic that raises. Presence of the rollback is a positive faithfulness signal, not required for pass."
+
+notes: |
+  T2 is the multi-fragment-within-one-skill task per spec §4.2 row 2.
+  Activates the same single skill as T1 (webhook-patterns) but the
+  task surface forces the model to integrate fragments 3 (HMAC
+  primitives), 4 (per-vendor scheme details, especially the
+  Stripe SDK helper's tolerance parameter), 5 (replay protection
+  + idempotency table mechanics + dedup-row lifecycle), 6 (FastAPI
+  example showing the three-path handler shape), 7 (verification
+  list with the dedup-related grep checks), and 8 (guardrails on
+  duplicate-delivery status + dedup-row-after-failure).
+
+  Arm fragments are byte-identical to T1's because the same skill
+  is activated; the difference between T1 and T2 trials is in the
+  task description and mechanical checks, not in the prompt-context
+  fragments. Comparing T1 Arm B vs T2 Arm B at the trial level
+  surfaces whether multi-fragment integration is harder for Tier 2
+  than single-fragment execution within the same fragment surface.
+
+  Mechanical-check ordering is load-bearing for T2 specifically:
+  the replay test (#3 replay-returns-200-duplicate) depends on
+  the happy-path (#2 happy-path-valid-sig) having run first to
+  populate the dedup row. The db-row-exists check (#7
+  dedup-row-inserted) likewise depends on #2 having completed. The
+  schema does not formally claim ordered execution, but the
+  harness will iterate `mechanical_checks` in declared YAML order
+  by convention — list-order preservation is natural for Python
+  list iteration, no schema constraint needed. If the harness ever
+  parallelizes checks, T2 (and T3a's CORS preflight check) need
+  to keep their sequential dependency explicit.
+
+  Forbidden_imports composition for T2: asyncpg DROPPED (T2 needs
+  it for the dedup INSERT), pyjwt/jwt RETAINED (no JWT in T2's
+  fragment scope; importing one is T3b reach), redis/cachetools/
+  lru_cache RETAINED (T5 caching reach). `stripe` remains absent
+  from blocklist for the same reason as T1 — fragments use it.
+
+  The test event_id `evt_test_pilot_T2` referenced in the db check
+  must match the `id` field of `seed/fixtures/stripe-event.json`
+  for T2's seed branch. Per-task body fixtures use per-task event
+  IDs so cross-trial dedup-state contamination is impossible (each
+  trial's fresh schema starts empty; per-task IDs prevent
+  collisions if fixtures get accidentally shared).
+
+  T2 does NOT activate fastapi-middleware-patterns even though the
+  skeleton uses a `lifespan` context (a fastapi-middleware concept).
+  The skeleton is pre-wired — the model does not write the lifespan;
+  it just uses the existing `db` pool. Activating fastapi-middleware
+  would change the test from "single-skill multi-fragment" to "two-
+  skill composition," which is T3a's job. Single-skill discipline
+  preserved.

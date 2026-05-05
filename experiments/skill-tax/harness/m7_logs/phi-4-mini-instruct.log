@@ -1,0 +1,14 @@
+=== 16:11:16 START phi-4-mini-instruct (M7 arm_b_plus) ===
+Unloading "llama-3.2-3b-instruct"...
+Unloaded 1 model.
+
+[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[K[?25hModel loaded successfully in 2.67s.
+(7.15 GiB)
+To use the model in the API/SDK, use the identifier "phi-4-mini-instruct".
+--- T1 arm_b_plus × 5 runs ---
+trial=8aefb174-cc61-46ca-a938-25d376cca9b7 task=T1 arm=arm_b_plus run=1 parses=False functional_pass=False frags=10 in_tok=5193 out_tok=251 lm_ms=49109 total_ms=49802
+trial=eab776d1-c31e-42cb-a2e3-460dd6c30c9d task=T1 arm=arm_b_plus run=2 parses=False functional_pass=False frags=10 in_tok=5193 out_tok=251 lm_ms=30175 total_ms=30949
+trial=b5050910-ed25-4bb9-a7b3-e96cde6e95f5 task=T1 arm=arm_b_plus run=3 parses=False functional_pass=False frags=10 in_tok=5193 out_tok=251 lm_ms=30250 total_ms=30886
+trial=c055c305-7493-4fed-8daf-7ed70750ce08 task=T1 arm=arm_b_plus run=4 parses=False functional_pass=False frags=10 in_tok=5193 out_tok=251 lm_ms=30461 total_ms=31198
+trial=46cdfad4-fe24-4782-8198-1080d633ff9e task=T1 arm=arm_b_plus run=5 parses=False functional_pass=False frags=10 in_tok=5193 out_tok=251 lm_ms=31699 total_ms=32445
+=== 16:14:20 END phi-4-mini-instruct ===

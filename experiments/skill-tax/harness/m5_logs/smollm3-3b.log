@@ -1,0 +1,57 @@
+=== 08:01:29 START smollm3-3b (skip_q10=0) ===
+Unloading "llama-3.2-3b-instruct"...
+Unloaded 1 model.
+
+[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[?25lLoading smollm3-3b ⠇[?25lLoading smollm3-3b ⠏[?25lLoading smollm3-3b ⠋[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[?25lLoading smollm3-3b ⠇[?25lLoading smollm3-3b ⠏[?25lLoading smollm3-3b ⠋[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[K[?25hModel loaded successfully in 2.26s.
+(5.74 GiB)
+To use the model in the API/SDK, use the identifier "smollm3-3b".
+--- Q10 precheck (T1 arm_b ×10) ---
+trial=cb344590-087c-4947-a7ec-a672a154c2de task=T1 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=68641 total_ms=69367
+trial=eb808824-b5f9-4d31-9715-ac2cfcb3a096 task=T1 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=57066 total_ms=57811
+trial=6e4f257e-2d26-45ff-b8a1-10aece3425f3 task=T1 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56738 total_ms=57471
+trial=c10a8867-aaeb-4d5e-9b18-3d7e8c5e54b9 task=T1 arm=arm_b run=4 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56502 total_ms=57237
+trial=31ea19aa-9eed-4940-afe6-66d75e83c8fc task=T1 arm=arm_b run=5 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56492 total_ms=57217
+trial=087303ad-b43c-4109-b405-15837f482acd task=T1 arm=arm_b run=6 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56532 total_ms=57261
+trial=c1b72503-87fa-4f2f-907f-20ca58ce7e30 task=T1 arm=arm_b run=7 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56460 total_ms=57193
+trial=b8e780c1-1792-496e-8e62-5e312036198d task=T1 arm=arm_b run=8 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56616 total_ms=57246
+trial=3d7babb7-9d74-4675-908e-556fe934d95c task=T1 arm=arm_b run=9 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56592 total_ms=57349
+trial=de50ce15-565c-4159-be13-103d28639185 task=T1 arm=arm_b run=10 parses=False functional_pass=False frags=6 in_tok=3958 out_tok=593 lm_ms=56679 total_ms=57351
+--- Frag arms (T3a/T3b/T4 ×3 ×3) ---
+trial=3a9d18d4-a446-4bcf-a504-df57adebb99e task=T3a arm=arm_a run=1 parses=False functional_pass=False frags=16 in_tok=8958 out_tok=688 lm_ms=98889 total_ms=99927
+trial=cb37e923-10de-457d-9beb-ef12e8295823 task=T3a arm=arm_a run=2 parses=False functional_pass=False frags=16 in_tok=8958 out_tok=698 lm_ms=70145 total_ms=70858
+trial=e3043e70-94af-4fc7-bb59-51356ecd4740 task=T3a arm=arm_a run=3 parses=False functional_pass=False frags=16 in_tok=8958 out_tok=698 lm_ms=70397 total_ms=71098
+trial=475c525d-7624-4277-b022-886b9d1be6ee task=T3a arm=arm_b run=1 parses=False functional_pass=False frags=12 in_tok=7295 out_tok=426 lm_ms=56722 total_ms=57422
+trial=0d8f6c96-851f-4831-ac3b-74cf83fab9a7 task=T3a arm=arm_b run=2 parses=False functional_pass=False frags=12 in_tok=7295 out_tok=426 lm_ms=42604 total_ms=43314
+trial=6b4725f1-c38c-4238-b362-ef3517a1d939 task=T3a arm=arm_b run=3 parses=False functional_pass=False frags=12 in_tok=7295 out_tok=426 lm_ms=42765 total_ms=43468
+trial=b702944a-fba0-46a1-9440-e3269b45718d task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=4678 out_tok=527 lm_ms=54891 total_ms=55587
+trial=750a6c36-9920-42ad-baf8-717d2b507041 task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=4678 out_tok=627 lm_ms=61484 total_ms=62159
+trial=07d36bdd-a09b-48a1-9842-fb66ade72653 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=4678 out_tok=527 lm_ms=51587 total_ms=52294
+trial=31507326-c77d-449b-885c-8992b24c3668 task=T3b arm=arm_a run=1 parses=False functional_pass=False frags=24 in_tok=12555 out_tok=599 lm_ms=109207 total_ms=109992
+trial=0fe9ec71-a795-499d-b335-8bf0e6ef86ce task=T3b arm=arm_a run=2 parses=False functional_pass=False frags=24 in_tok=12555 out_tok=599 lm_ms=62418 total_ms=63219
+trial=80d68568-ac6b-4886-96af-e8ac17b75466 task=T3b arm=arm_a run=3 parses=False functional_pass=False frags=24 in_tok=12555 out_tok=599 lm_ms=62251 total_ms=63055
+trial=f81670ce-f002-4800-97e6-dc4b44163433 task=T3b arm=arm_b run=1 parses=False functional_pass=False frags=18 in_tok=10075 out_tok=565 lm_ms=92034 total_ms=92823
+trial=10a62c87-11fe-403e-84cf-3d28b75d32bf task=T3b arm=arm_b run=2 parses=False functional_pass=False frags=18 in_tok=10075 out_tok=565 lm_ms=57422 total_ms=58216
+trial=08977639-90e7-4a2d-aca3-535014549edc task=T3b arm=arm_b run=3 parses=False functional_pass=False frags=18 in_tok=10075 out_tok=565 lm_ms=57390 total_ms=58190
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=1 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=2 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=3 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+trial=e76173e2-ba1a-4098-a496-5b6c7fe148a5 task=T4 arm=arm_a run=1 parses=False functional_pass=False frags=8 in_tok=4789 out_tok=480 lm_ms=48386 total_ms=49132
+trial=aee1de66-7a0b-4358-a809-00fa4a6a1b60 task=T4 arm=arm_a run=2 parses=False functional_pass=False frags=8 in_tok=4789 out_tok=480 lm_ms=46285 total_ms=46932
+trial=8a89b0bf-83e9-4580-aeec-b0d70750b4bf task=T4 arm=arm_a run=3 parses=False functional_pass=False frags=8 in_tok=4789 out_tok=480 lm_ms=46284 total_ms=46932
+trial=855a0a33-fd30-4bd5-b324-62d8b7f3c958 task=T4 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=3993 out_tok=348 lm_ms=35797 total_ms=36483
+trial=09d1fe14-f775-47bb-9d79-542c09667678 task=T4 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=3993 out_tok=348 lm_ms=33476 total_ms=34099
+trial=11d184d5-37c8-4993-a5b4-23d067cda5bf task=T4 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=3993 out_tok=348 lm_ms=33500 total_ms=34123
+trial=ce20728d-6a65-4773-a6c3-878dc612f4b7 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=2736 out_tok=444 lm_ms=42060 total_ms=42701
+trial=176a1214-8774-45b4-baa3-8399ce8a2946 task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=2736 out_tok=440 lm_ms=41694 total_ms=42346
+trial=64eba6dc-3c54-4eb5-822d-bb4219db517c task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=2736 out_tok=440 lm_ms=41931 total_ms=42623
+--- Baseline (T3a/T3b/T4 ×3) ---
+trial=238ad7b3-d25b-4439-9306-36c7f51c90f4 task=T3a arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1485 out_tok=288 lm_ms=29721 total_ms=30807
+trial=ecad8338-0190-4b96-844d-076f0a2747f1 task=T3a arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1485 out_tok=288 lm_ms=27022 total_ms=27802
+trial=0cbeb50a-4c7b-489b-b9ce-6b756f10399c task=T3a arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1485 out_tok=392 lm_ms=36698 total_ms=37159
+trial=fe4248a1-d906-4c31-b131-0a49019072c6 task=T3b arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1496 out_tok=393 lm_ms=39659 total_ms=40133
+trial=cb61c013-fb10-4469-ab4f-a34477e82e2c task=T3b arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1496 out_tok=393 lm_ms=36849 total_ms=37308
+trial=d39c4eee-5385-4bdd-9967-e433c66a643e task=T3b arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1496 out_tok=393 lm_ms=36917 total_ms=37381
+trial=1b44f757-0856-435a-a836-60c76304024c task=T4 arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1215 out_tok=367 lm_ms=36291 total_ms=36965
+trial=5201ad5d-a6be-4135-8898-dba39a6f0faf task=T4 arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1215 out_tok=367 lm_ms=34462 total_ms=35148
+trial=809e2511-860a-4466-8438-dcb7dd176750 task=T4 arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1215 out_tok=367 lm_ms=34501 total_ms=35180
+=== 08:49:53 END smollm3-3b ===

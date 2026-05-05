@@ -1,0 +1,312 @@
+$schema: task-fixture.v2
+task_id: T4
+
+description: |
+  ## Task
+
+  Refactor the existing webhook receiver in `/workspace/app/main.py`
+  to use the timing-safe comparison primitive documented in the
+  activated skill. The seed file carries a manual HMAC verification
+  pattern that compares the computed signature to the header's
+  signature using Python's `==` string-equality operator. Replace
+  that comparison with `hmac.compare_digest`.
+
+  The seed handler's other behaviors — raw-body read, signature
+  computation, status code semantics, return shape — are correct
+  against the activated fragments and must be preserved exactly.
+  T4's scope is the comparison primitive only.
+
+  ## Do
+
+  - Modify the line in `app/main.py` that compares the computed
+    signature to the header's signature, replacing `==` with
+    `hmac.compare_digest(...)`.
+  - If `hmac` is not already imported at the top of the file,
+    add the import line.
+  - Preserve every other line of the handler verbatim — the raw
+    body read, the signature computation, the status codes
+    returned on success and failure, the response body shape.
+  - Keep the secret-loading pattern (`os.environ["STRIPE_WEBHOOK_SECRET"]`)
+    unchanged.
+
+  ## Do not
+
+  - Do not change the signature computation algorithm. The seed
+    uses HMAC-SHA256 over `<timestamp>.<raw-body>` per the activated
+    fragments; that stays.
+  - Do not switch to the `stripe.Webhook.construct_event` SDK helper.
+    The fragments document both the SDK and manual paths as
+    fragment-faithful; the seed uses the manual path, and T4's
+    refactor is the comparison primitive only — switching paths
+    is rewriting the file, not refactoring it.
+  - Do not add replay protection, dedup logic, or any behavior
+    documented in fragment 5. T4 is post-T1 territory; T2 already
+    occupies the replay-protection task.
+  - Do not modify the response status codes returned on success
+    or failure. The seed already returns 200 on success and 400
+    on signature failure; preserve.
+  - Do not modify any file other than `app/main.py`.
+  - Do not import any third-party library not already listed in
+    the pinned `pyproject.toml`.
+
+  ## Mechanical success criteria
+
+  - The handler still passes T1's signature-verification checks:
+    valid signature returns 200 with `{"received": true}`;
+    tampered signature returns 400; missing header returns 400
+    or 401.
+  - The file no longer contains a `==` comparison between the
+    computed signature and the header signature. A grep for the
+    specific anti-pattern returns zero hits.
+  - The file imports `hmac` (either bare `import hmac` or
+    `from hmac import compare_digest` — either form is
+    fragment-faithful).
+  - The file calls `hmac.compare_digest` (or `compare_digest`
+    if imported as a name) at least once.
+  - The FastAPI app starts cleanly under uvicorn after the
+    modification.
+
+skills_activated:
+  - webhook-patterns
+
+app_skeleton:
+  seed_branch: pilot-seed/T4
+  seed_files:
+    - pyproject.toml
+    - app/__init__.py
+    - app/main.py
+    - seed/test-secrets.env
+    - seed/fixtures/stripe-event.json
+
+arm_fragments:
+  arm_a:
+    - { skill_id: webhook-patterns, sequence: 1 }
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+    - { skill_id: webhook-patterns, sequence: 6 }
+    - { skill_id: webhook-patterns, sequence: 7 }
+    - { skill_id: webhook-patterns, sequence: 8 }
+  arm_b:
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+    - { skill_id: webhook-patterns, sequence: 7 }
+    - { skill_id: webhook-patterns, sequence: 8 }
+  arm_c:
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+  baseline: []
+
+mechanical_checks:
+
+  - id: app-starts
+    type: app_starts
+    timeout_s: 15
+
+  - id: still-passes-happy-path
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        received: true
+
+  - id: still-rejects-tampered
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature_tampered}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 400
+
+  - id: still-rejects-missing-header
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Content-Type: application/json
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status_in: [400, 401]
+
+  - id: only-main-modified
+    type: diff
+    expect:
+      file_changes_min: 1
+      file_changes_max: 1
+      files_touched:
+        - app/main.py
+      files_must_touch:
+        - app/main.py
+
+  - id: no-foreign-imports
+    type: diff_imports
+    file: app/main.py
+    expect:
+      forbidden_imports:
+        - redis
+        - cachetools
+        - functools.lru_cache
+        - jwt
+        - pyjwt
+        - asyncpg
+      required_imports:
+        - hmac
+
+  - id: compare-digest-present
+    type: code_grep
+    file: app/main.py
+    pattern: '(hmac\.)?compare_digest\s*\('
+    expect:
+      min_matches: 1
+
+  - id: equality-comparison-removed
+    type: code_grep
+    file: app/main.py
+    pattern: '(computed_sig|expected_sig|expected_signature)\s*==\s*(received_sig|sig|signature|provided_sig|provided_signature)|(received_sig|sig|signature|provided_sig|provided_signature)\s*==\s*(computed_sig|expected_sig|expected_signature)'
+    expect:
+      max_matches: 0
+
+  - id: still-uses-raw-body
+    type: code_grep
+    file: app/main.py
+    pattern: 'await\s+request\.body\s*\(\s*\)'
+    expect:
+      min_matches: 1
+
+  - id: did-not-introduce-construct-event
+    type: code_grep
+    file: app/main.py
+    pattern: 'stripe\.Webhook\.construct_event'
+    expect:
+      max_matches: 0
+
+negative_faithfulness_criteria:
+  - "Do not switch to `stripe.Webhook.construct_event`. The seed deliberately uses the manual HMAC path; T4 tests targeted refactor of one comparison primitive, not handler-shape transformation. Mechanical check `did-not-introduce-construct-event` enforces this; the negative criterion explains the why."
+  - "Do not also add replay protection, idempotency tables, or DLQ logic. Those belong to T2 and to the sender-side scope respectively. T4's diff should be a small, surgical change."
+
+task_specific_faithfulness_items:
+  - "The diff is 1-2 lines added/changed: the comparison-line edit replacing `==` with `hmac.compare_digest(...)`, plus at most one import-line addition for `hmac` if it was not already imported. A diff exceeding 3 changed lines is overreach. The model did not also reformat surrounding code, rename variables, or restructure the function under cover of the refactor task."
+  - "The arguments to `hmac.compare_digest` are passed in the correct shape — both arguments are the same type (both `bytes` or both `str`) per the python-hmac stdlib documentation cited in fragment 3. Mixing types raises `TypeError` at call time and is a fragment-non-compliant call shape."
+  - "The signature computation itself is unchanged. The model did not also rewrite the HMAC construction (e.g., switching from `hmac.new(...).hexdigest()` to a different invocation shape) under the cover of the comparison-primitive refactor. Reviewers verify by reading the unchanged lines around the changed comparison."
+  - "The 200/400 status codes returned on success and failure paths are preserved verbatim. The model did not opportunistically change response shapes while editing the comparison line."
+  - "If the model added the `hmac` import as `import hmac` (vs `from hmac import compare_digest`), both forms are fragment-faithful; the call site usage matches the import shape (`hmac.compare_digest(...)` with bare import, `compare_digest(...)` with from-import). A mismatch (e.g., `from hmac import compare_digest` plus `hmac.compare_digest(...)` at call site) is a NameError at runtime — mechanical check `app-starts` would catch it, but faithfulness review explicitly verifies the import-and-usage are coherent."
+
+notes: |
+  T4 is the targeted-refactor task per spec §4.2 row 5: "Refactor
+  existing handler to use timing-safe comparison; replace `===` with
+  `crypto.timingSafeEqual`." The spec's wording is TypeScript-flavored
+  (`===`, `crypto.timingSafeEqual`) — translated to the pilot's
+  Python idiom: `==` and `hmac.compare_digest`. The translation is
+  faithful to the underlying intent (replace the language-default
+  equality operator with a constant-time primitive) and matches the
+  webhook-patterns skill's Python-flavored guardrail content
+  ("Never compare signatures with `==` or `!=`").
+
+  T4 is guardrail-led: the activated webhook-patterns skill has the
+  comparison guardrail in fragment 8, and the verification fragment
+  (7) has a mechanical check "Comparison uses `hmac.compare_digest`,
+  not `==`" — so the verification list essentially describes what
+  T4 is asking the model to do. A model that reads the fragments
+  and applies the verification's first item produces the correct
+  refactor.
+
+  The seed `app/main.py` for T4 carries a deliberately non-faithful
+  webhook handler — manual HMAC verification with `==` instead of
+  `compare_digest`. Specifically, the seed has the comparison line:
+
+      computed_sig = hmac.new(secret, signed_payload, hashlib.sha256).hexdigest()
+      received_sig = parse_v1_from_header(stripe_signature)
+      if computed_sig == received_sig:
+          return {"received": True}
+      raise HTTPException(status_code=400, detail="invalid signature")
+
+  Authoring the seed branch needs to bake in this anti-pattern as the
+  baseline. It must still pass T1's mechanical happy-path check
+  (valid signature returns 200) — the `==` is functionally correct,
+  just timing-unsafe — so that "T4 starts from a working but unsafe
+  state" is the trial framing.
+
+  ### Seed-branch authoring contract (documentation; not enforced by schema)
+
+  The mechanical check `equality-comparison-removed` uses a regex
+  that depends on the seed's exact variable names. Seed-branch
+  authoring MUST honor:
+
+  - **Variable names pinned:** the comparison line uses `computed_sig`
+    and `received_sig` exactly. Renames break the regex; if rename
+    is required, the regex in this fixture must be updated in the
+    same change.
+  - **Seed validates against T1's still-passes-happy-path before
+    commit:** valid Stripe-Signature → 200 with `{"received": true}`.
+    A seed that doesn't pass T1's happy-path is broken and the
+    refactor framing of T4 falls apart.
+  - **Seed FAILS T4's equality-comparison-removed before any model
+    edit:** the seed must contain the `==` anti-pattern that the
+    refactor is supposed to remove. If the seed already passes the
+    check, T4 has nothing to refactor.
+
+  These are contracts for the operator authoring `pilot-seed/T4`,
+  not runtime checks against the model's response. Captured here
+  rather than in a schema `seed_validation` field because the
+  contract is between fixture authoring and seed authoring, both
+  operator-controlled — and a v5 schema bump for a documentation-only
+  field is not justified by the value (per Change 3's reasoning).
+
+  T4 is single-skill (webhook-patterns only) like T1 and T2. Arm
+  fragments are byte-identical to T1's. The difference is the seed's
+  starting state and the task description's refactor framing. The
+  trial measures whether Tier 2 reads the guardrail + verification
+  fragments and produces the targeted edit, OR whether it
+  over-refactors (rewriting to use construct_event, adding replay
+  protection, etc.) under the cover of the refactor task.
+
+  Status code dispositions:
+    - still-passes-happy-path: status 200 (unchanged behavior)
+    - still-rejects-tampered: status 400 (unchanged)
+    - still-rejects-missing-header: status_in [400, 401] (latitude
+      preserved per webhook-patterns guardrail; same as T1)
+
+  forbidden_imports composition: same as T1 — asyncpg blocklisted
+  (no DB in T4), pyjwt/jwt blocklisted (no JWT in T4),
+  redis/cachetools/lru_cache blocklisted (T5 reach). `stripe`
+  permitted (the seed imports it for the existing handler).
+  `required_imports: [hmac]` is new for T4: the refactor
+  necessarily introduces or relies on the `hmac` module, so we
+  pin it as a required import surface. Mechanical check
+  `compare-digest-present` and the required_imports field
+  together enforce the discipline.
+
+  No cross-checks needed. Body-uniformity is JWT-specific; T4's
+  failure modes are status-code distinct (400 cryptographic vs
+  400/401 missing-header) and that's fragment-permitted.
+
+  Tri-state faithfulness items:
+    - None in T4. All five items are binary checks of "did the
+      model do what was asked, in the surgical way it was asked."
+      The closest tri-state candidate (whether `import hmac` vs
+      `from hmac import compare_digest` was used) is binary
+      because either form is faithful as long as the call-site
+      usage matches; mismatch is a hard fail.
+
+  Schema version: pinned to v2 because T4 doesn't need v3
+  (`headers_does_not_contain`) or v4 (`cross_checks`). v2 is
+  the floor for the `status_in` field on the missing-header
+  check. Lower-version pins are preferred when sufficient, so
+  the schema enum supports a graceful deprecation path later.

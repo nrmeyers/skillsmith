@@ -1,0 +1,46 @@
+=== 14:47:43 START smollm3-3b (M6 SHOW_SEED=1) ===
+Unloading "llama-3.2-3b-instruct"...
+Unloaded 1 model.
+
+[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[?25lLoading smollm3-3b ⠇[?25lLoading smollm3-3b ⠏[?25lLoading smollm3-3b ⠋[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[?25lLoading smollm3-3b ⠇[?25lLoading smollm3-3b ⠏[?25lLoading smollm3-3b ⠋[?25lLoading smollm3-3b ⠙[?25lLoading smollm3-3b ⠹[?25lLoading smollm3-3b ⠸[?25lLoading smollm3-3b ⠼[?25lLoading smollm3-3b ⠴[?25lLoading smollm3-3b ⠦[?25lLoading smollm3-3b ⠧[?25lLoading smollm3-3b ⠇[?25lLoading smollm3-3b ⠏[K[?25hModel loaded successfully in 2.36s.
+(5.74 GiB)
+To use the model in the API/SDK, use the identifier "smollm3-3b".
+--- Frag arms (T3a/T3b/T4 ×3 ×3) with seed injected ---
+trial=9036f6ee-7f9b-4456-b2e3-022e4dd4af8b task=T3a arm=arm_a run=1 parses=False functional_pass=False frags=16 in_tok=9475 out_tok=631 lm_ms=95971 total_ms=96686
+trial=fd36e48a-4bda-4c57-ae55-0e5e45e7ff9d task=T3a arm=arm_a run=2 parses=False functional_pass=False frags=16 in_tok=9475 out_tok=631 lm_ms=64017 total_ms=64733
+trial=3976bfb4-ac7f-4777-8702-614187b774e2 task=T3a arm=arm_a run=3 parses=False functional_pass=False frags=16 in_tok=9475 out_tok=631 lm_ms=64135 total_ms=64850
+trial=f74b6d92-054e-4cc6-868c-9cfca08582fe task=T3a arm=arm_b run=1 parses=False functional_pass=False frags=12 in_tok=7812 out_tok=392 lm_ms=64849 total_ms=65556
+trial=a469cf17-a6f6-4f14-a4ce-d77444e52054 task=T3a arm=arm_b run=2 parses=False functional_pass=False frags=12 in_tok=7812 out_tok=392 lm_ms=39079 total_ms=39785
+trial=25ece785-ec57-47d7-8613-f21842a8bace task=T3a arm=arm_b run=3 parses=False functional_pass=False frags=12 in_tok=7812 out_tok=392 lm_ms=38984 total_ms=39689
+trial=49d8e43b-ec86-4be5-aebd-5528cb8eae38 task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=5195 out_tok=381 lm_ms=41899 total_ms=42635
+trial=1c13d55d-95b8-45f0-8de5-6230534055ab task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=5195 out_tok=381 lm_ms=37274 total_ms=37993
+trial=a1df78b9-f730-4a22-a481-c4a17a985a35 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=5195 out_tok=381 lm_ms=36575 total_ms=37298
+trial=26f16f6b-2362-49eb-accb-87bcd7b1c1a4 task=T3b arm=arm_a run=1 parses=False functional_pass=False frags=24 in_tok=13189 out_tok=2048 lm_ms=266950 total_ms=267692
+trial=f2dcd4b3-8c69-4c3d-9f33-e2f579d8ca40 task=T3b arm=arm_a run=2 parses=False functional_pass=False frags=24 in_tok=13189 out_tok=2048 lm_ms=220990 total_ms=221790
+trial=d7fd9dd3-38c1-4ef0-b334-9d7c994ced60 task=T3b arm=arm_a run=3 parses=False functional_pass=False frags=24 in_tok=13189 out_tok=647 lm_ms=68996 total_ms=69774
+trial=6ba3b9b8-73df-4756-94a4-c437f7d05b54 task=T3b arm=arm_b run=1 parses=False functional_pass=False frags=18 in_tok=10709 out_tok=983 lm_ms=138811 total_ms=139616
+trial=4a9d6992-8c06-4010-a7d9-59ae464ea3d7 task=T3b arm=arm_b run=2 parses=False functional_pass=False frags=18 in_tok=10709 out_tok=983 lm_ms=100998 total_ms=101796
+trial=ce24364e-7d5a-4142-b556-9ba2958d7ec9 task=T3b arm=arm_b run=3 parses=False functional_pass=False frags=18 in_tok=10709 out_tok=983 lm_ms=102406 total_ms=103204
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=1 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=2 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T3b arm=arm_c run=3 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='length'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+trial=4f014e04-bd22-4d40-bbfa-a476966c2bf3 task=T4 arm=arm_a run=1 parses=False functional_pass=False frags=8 in_tok=5115 out_tok=526 lm_ms=55163 total_ms=55804
+trial=304da819-b3e5-4ad8-8879-d43b9b0879c9 task=T4 arm=arm_a run=2 parses=False functional_pass=False frags=8 in_tok=5115 out_tok=526 lm_ms=52857 total_ms=53590
+trial=40b49c63-7968-4da7-8b55-808118055a09 task=T4 arm=arm_a run=3 parses=False functional_pass=False frags=8 in_tok=5115 out_tok=526 lm_ms=53398 total_ms=54050
+trial=7da736ca-dbae-4223-91f5-7a08ceb33680 task=T4 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=4319 out_tok=551 lm_ms=57114 total_ms=57866
+trial=c2d19cc1-8aa3-4ac1-9f69-ab70c9f8b6ae task=T4 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=4319 out_tok=551 lm_ms=54516 total_ms=55257
+trial=1d326e82-7618-4229-a7e6-4b0aedbcb926 task=T4 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=4319 out_tok=551 lm_ms=55385 total_ms=56009
+trial=4b513b30-3f4c-470f-8de5-16957af72480 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=3062 out_tok=940 lm_ms=93664 total_ms=94348
+trial=72cdd61f-44dc-4107-9018-8188b2f65885 task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=3062 out_tok=899 lm_ms=90028 total_ms=90665
+trial=ae38c161-a2bb-4b7d-bdc9-4464268eac5d task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=3062 out_tok=899 lm_ms=90051 total_ms=90742
+--- Baseline (T3a/T3b/T4 ×3) with seed injected ---
+trial=2c0f0d01-d047-4c5d-8b97-1466a403ab43 task=T3a arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=2002 out_tok=592 lm_ms=60166 total_ms=60978
+trial=e9651a8a-ce7b-47ee-9be7-ac4f3baa22bd task=T3a arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=2002 out_tok=592 lm_ms=57399 total_ms=57872
+trial=63aecf60-4938-41fb-9cfc-64fa83226ff0 task=T3a arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=2002 out_tok=592 lm_ms=58463 total_ms=58945
+trial=32263ee0-92d0-4e59-84c8-cc0117c01517 task=T3b arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=2130 out_tok=319 lm_ms=34132 total_ms=34611
+trial=6c426dd9-83cb-4e35-b6e7-9fb60a34e60e task=T3b arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=2130 out_tok=319 lm_ms=30189 total_ms=30674
+trial=d05dfd08-c506-47cc-90ab-d70ff6b8ad44 task=T3b arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=2130 out_tok=319 lm_ms=30607 total_ms=31084
+trial=d84020c9-52f4-437c-925c-45d9f3271f20 task=T4 arm=baseline run=1 parses=True functional_pass=True frags=0 in_tok=1541 out_tok=314 lm_ms=31937 total_ms=32567
+trial=b234bfd9-874b-4d08-9106-656e3a81acf3 task=T4 arm=baseline run=2 parses=True functional_pass=True frags=0 in_tok=1541 out_tok=314 lm_ms=29926 total_ms=30688
+trial=0268f3d3-acfa-42d8-a0a4-ed628a35c9fa task=T4 arm=baseline run=3 parses=True functional_pass=True frags=0 in_tok=1541 out_tok=314 lm_ms=30082 total_ms=30705
+=== 15:38:08 END smollm3-3b ===

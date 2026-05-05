@@ -1,0 +1,8 @@
+=== 05:26:15 START qwen2.5-1.5b-instruct (skip_q10=0) ===
+Unloading "qwen2.5-coder-1.5b-instruct-128k"...
+Unloaded 1 model.
+[1m↑↓[22m [2mnavigate[22m[2m • [22m[1m⏎[22m [2mselect[22m[4A[28G[4B[2K[1A[2K[1A[2K[1A[2K[1A[2K[G[34m?[39m [1mSelect a model to load |[22m [36m[39m
+[36m❯ [91mq[39m[36m[91mw[39m[36m[91me[39m[36m[91mn[39m[36m[91m2[39m[36m[91m.[39m[36m[91m5[39m[36m[91m-[39m[36m[91m1[39m[36m[91m.[39m[36m[91m5[39m[36m[91mb[39m[36m[91m-[39m[36m[91mi[39m[36m[91mn[39m[36m[91ms[39m[36m[91mt[39m[36m[91mr[39m[36m[91mu[39m[36m[91mc[39m[36m[91mt[39m[36m (3.32 GiB)[39m
+  [91mq[39m[91mw[39m[91me[39m[91mn[39m[91m2[39m[91m.[39m[91m5[39m[91m-[39mcoder-[91m1[39m[91m.[39m[91m5[39m[91mb[39m[91m-[39m[91mi[39m[91mn[39m[91ms[39m[91mt[39m[91mr[39m[91mu[39m[91mc[39m[91mt[39m-128k (2.88 GiB)
+
+[1m↑↓[22m [2mnavigate[22m[2m • [22m[1m⏎[22m [2mselect[22m[4A[28G

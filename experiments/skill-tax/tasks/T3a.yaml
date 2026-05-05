@@ -1,0 +1,355 @@
+$schema: task-fixture.v3
+task_id: T3a
+
+description: |
+  ## Task
+
+  Wire the existing webhook receiver from `app/webhooks.py` into the
+  FastAPI application at `/workspace/app/main.py` and apply the
+  security-baseline middleware stack documented in the activated
+  fragments. The result must be a single FastAPI app where:
+
+  1. The webhook route at `POST /webhooks/stripe` is reachable
+     through the application's middleware stack.
+  2. `TrustedHostMiddleware` rejects requests whose `Host` header is
+     not in the allowlist.
+  3. `CORSMiddleware` is configured with explicit origins (not `*`
+     in combination with credentials).
+  4. The `webhook_deliveries` Postgres pool established by the
+     existing `lifespan` context remains available to the webhook
+     handler as `app.state.db` (or via a request-scoped
+     dependency, per the fragments).
+
+  The seed `app/main.py` carries an empty FastAPI app construction;
+  `app/webhooks.py` carries the verified-and-replay-protected handler
+  from the T2 reference solution as a `from fastapi import APIRouter`
+  module exposing `router: APIRouter`. The model must include the
+  router in the FastAPI app and add the middleware stack via the
+  `middleware=[Middleware(...)]` argument to `FastAPI(...)`.
+
+  Allowed host: `api.example.com`. Allowed CORS origin:
+  `https://app.example.com`. Allowed methods: `POST`, `OPTIONS`.
+  Allowed headers: `Content-Type`, `Stripe-Signature`. Both values
+  are also captured in `seed/test-host-config.yaml` for reference;
+  the model may hard-code them in `app/main.py` or read them from
+  `os.environ` — either is fragment-faithful.
+
+  ## Do
+
+  - Construct the FastAPI app with `lifespan=...` (existing context
+    in seed) and `middleware=[Middleware(TrustedHostMiddleware,
+    allowed_hosts=[...]), Middleware(CORSMiddleware, ...)]`.
+  - Include `webhooks.router` on the app via `app.include_router(...)`.
+  - Configure `CORSMiddleware` with explicit `allow_origins=[...]`,
+    `allow_credentials=True`, `allow_methods=["POST", "OPTIONS"]`,
+    `allow_headers=["Content-Type", "Stripe-Signature"]`.
+  - Configure `TrustedHostMiddleware` with `allowed_hosts=[
+    "api.example.com"]`.
+  - Keep the existing lifespan context as the single source of pool
+    initialization; do not wire a second pool.
+
+  ## Do not
+
+  - Do not edit `app/webhooks.py`. The handler in that file is
+    already correct against the T2 fragment surface; T3a's scope is
+    middleware composition, not handler logic.
+  - Do not add `HTTPSRedirectMiddleware`, `GZipMiddleware`, or any
+    middleware not named above. The fragments document them as
+    available, but T3a's success criteria only require the host pin
+    and CORS.
+  - Do not implement authentication. JWT-protected routes are T3b
+    territory and out of T3a's activated-fragment scope.
+  - Do not modify any file other than `app/main.py`.
+  - Do not import any third-party library not already listed in
+    the pinned `pyproject.toml`.
+  - Do not use `@app.on_event("startup")` / `@app.on_event("shutdown")`.
+    Both are deprecated per the fastapi-middleware-patterns
+    guardrail; the seed lifespan context is the supported shape.
+
+  ## Mechanical success criteria
+
+  - A POST to `/webhooks/stripe` with the correct `Host: api.example.com`
+    and a valid `Stripe-Signature` returns 200 with `{"received": true}`.
+  - A POST with `Host: evil.example.com` is rejected by
+    `TrustedHostMiddleware` with HTTP 400.
+  - A CORS preflight OPTIONS request from `Origin: https://app.example.com`
+    receives an Access-Control-Allow-Origin header naming that origin.
+  - A CORS preflight OPTIONS request from `Origin: https://evil.example.com`
+    does NOT receive an Access-Control-Allow-Origin header for that
+    origin (browser would block; server may still respond 200, but
+    without the permissive header).
+  - The FastAPI app starts cleanly under uvicorn after the
+    modification.
+
+skills_activated:
+  - webhook-patterns
+  - fastapi-middleware-patterns
+
+app_skeleton:
+  seed_branch: pilot-seed/T3a
+  seed_files:
+    - pyproject.toml
+    - app/__init__.py
+    - app/main.py
+    - app/webhooks.py
+    - seed/test-secrets.env
+    - seed/test-host-config.yaml
+    - seed/fixtures/stripe-event.json
+
+arm_fragments:
+  arm_a:
+    - { skill_id: webhook-patterns, sequence: 1 }
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+    - { skill_id: webhook-patterns, sequence: 6 }
+    - { skill_id: webhook-patterns, sequence: 7 }
+    - { skill_id: webhook-patterns, sequence: 8 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 1 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 6 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 7 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 8 }
+  arm_b:
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+    - { skill_id: webhook-patterns, sequence: 7 }
+    - { skill_id: webhook-patterns, sequence: 8 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 7 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 8 }
+  arm_c:
+    - { skill_id: webhook-patterns, sequence: 2 }
+    - { skill_id: webhook-patterns, sequence: 3 }
+    - { skill_id: webhook-patterns, sequence: 4 }
+    - { skill_id: webhook-patterns, sequence: 5 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 2 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 3 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 4 }
+    - { skill_id: fastapi-middleware-patterns, sequence: 5 }
+  baseline: []
+
+# Order matters: happy-path-correct-host (#2) must run before
+# replay/db checks if added (T3a does not test replay state, so
+# this is mostly informational). CORS preflight checks (#5, #6)
+# are independent. Harness contract: declared list order.
+mechanical_checks:
+
+  - id: app-starts
+    type: app_starts
+    timeout_s: 15
+
+  - id: happy-path-correct-host
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Host: api.example.com
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      status: 200
+      body_json_matches:
+        received: true
+
+  - id: rejects-bad-host
+    type: http
+    request:
+      method: POST
+      path: /webhooks/stripe
+      headers:
+        Host: evil.example.com
+        Content-Type: application/json
+        Stripe-Signature: ${stripe_signature}
+      body_fixture: seed/fixtures/stripe-event.json
+    expect:
+      # TrustedHostMiddleware returns 400 by default per Starlette
+      # docs (verified 2026-05-01). The fastapi-middleware fragment
+      # documents the middleware as rejecting outside-allowlist hosts
+      # but does not pin the rejection status; some configurations
+      # use 421 Misdirected Request. Accept either.
+      status_in: [400, 421]
+
+  - id: cors-preflight-allowed-origin
+    type: http
+    request:
+      method: OPTIONS
+      path: /webhooks/stripe
+      headers:
+        Host: api.example.com
+        Origin: https://app.example.com
+        Access-Control-Request-Method: POST
+        Access-Control-Request-Headers: Content-Type, Stripe-Signature
+    expect:
+      # Successful CORS preflight; CORSMiddleware returns 200 with the
+      # permissive headers. The status itself is uncontroversial; the
+      # header presence is the load-bearing check.
+      status: 200
+      headers_contains:
+        access-control-allow-origin: https://app.example.com
+
+  - id: cors-preflight-disallowed-origin-no-permissive-header
+    type: http
+    request:
+      method: OPTIONS
+      path: /webhooks/stripe
+      headers:
+        Host: api.example.com
+        Origin: https://evil.example.com
+        Access-Control-Request-Method: POST
+        Access-Control-Request-Headers: Content-Type, Stripe-Signature
+    expect:
+      # CORSMiddleware does not echo Access-Control-Allow-Origin for
+      # disallowed origins. Status may be 200 or 400 per Starlette
+      # version; the load-bearing check is the absence of the
+      # permissive header for the wrong origin. headers_does_not_contain
+      # (v3+) makes this an explicit schema-level assertion.
+      status_in: [200, 400]
+      headers_does_not_contain:
+        access-control-allow-origin: https://evil.example.com
+
+  - id: only-main-modified
+    type: diff
+    expect:
+      file_changes_min: 1
+      file_changes_max: 1
+      files_touched:
+        - app/main.py
+      files_must_touch:
+        - app/main.py
+
+  - id: no-foreign-imports
+    type: diff_imports
+    file: app/main.py
+    expect:
+      forbidden_imports:
+        - redis
+        - cachetools
+        - functools.lru_cache
+        - jwt
+        - pyjwt
+      # asyncpg is permitted (lifespan + pool patterns); stripe is
+      # permitted (the included router uses it). Same rationale as
+      # T2's blocklist.
+
+  - id: webhook-router-included
+    type: code_grep
+    file: app/main.py
+    pattern: '(include_router|app\.include_router)'
+    expect:
+      min_matches: 1
+
+  - id: trustedhost-mounted
+    type: code_grep
+    file: app/main.py
+    pattern: 'TrustedHostMiddleware'
+    expect:
+      min_matches: 1
+
+  - id: cors-mounted
+    type: code_grep
+    file: app/main.py
+    pattern: 'CORSMiddleware'
+    expect:
+      min_matches: 1
+
+  - id: explicit-origins-not-wildcard
+    type: code_grep
+    file: app/main.py
+    pattern: 'allow_origins\s*=\s*\[\s*[\"\x27]\*[\"\x27]\s*\]'
+    expect:
+      max_matches: 0
+
+  - id: no-deprecated-on-event
+    type: code_grep
+    file: app/main.py
+    pattern: '@app\.on_event'
+    expect:
+      max_matches: 0
+
+task_specific_faithfulness_items:
+  - "Construction-time middleware declaration via `middleware=[Middleware(...)]` on the `FastAPI(...)` call is the form the fastapi-middleware-patterns guardrail recommends for predictable ordering. A model using `@app.middleware('http')` instead is following a fragment-documented alternative; this is a soft-faithfulness signal, not a faithfulness failure unless ordering also breaks. Tri-state tick: yes if construction-time form is used; not-required-but-acceptable if decorator form is used WITH correct ordering (TrustedHost runs before CORS on the request path); no if decorator form is used and ordering also breaks."
+  - "`CORSMiddleware` configures `allow_origins` as an explicit list (e.g., `['https://app.example.com']`), never `['*']` together with `allow_credentials=True`. The combination is rejected by Starlette and is the most-cited CORS configuration mistake."
+  - "`TrustedHostMiddleware` is configured BEFORE `CORSMiddleware` in the middleware list (TrustedHost runs outermost so bad-host requests are rejected before CORS even evaluates them). Order in the list IS the request-path execution order; reviewers verify by reading the list."
+  - "The webhook router from `app/webhooks.py` is included via `app.include_router(...)`, not re-imported and re-decorated inline in `app/main.py`. The seed router is the single source of webhook handler logic; replicating it in main.py would shadow the seed and is a faithfulness failure."
+  - "The existing `lifespan` context in the seed `app/main.py` is preserved as the single pool-initialization site. Adding a second `asyncpg.create_pool` call (or moving pool init outside lifespan) is a faithfulness failure — the fastapi-middleware-patterns guardrail says lifespan is the supported shape and on_event is deprecated."
+  - "No authentication code (JWT decoding, OAuth introspection, password verification) appears anywhere in `app/main.py`. T3a is webhook + middleware composition only; auth lives in T3b's activated skill set, not T3a's."
+  - "`app/main.py` does not contain duplicated copies of the webhook handler logic from `app/webhooks.py`. The model wires the existing router via `include_router`, rather than re-implementing the handler inline in main.py (which would still satisfy `files_touched=[app/main.py]` mechanically but represents a shadowing/duplication failure mode the diff check cannot catch). Reviewers verify by skimming the model's main.py for `@app.post('/webhooks/...')` decorators or copy-pasted HMAC verification code; either presence is a faithfulness failure."
+
+notes: |
+  T3a is the 2-skill composition task per spec §4.2 row 3. Activates
+  webhook-patterns AND fastapi-middleware-patterns. The composition
+  surface is intentionally simple: middleware stack wraps an existing
+  router. The model is not asked to write the webhook handler (T1's
+  job), the dedup logic (T2's job), or any auth (T3b's job) — only
+  the FastAPI-app composition that mounts everything together.
+
+  This is the C3 sub-claim test for 2-skill composition. T3b is the
+  3-skill composition. Comparing T3a Arm B vs T1/T2 Arm B trial
+  pass rates surfaces whether composition introduces failure modes
+  that single-skill tasks do not.
+
+  Arm A: 16 fragments (8 webhook + 8 middleware). Arm B: 12
+  (6 webhook + 6 middleware). Arm C: 8 (4 webhook + 4 middleware).
+  Concatenation order: skill-order then sequence-order — webhook
+  fragments first (lower skill-list index in skills_activated), then
+  middleware fragments. This is harness convention per pilot spec
+  §5.1 step 3.
+
+  Forbidden_imports composition for T3a: same as T2 — asyncpg
+  permitted (lifespan/pool), stripe permitted (used by
+  app/webhooks.py and re-exported indirectly via the router include).
+  pyjwt/jwt remain blocklisted (T3b reach), redis/cachetools/
+  lru_cache remain (T5 reach).
+
+  Mechanical-check #5 (cors-preflight-disallowed-origin-no-permissive-
+  header) uses the `headers_does_not_contain` field added in
+  task-fixture.v3 to assert that the response does NOT carry
+  `access-control-allow-origin: https://evil.example.com`. Schema
+  bumped to v3 specifically to capture this header-absence semantic
+  at the schema level rather than leaving it as a harness-implementation
+  detail in fixture notes. T3a is the first fixture pinned to v3.
+
+  Order-dependency: none for T3a. The four HTTP checks are
+  independent (different bodies, different hosts, different methods).
+  Declared-list order is preserved by harness convention but no
+  check depends on a prior one's side-effect.
+
+  Status-code dispositions per Change 1 reasoning:
+    - happy-path-correct-host: status 200 (single correct code)
+    - rejects-bad-host: status_in [400, 421] (TrustedHostMiddleware
+      default is 400 per Starlette but some versions/configurations
+      use 421 Misdirected Request; the fastapi-middleware fragment
+      documents the middleware behavior without pinning a status,
+      so latitude is appropriate)
+    - cors-preflight-allowed-origin: status 200 (CORSMiddleware's
+      preflight response is uncontroversially 200)
+    - cors-preflight-disallowed-origin-no-permissive-header:
+      status_in [200, 400] (Starlette versions differ; the
+      load-bearing check is the absence of the permissive header,
+      not the status)
+
+  Tri-state faithfulness items in T3a:
+    - Item 1 (construction-time vs decorator middleware declaration)
+      is the first explicit tri-state item in the task corpus. The
+      fragments document both forms; the guardrail recommends
+      construction-time. A decorator-form solution with correct
+      ordering is fragment-faithful but suboptimal — it gets
+      `not-required-but-acceptable` rather than full pass.
+    - Item 3 (TrustedHost-before-CORS ordering) is binary. The
+      fragments teach order matters; flipping is a faithfulness
+      failure regardless of which mounting form is used.
+  The milestone-3 trial.md UI requirement (yes / no /
+  not-required-but-acceptable) is now confirmed across two fixtures
+  (T2's rollback item, T3a's middleware-form item).

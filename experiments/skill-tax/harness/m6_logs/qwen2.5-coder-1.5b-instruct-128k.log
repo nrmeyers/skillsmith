@@ -1,0 +1,45 @@
+=== 12:39:09 START qwen2.5-coder-1.5b-instruct-128k (M6 SHOW_SEED=1) ===
+No models to unload.
+
+[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠧[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠇[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠏[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠋[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠙[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠹[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠸[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠼[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠴[?25lLoading qwen2.5-coder-1.5b-instruct-128k ⠦[K[?25hModel loaded successfully in 1.36s.
+(2.88 GiB)
+To use the model in the API/SDK, use the identifier "qwen2.5-coder-1.5b-instruct-128k".
+--- Frag arms (T3a/T3b/T4 ×3 ×3) with seed injected ---
+trial=d71fcdc7-dfb3-4117-967e-76ad18a62847 task=T3a arm=arm_a run=1 parses=True functional_pass=False frags=16 in_tok=9650 out_tok=320 lm_ms=25658 total_ms=26360
+trial=ebfd12de-849f-4cd2-82d8-036ac93719e9 task=T3a arm=arm_a run=2 parses=True functional_pass=False frags=16 in_tok=9650 out_tok=320 lm_ms=16800 total_ms=17522
+trial=64154f48-16d5-4783-bce6-36433a1c2635 task=T3a arm=arm_a run=3 parses=True functional_pass=False frags=16 in_tok=9650 out_tok=320 lm_ms=16779 total_ms=17446
+trial=949c056a-9731-4697-8955-b0d6cd8c382d task=T3a arm=arm_b run=1 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=2048 lm_ms=112603 total_ms=113309
+trial=2661d823-2b5b-44a1-a8c8-3f3bb1d31e15 task=T3a arm=arm_b run=2 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=2048 lm_ms=106249 total_ms=106954
+trial=24fdf8e1-06be-4325-b89c-7f785227c4ce task=T3a arm=arm_b run=3 parses=True functional_pass=False frags=12 in_tok=7955 out_tok=2048 lm_ms=106237 total_ms=106922
+trial=f3f8f66d-cda8-479e-bce9-423d28127438 task=T3a arm=arm_c run=1 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=36 lm_ms=3260 total_ms=3950
+trial=7e0ee06b-d6d1-4fbb-8600-d33249d7bcaf task=T3a arm=arm_c run=2 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=206 lm_ms=10433 total_ms=11210
+trial=c53a135f-4197-4ecb-af59-79a280b9a213 task=T3a arm=arm_c run=3 parses=False functional_pass=False frags=8 in_tok=5279 out_tok=206 lm_ms=10470 total_ms=11229
+trial=8a4312c5-1533-4970-8bd3-d02aa92971a2 task=T3b arm=arm_a run=1 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=2048 lm_ms=125445 total_ms=125941
+trial=ae63a90f-e8c2-48bc-ab7f-59fe069c551a task=T3b arm=arm_a run=2 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=2048 lm_ms=110887 total_ms=111376
+trial=db9dd87f-153e-47fd-8b53-6b958f576f7c task=T3b arm=arm_a run=3 parses=True functional_pass=False frags=24 in_tok=13475 out_tok=2048 lm_ms=111128 total_ms=111623
+trial=105fc5e8-dfd9-4806-be19-57a4433a7603 task=T3b arm=arm_b run=1 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=645 lm_ms=44817 total_ms=45316
+trial=b1cb823c-156e-495d-bb65-e8a5995e0bf5 task=T3b arm=arm_b run=2 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=645 lm_ms=34246 total_ms=34734
+trial=66ed7ed2-7697-4eb9-a7e3-c71bb473348e task=T3b arm=arm_b run=3 parses=True functional_pass=False frags=18 in_tok=10938 out_tok=645 lm_ms=34253 total_ms=34738
+trial=4cb24981-57cf-45c1-b44a-04d95a2076fe task=T3b arm=arm_c run=1 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=59 lm_ms=3192 total_ms=3979
+trial=cf1964ad-0ace-4d1d-98e0-46521c18e578 task=T3b arm=arm_c run=2 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=59 lm_ms=3062 total_ms=3844
+trial=69c56f80-521a-4edd-ab55-5018560ab39a task=T3b arm=arm_c run=3 parses=False functional_pass=False frags=12 in_tok=7024 out_tok=59 lm_ms=3064 total_ms=3858
+trial=b46330a4-a852-483e-92a1-e7ffd2e8e85f task=T4 arm=arm_a run=1 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=274 lm_ms=14873 total_ms=15596
+trial=e4374143-3af2-4494-a068-afc93cc2c846 task=T4 arm=arm_a run=2 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=274 lm_ms=14132 total_ms=14754
+trial=f0d589f9-69c3-4aa6-944a-8f41ffe922a1 task=T4 arm=arm_a run=3 parses=True functional_pass=False frags=8 in_tok=5246 out_tok=274 lm_ms=13993 total_ms=14690
+trial=8ee840c0-c386-4584-84b4-98d9d32fb4a4 task=T4 arm=arm_b run=1 parses=True functional_pass=False frags=6 in_tok=4434 out_tok=311 lm_ms=16624 total_ms=17348
+trial=7ab1c58e-df9a-41b6-a3c7-306e4cd5c566 task=T4 arm=arm_b run=2 parses=True functional_pass=False frags=6 in_tok=4434 out_tok=311 lm_ms=15731 total_ms=16350
+trial=a57159de-6c51-4951-9be6-31eb5a3173c1 task=T4 arm=arm_b run=3 parses=True functional_pass=False frags=6 in_tok=4434 out_tok=311 lm_ms=15677 total_ms=16310
+trial=b2dc36ec-0e22-4ee0-9c3c-aae2368ca396 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=207 lm_ms=10498 total_ms=11257
+trial=dd5a9645-1cd9-4672-a85c-0719faa7c5cb task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=261 lm_ms=12989 total_ms=13712
+trial=ecd1e414-bf67-48a6-86c8-d385551574ec task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=3130 out_tok=230 lm_ms=11542 total_ms=12271
+--- Baseline (T3a/T3b/T4 ×3) with seed injected ---
+trial=47962dd6-5ec4-4338-988e-f6a9ece72b9b task=T3a arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=6 lm_ms=1423 total_ms=2122
+trial=0c171c37-e4d0-409f-a908-bfd79eec601a task=T3a arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=6 lm_ms=325 total_ms=1015
+trial=80aeb03a-4cdc-40f0-a310-d68e369bb950 task=T3a arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=1993 out_tok=6 lm_ms=325 total_ms=1002
+trial=3a2093c5-fcb1-4110-8669-123f19ee97ad task=T3b arm=baseline run=1 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=3 lm_ms=1287 total_ms=2071
+trial=248b0388-8fcb-4275-b71f-aa29fa3bce05 task=T3b arm=baseline run=2 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=3 lm_ms=179 total_ms=956
+trial=dc81f0e0-a65e-465a-99db-b152b758f5cf task=T3b arm=baseline run=3 parses=False functional_pass=False frags=0 in_tok=2149 out_tok=3 lm_ms=183 total_ms=948
+TRIAL_FAILED rc=1 task=T4 arm=baseline run=1 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='stop'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T4 arm=baseline run=2 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='stop'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+TRIAL_FAILED rc=1 task=T4 arm=baseline run=3 |   File "/home/nmeyers/dev/skillsmith/src/skillsmith/authoring/lm_client.py", line 208, in chat_with_stats     raise LMBadResponse( skillsmith.authoring.lm_client.LMBadResponse: empty content (finish_reason='stop'); likely max_tokens exhausted by reasoning_content — raise max_tokens 
+=== 12:56:32 END qwen2.5-coder-1.5b-instruct-128k ===

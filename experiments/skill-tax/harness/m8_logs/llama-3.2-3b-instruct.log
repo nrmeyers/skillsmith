@@ -1,0 +1,14 @@
+=== 16:19:50 START llama-3.2-3b-instruct (M8 arm_b_plus + review) ===
+Unloading "qwen2.5-coder-3b-instruct-128k"...
+Unloaded 1 model.
+
+[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[?25lLoading llama-3.2-3b-instruct ⠙[?25lLoading llama-3.2-3b-instruct ⠹[?25lLoading llama-3.2-3b-instruct ⠸[?25lLoading llama-3.2-3b-instruct ⠼[?25lLoading llama-3.2-3b-instruct ⠴[?25lLoading llama-3.2-3b-instruct ⠦[?25lLoading llama-3.2-3b-instruct ⠧[?25lLoading llama-3.2-3b-instruct ⠇[?25lLoading llama-3.2-3b-instruct ⠏[?25lLoading llama-3.2-3b-instruct ⠋[K[?25hModel loaded successfully in 1.66s.
+(5.99 GiB)
+To use the model in the API/SDK, use the identifier "llama-3.2-3b-instruct".
+--- T1 arm_b_plus × 5 runs (with self-review pass) ---
+trial=74d1aabe-e601-45ed-8053-dcbcef4b15db task=T1 arm=arm_b_plus run=1 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=73706 total_ms=123029 review_lm_ms=48601 review_in_tok=6068 review_out_tok=447
+trial=db998d00-4874-4921-aec3-fb7ee19ca314 task=T1 arm=arm_b_plus run=2 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=69358 total_ms=121133 review_lm_ms=51108 review_in_tok=6068 review_out_tok=447
+trial=3c96c6de-a2aa-4472-8089-82046fce3434 task=T1 arm=arm_b_plus run=3 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=70197 total_ms=123138 review_lm_ms=52244 review_in_tok=6068 review_out_tok=447
+trial=26460d73-28b5-4150-8d98-6509a8cbda1f task=T1 arm=arm_b_plus run=4 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=71116 total_ms=124316 review_lm_ms=52445 review_in_tok=6068 review_out_tok=447
+trial=3088c059-4488-4872-b733-799aaeef806a task=T1 arm=arm_b_plus run=5 parses=False functional_pass=False frags=10 in_tok=5206 out_tok=633 lm_ms=71449 total_ms=124635 review_lm_ms=52485 review_in_tok=6068 review_out_tok=447
+=== 16:30:14 END llama-3.2-3b-instruct ===

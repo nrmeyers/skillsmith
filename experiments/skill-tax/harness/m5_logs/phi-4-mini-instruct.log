@@ -1,0 +1,57 @@
+=== 08:49:53 START phi-4-mini-instruct (skip_q10=0) ===
+Unloading "smollm3-3b"...
+Unloaded 1 model.
+
+[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[?25lLoading phi-4-mini-instruct ⠴[?25lLoading phi-4-mini-instruct ⠦[?25lLoading phi-4-mini-instruct ⠧[?25lLoading phi-4-mini-instruct ⠇[?25lLoading phi-4-mini-instruct ⠏[?25lLoading phi-4-mini-instruct ⠋[?25lLoading phi-4-mini-instruct ⠙[?25lLoading phi-4-mini-instruct ⠹[?25lLoading phi-4-mini-instruct ⠸[?25lLoading phi-4-mini-instruct ⠼[K[?25hModel loaded successfully in 2.80s.
+(7.15 GiB)
+To use the model in the API/SDK, use the identifier "phi-4-mini-instruct".
+--- Q10 precheck (T1 arm_b ×10) ---
+trial=db0437c1-3687-4b4c-9a3f-ffe33480d972 task=T1 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=41251 total_ms=41936
+trial=1e08defa-06e9-4b2c-989a-049c64f7490c task=T1 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27583 total_ms=28312
+trial=21c1445f-be8c-47e6-8a1b-b825b94a4f42 task=T1 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27689 total_ms=28372
+trial=1de0bfd4-c72b-49b8-bffa-8c8be5ce1b9f task=T1 arm=arm_b run=4 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27558 total_ms=28190
+trial=464fad64-fb49-431a-899a-ede5afccc6ce task=T1 arm=arm_b run=5 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27599 total_ms=28280
+trial=fcde6f51-914a-47a4-8366-2c3a797b3db5 task=T1 arm=arm_b run=6 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27567 total_ms=28317
+trial=c9d472a4-f1ef-484f-8ee0-264c99c6c892 task=T1 arm=arm_b run=7 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27743 total_ms=28370
+trial=c5856107-cb2f-4251-a0c3-28a16287f811 task=T1 arm=arm_b run=8 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=27972 total_ms=28712
+trial=941d45a1-a6a7-4f13-8768-5c7f7347cf36 task=T1 arm=arm_b run=9 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=28179 total_ms=28861
+trial=1dca4bf2-4ef0-435d-9c41-e58ad831dd5e task=T1 arm=arm_b run=10 parses=False functional_pass=False frags=6 in_tok=3931 out_tok=235 lm_ms=28213 total_ms=28938
+--- Frag arms (T3a/T3b/T4 ×3 ×3) ---
+trial=b97a8637-2fb6-4eef-8d11-8cde5918aeb9 task=T3a arm=arm_a run=1 parses=False functional_pass=False frags=16 in_tok=8938 out_tok=285 lm_ms=73881 total_ms=74577
+trial=8b686fd9-7a2b-4b8e-a925-b49aacfa773b task=T3a arm=arm_a run=2 parses=False functional_pass=False frags=16 in_tok=8938 out_tok=285 lm_ms=35939 total_ms=36701
+trial=ac979896-a4d3-4e78-aedf-112f87ec23e3 task=T3a arm=arm_a run=3 parses=False functional_pass=False frags=16 in_tok=8938 out_tok=285 lm_ms=36044 total_ms=36736
+trial=9de83e18-25c7-4858-88de-f9f1299a086e task=T3a arm=arm_b run=1 parses=False functional_pass=False frags=12 in_tok=7269 out_tok=170 lm_ms=39439 total_ms=40149
+trial=87d42e36-dfe7-4fa3-bbcc-8d12887d7e10 task=T3a arm=arm_b run=2 parses=False functional_pass=False frags=12 in_tok=7269 out_tok=170 lm_ms=21478 total_ms=22185
+trial=062f43f1-0be5-4335-bce6-7680a9ec7cfb task=T3a arm=arm_b run=3 parses=False functional_pass=False frags=12 in_tok=7269 out_tok=170 lm_ms=21514 total_ms=22224
+trial=983c0721-e4c4-477d-b0c3-471086e95304 task=T3a arm=arm_c run=1 parses=True functional_pass=False frags=8 in_tok=4648 out_tok=149 lm_ms=22393 total_ms=23103
+trial=cd92e3c7-23e6-4323-aabb-8c579d795465 task=T3a arm=arm_c run=2 parses=True functional_pass=False frags=8 in_tok=4648 out_tok=149 lm_ms=18268 total_ms=18965
+trial=c40b614d-247d-46e7-b3e3-a7e55db697f5 task=T3a arm=arm_c run=3 parses=True functional_pass=False frags=8 in_tok=4648 out_tok=149 lm_ms=18174 total_ms=18875
+trial=5a535f1d-9837-4905-8c9d-88e187f902d7 task=T3b arm=arm_a run=1 parses=False functional_pass=False frags=24 in_tok=12557 out_tok=498 lm_ms=128066 total_ms=128851
+trial=2c022a1f-eedf-4a06-8ebe-4ad454f0a18c task=T3b arm=arm_a run=2 parses=False functional_pass=False frags=24 in_tok=12557 out_tok=498 lm_ms=66252 total_ms=66984
+trial=e4b8b74c-bb41-4a55-98e8-d40a95221912 task=T3b arm=arm_a run=3 parses=False functional_pass=False frags=24 in_tok=12557 out_tok=498 lm_ms=66197 total_ms=67001
+trial=bbc25e24-0d0b-4e2f-8328-6af3af95cb83 task=T3b arm=arm_b run=1 parses=False functional_pass=False frags=18 in_tok=10055 out_tok=446 lm_ms=101944 total_ms=102719
+trial=730ab6b6-47ea-4e6d-9967-9ca1ab1355f3 task=T3b arm=arm_b run=2 parses=False functional_pass=False frags=18 in_tok=10055 out_tok=446 lm_ms=57276 total_ms=58078
+trial=650d0262-1e31-491e-8014-f1f8f312eb06 task=T3b arm=arm_b run=3 parses=False functional_pass=False frags=18 in_tok=10055 out_tok=446 lm_ms=57233 total_ms=57983
+trial=87f1a830-219d-4bd5-b5b2-be5f9d5c6319 task=T3b arm=arm_c run=1 parses=True functional_pass=False frags=12 in_tok=6202 out_tok=311 lm_ms=38879 total_ms=39373
+trial=d15a4b89-cb20-414f-8698-5b914ed812b0 task=T3b arm=arm_c run=2 parses=True functional_pass=False frags=12 in_tok=6202 out_tok=311 lm_ms=38247 total_ms=38740
+trial=19c43e41-06f7-4ca8-83d5-150f9aec95e4 task=T3b arm=arm_c run=3 parses=True functional_pass=False frags=12 in_tok=6202 out_tok=311 lm_ms=38151 total_ms=38650
+trial=b43b2d92-baa3-48ec-8f8e-fb5951a82729 task=T4 arm=arm_a run=1 parses=False functional_pass=False frags=8 in_tok=4762 out_tok=129 lm_ms=18442 total_ms=19078
+trial=553fdfbd-7b66-4a5b-9941-16d409de235a task=T4 arm=arm_a run=2 parses=False functional_pass=False frags=8 in_tok=4762 out_tok=129 lm_ms=15350 total_ms=16075
+trial=a30c0850-274a-467a-991b-09b93532ffe1 task=T4 arm=arm_a run=3 parses=False functional_pass=False frags=8 in_tok=4762 out_tok=129 lm_ms=15329 total_ms=16060
+trial=37ffced7-e02f-47a3-8058-4c3cb01e9d8a task=T4 arm=arm_b run=1 parses=False functional_pass=False frags=6 in_tok=3968 out_tok=214 lm_ms=28201 total_ms=28893
+trial=3a015bf0-4215-49da-b025-8033e99e4d9f task=T4 arm=arm_b run=2 parses=False functional_pass=False frags=6 in_tok=3968 out_tok=214 lm_ms=25453 total_ms=26203
+trial=a0551874-6613-49e9-8c71-a52e30bbb8ec task=T4 arm=arm_b run=3 parses=False functional_pass=False frags=6 in_tok=3968 out_tok=214 lm_ms=25327 total_ms=26059
+trial=b18bc184-9bfb-478e-8328-cb1db3f39008 task=T4 arm=arm_c run=1 parses=False functional_pass=False frags=4 in_tok=2704 out_tok=271 lm_ms=31814 total_ms=32513
+trial=baf71201-c6c8-464e-a6fc-2d5c7cc7ba9d task=T4 arm=arm_c run=2 parses=False functional_pass=False frags=4 in_tok=2704 out_tok=271 lm_ms=31665 total_ms=32320
+trial=96a4f16b-a789-404f-a8e6-6fdc3e34249b task=T4 arm=arm_c run=3 parses=False functional_pass=False frags=4 in_tok=2704 out_tok=271 lm_ms=32180 total_ms=32816
+--- Baseline (T3a/T3b/T4 ×3) ---
+trial=6e3079fb-5aaf-4fb0-8e93-f6de72cf1618 task=T3a arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1445 out_tok=207 lm_ms=27000 total_ms=27695
+trial=96893092-b991-425f-9ea6-da4969d1384c task=T3a arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1445 out_tok=207 lm_ms=23532 total_ms=24233
+trial=b0640a2f-f2ac-4f53-8c1d-5a93147bc67c task=T3a arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1445 out_tok=207 lm_ms=23689 total_ms=24388
+trial=0d254ce4-4e40-4946-a669-30d76d31e7ef task=T3b arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1457 out_tok=395 lm_ms=48425 total_ms=48898
+trial=094bcec1-207f-433d-9ff3-325bf92fca3c task=T3b arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1457 out_tok=395 lm_ms=46917 total_ms=47407
+trial=d104c40b-bf18-4f6a-ae58-a3061bf37d0b task=T3b arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1457 out_tok=395 lm_ms=47347 total_ms=47816
+trial=356f4a7b-6f34-481f-8f0b-fca083586ab9 task=T4 arm=baseline run=1 parses=True functional_pass=False frags=0 in_tok=1178 out_tok=74 lm_ms=10536 total_ms=11013
+trial=a675cf47-9fe0-4cba-99d1-cd8c44825cf4 task=T4 arm=baseline run=2 parses=True functional_pass=False frags=0 in_tok=1178 out_tok=74 lm_ms=8626 total_ms=9103
+trial=4e9737e6-e589-49f8-851e-4f52189592c1 task=T4 arm=baseline run=3 parses=True functional_pass=False frags=0 in_tok=1178 out_tok=74 lm_ms=8393 total_ms=8864
+=== 09:17:56 END phi-4-mini-instruct ===
