@@ -13,3 +13,6 @@ skills:
   - skill_id: test-driven-development
     file: test-driven-development.yaml
     fragment_count: 9
+  - skill_id: verification-before-completion
+    file: verification-before-completion.yaml
+    fragment_count: 8
