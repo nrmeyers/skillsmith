@@ -187,9 +187,7 @@ class TestPortAvailableHealthStatus:
 
     @patch("skillsmith.install.subcommands.verify.urlopen")
     @patch("skillsmith.install.subcommands.verify.socket.socket")
-    def test_healthy_status_passes(
-        self, mock_sock: MagicMock, mock_urlopen: MagicMock
-    ) -> None:
+    def test_healthy_status_passes(self, mock_sock: MagicMock, mock_urlopen: MagicMock) -> None:
         # Mock the TCP connect_ex to return 0 (port in use).
         sock_inst = MagicMock()
         sock_inst.connect_ex.return_value = 0
@@ -209,9 +207,7 @@ class TestPortAvailableHealthStatus:
 
     @patch("skillsmith.install.subcommands.verify.urlopen")
     @patch("skillsmith.install.subcommands.verify.socket.socket")
-    def test_degraded_status_passes(
-        self, mock_sock: MagicMock, mock_urlopen: MagicMock
-    ) -> None:
+    def test_degraded_status_passes(self, mock_sock: MagicMock, mock_urlopen: MagicMock) -> None:
         sock_inst = MagicMock()
         sock_inst.connect_ex.return_value = 0
         sock_inst.__enter__ = lambda s: s  # pyright: ignore[reportUnknownLambdaType]
@@ -230,9 +226,7 @@ class TestPortAvailableHealthStatus:
 
     @patch("skillsmith.install.subcommands.verify.urlopen")
     @patch("skillsmith.install.subcommands.verify.socket.socket")
-    def test_unavailable_status_fails(
-        self, mock_sock: MagicMock, mock_urlopen: MagicMock
-    ) -> None:
+    def test_unavailable_status_fails(self, mock_sock: MagicMock, mock_urlopen: MagicMock) -> None:
         sock_inst = MagicMock()
         sock_inst.connect_ex.return_value = 0
         sock_inst.__enter__ = lambda s: s  # pyright: ignore[reportUnknownLambdaType]
