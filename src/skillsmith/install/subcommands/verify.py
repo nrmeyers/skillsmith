@@ -226,9 +226,7 @@ def _check_duckdb_present(duck_path: str, diag: dict[str, Any] | None = None) ->
         }
 
 
-def _check_ladybug_present(
-    ladybug_path: str, diag: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def _check_ladybug_present(ladybug_path: str, diag: dict[str, Any] | None = None) -> dict[str, Any]:
     """Check 4: Kuzu directory exists with Skill nodes.
 
     When the service is running (``diag`` is non-None), defer to its
@@ -294,9 +292,7 @@ def _check_ladybug_present(
         }
 
 
-def _check_skill_count(
-    ladybug_path: str, diag: dict[str, Any] | None = None
-) -> dict[str, Any]:
+def _check_skill_count(ladybug_path: str, diag: dict[str, Any] | None = None) -> dict[str, Any]:
     """Check 5: Skill count >= MIN_SKILL_COUNT.
 
     When the service is running, count active skills via
@@ -311,9 +307,7 @@ def _check_skill_count(
                 "name": "skill_count_meets_minimum",
                 "passed": True,
                 "duration_ms": duration,
-                "detail": (
-                    f"{count} >= {MIN_SKILL_COUNT} (via /diagnostics/runtime)"
-                ),
+                "detail": (f"{count} >= {MIN_SKILL_COUNT} (via /diagnostics/runtime)"),
             }
         return {
             "name": "skill_count_meets_minimum",
@@ -481,8 +475,7 @@ def _check_port_available(port: int) -> dict[str, Any]:
                 "passed": False,
                 "duration_ms": int((time.monotonic() - t0) * 1000),
                 "error": (
-                    f"Port {port} is bound by a service that returned "
-                    f"status={body.get('status')!r}"
+                    f"Port {port} is bound by a service that returned status={body.get('status')!r}"
                 ),
                 "remediation": (
                     f"Stop the foreign service on port {port}, or re-run "

@@ -236,9 +236,7 @@ class TestServerStopAlreadyStopped:
     scripts that care can read `action: "already_stopped"` from JSON.
     """
 
-    def test_returns_zero_with_already_stopped(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_returns_zero_with_already_stopped(self, capsys: pytest.CaptureFixture[str]) -> None:
         with (
             patch.object(server_proc, "find_listening_pid", return_value=None),
             patch.object(server_proc, "configured_port", return_value=47950),
