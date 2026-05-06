@@ -287,7 +287,7 @@ class TestDBChecksWithServiceUp:
         assert "29 active skills" in result["detail"]
 
     def test_ladybug_fails_when_runtime_unavailable(self) -> None:
-        diag = self._diag(runtime="ok", telemetry="ok", skills=29)
+        diag = self._diag(runtime="unavailable", telemetry="ok", skills=29)
         result = _check_ladybug_present("/path/that/does/not/exist", diag=diag)
         assert result["passed"] is False
         assert "runtime_store" in result["error"]
