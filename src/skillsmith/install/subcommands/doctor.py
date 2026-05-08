@@ -244,8 +244,7 @@ def run_doctor(root: Path | None = None) -> dict[str, Any]:
     # field so the shape matches verify/doctor checks (which don't carry it).
     preflight_result = run_preflight(phase="early", port=port)
     checks: list[dict[str, Any]] = [
-        {k: v for k, v in c.items() if k != "severity"}
-        for c in preflight_result["checks"]
+        {k: v for k, v in c.items() if k != "severity"} for c in preflight_result["checks"]
     ]
 
     # Run verify's 8 checks
