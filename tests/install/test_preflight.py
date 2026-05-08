@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import socket
 from pathlib import Path
@@ -227,7 +228,7 @@ class TestCliRun:
             mock_resp: Any = mock_open.return_value.__enter__.return_value
             mock_resp.status = 200
             mock_resp.read.return_value = b""
-            args = type("A", (), {"phase": "early", "runner": None, "port": 0})()
+            args = argparse.Namespace(phase="early", runner=None, port=0)
             rc = preflight._run(args)  # pyright: ignore[reportPrivateUsage]
         assert rc == 0
         # Output JSON written to outputs dir.
@@ -253,6 +254,6 @@ class TestCliRun:
                 side_effect=URLError("offline"),
             ),
         ):
-            args = type("A", (), {"phase": "early", "runner": None, "port": 0})()
+            args = argparse.Namespace(phase="early", runner=None, port=0)
             rc = preflight._run(args)  # pyright: ignore[reportPrivateUsage]
         assert rc == 1
