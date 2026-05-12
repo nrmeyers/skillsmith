@@ -196,7 +196,10 @@ def _build_llama_server() -> dict[str, Any]:
             print("  llama-server: cloning llama.cpp (this may take a minute) ...", file=sys.stderr)
             subprocess.run(
                 [
-                    "git", "clone", "--depth", "1",
+                    "git",
+                    "clone",
+                    "--depth",
+                    "1",
                     "https://github.com/ggerganov/llama.cpp",
                     str(_LLAMA_CPP_BUILD_ROOT),
                 ],
@@ -220,8 +223,10 @@ def _build_llama_server() -> dict[str, Any]:
         subprocess.run(
             [
                 "cmake",
-                "-S", str(_LLAMA_CPP_BUILD_ROOT),
-                "-B", str(build_dir),
+                "-S",
+                str(_LLAMA_CPP_BUILD_ROOT),
+                "-B",
+                str(build_dir),
                 "-DCMAKE_BUILD_TYPE=Release",
                 "-DLLAMA_BUILD_SERVER=ON",
             ],
@@ -267,7 +272,12 @@ def _build_llama_server() -> dict[str, Any]:
                 file=sys.stderr,
             )
 
-        return {"success": True, "binary_path": str(dest), "error": None, "duration_ms": duration_ms}
+        return {
+            "success": True,
+            "binary_path": str(dest),
+            "error": None,
+            "duration_ms": duration_ms,
+        }
 
     except subprocess.CalledProcessError as exc:
         stderr_snippet = (exc.stderr or b"").decode(errors="replace").strip()[-500:]
@@ -352,7 +362,9 @@ def _download_gguf(model_name: str) -> dict[str, Any]:
         return {"success": False, "error": str(exc)}
 
 
-def _handle_llama_server(model: str, interactive: bool) -> tuple[
+def _handle_llama_server(
+    model: str, interactive: bool
+) -> tuple[
     list[dict[str, Any]],  # auto_pulled entries
     list[dict[str, Any]],  # error entries
 ]:
@@ -367,9 +379,11 @@ def _handle_llama_server(model: str, interactive: bool) -> tuple[
     if not shutil.which("llama-server"):
         if interactive:
             try:
-                choice = input(
-                    "  llama-server binary not found. Build from source? [y/N]: "
-                ).strip().lower()
+                choice = (
+                    input("  llama-server binary not found. Build from source? [y/N]: ")
+                    .strip()
+                    .lower()
+                )
             except (EOFError, KeyboardInterrupt):
                 choice = "n"
         else:
@@ -377,31 +391,35 @@ def _handle_llama_server(model: str, interactive: bool) -> tuple[
             choice = "n"
 
         if choice != "y":
-            errors.append({
-                "runner": "llama-server",
-                "model": model,
-                "success": False,
-                "error": "llama-server binary not found and build was skipped.",
-                "hint": (
-                    "To build manually:\n"
-                    "  git clone https://github.com/ggerganov/llama.cpp\n"
-                    "  cd llama.cpp && cmake -B build -DLLAMA_BUILD_SERVER=ON\n"
-                    "  cmake --build build --config Release -j\n"
-                    "  cp build/bin/llama-server ~/.local/bin/\n"
-                    "Then re-run `pull-models`."
-                ),
-            })
+            errors.append(
+                {
+                    "runner": "llama-server",
+                    "model": model,
+                    "success": False,
+                    "error": "llama-server binary not found and build was skipped.",
+                    "hint": (
+                        "To build manually:\n"
+                        "  git clone https://github.com/ggerganov/llama.cpp\n"
+                        "  cd llama.cpp && cmake -B build -DLLAMA_BUILD_SERVER=ON\n"
+                        "  cmake --build build --config Release -j\n"
+                        "  cp build/bin/llama-server ~/.local/bin/\n"
+                        "Then re-run `pull-models`."
+                    ),
+                }
+            )
             return auto_pulled, errors
 
         build_result = _build_llama_server()
         if not build_result["success"]:
-            errors.append({
-                "runner": "llama-server",
-                "model": model,
-                "success": False,
-                "error": build_result.get("error", "unknown build error"),
-                "hint": build_result.get("hint"),
-            })
+            errors.append(
+                {
+                    "runner": "llama-server",
+                    "model": model,
+                    "success": False,
+                    "error": build_result.get("error", "unknown build error"),
+                    "hint": build_result.get("hint"),
+                }
+            )
             return auto_pulled, errors
 
     # ---- 2. GGUF model file -------------------------------------------------
@@ -411,20 +429,24 @@ def _handle_llama_server(model: str, interactive: bool) -> tuple[
 
     download_result = _download_gguf(model)
     if not download_result["success"]:
-        errors.append({
-            "runner": "llama-server",
-            "model": model,
-            "success": False,
-            "error": download_result.get("error", "unknown download error"),
-        })
+        errors.append(
+            {
+                "runner": "llama-server",
+                "model": model,
+                "success": False,
+                "error": download_result.get("error", "unknown download error"),
+            }
+        )
         return auto_pulled, errors
 
-    auto_pulled.append({
-        "runner": "llama-server",
-        "model": model,
-        "duration_ms": download_result.get("duration_ms", 0),
-        "path": download_result.get("path"),
-    })
+    auto_pulled.append(
+        {
+            "runner": "llama-server",
+            "model": model,
+            "duration_ms": download_result.get("duration_ms", 0),
+            "path": download_result.get("path"),
+        }
+    )
     return auto_pulled, errors
 
 
