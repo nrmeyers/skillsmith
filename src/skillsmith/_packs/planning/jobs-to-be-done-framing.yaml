@@ -1,0 +1,120 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/jobs-to-be-done.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+# Reshape preserves the upstream wording wherever practical; bullet expansions
+# and verification checklist are additive Skillsmith conventions.
+
+skill_type: domain
+skill_id: jobs-to-be-done-framing
+canonical_name: Jobs-to-be-Done Framing (User Progress, Not Features)
+category: engineering
+skill_class: domain
+domain_tags: [jtbd, jobs-to-be-done, user-outcomes, product-discovery, forces-of-progress, situation-job-outcome]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/jobs-to-be-done.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; the rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — Clayton Christensen, *Competing Against Luck* (2016), on the JTBD lens; Bob Moesta's "forces of progress" framing for push/pull/anxiety/habit. Skill scope: framing a fuzzy product idea as the user progress it enables; not detailed user research methods, not story-mapping (covered in user-story-mapping), not requirements writing (covered in user-stories-and-requirements).
+
+raw_prose: |
+  # Jobs-to-be-Done Framing
+
+  Jobs-to-be-Done frames a product idea around the *progress a user is trying to make in a situation*, not the features that idea will ship. The rule is one sentence: every workflow, card, and capability should answer "what job is the user hiring this for?" Most product plans that drifted toward feature lists and away from outcomes lost the lens here — they started naming what the system would do before naming what the user was trying to accomplish.
+
+  ## Job, outcome, forces
+
+  A **job** is the progress a user is trying to make in a given situation. The canonical form is "When I'm [situation], I want to [motivation] so I can [expected outcome]." A trip-planner's job is not "search hotels" but "when I'm planning a trip, I want to compare options so I can choose the best fit." The situation anchors the job in real life; the outcome anchors it in success.
+
+  An **outcome** is the result the user expects. Outcomes are functional ("find an affordable hotel near the conference"), emotional ("feel confident I picked well"), and social ("be able to recommend it to coworkers without embarrassment"). All three matter; products that nail only functional outcomes feel cold.
+
+  **Forces of progress** explain why a user moves toward a new solution and why they don't. Push (the pain of the current state) and pull (the attraction of the new) move them toward change; anxiety (will the new thing work?) and habit (what I already do) hold them back. A product wins when push + pull exceed anxiety + habit.
+
+  ## Frame workflows and cards as jobs, not features
+
+  When generating workflows, prefer titles in the user's voice: "Help me…", "When I… I want to… so I can…". Avoid feature-shaped titles like "Search API", "Admin dashboard", "Settings page". Those are system parts; users do not hire system parts, they hire progress.
+
+  At the card level, ask two questions before naming or shipping:
+
+  - What job is the user hiring this card for?
+  - What does success look like for them?
+
+  If the card has no answer to either question, it is probably a technical task masquerading as user value. Either reframe it around the job it serves, or recognize it as scaffolding and absorb it into a job-shaped card.
+
+  ## Avoid feature-first language
+
+  "Add a filter dropdown" is feature-first. "Help me narrow down options without re-scanning the whole list" is outcome-first. The same UI change might result; the difference is what the team optimizes for during implementation. Outcome-first language survives the design changes that feature-first language collides with.
+
+  Feature-first creeps in through pressure: a stakeholder asks for "a chart", a competitor "has a dashboard". Translate every such request back to the job before scoping it. The chart exists to support a user outcome; name that outcome first.
+
+  ## When to apply JTBD framing
+
+  JTBD is most valuable at the scaffold and populate stages of planning — when the team is still deciding *what* to build. Once cards are scoped and a story map exists, JTBD recedes into the background; the verification step is "does each card serve a nameable job?" rather than constant reframing.
+
+  It is less useful for pure technical decisions (which database, which deployment topology) — those have their own decision frameworks. Trying to JTBD-frame every architectural choice produces strained narratives.
+
+  ## Verification
+
+  - [ ] Every workflow title reads as user progress, not system function.
+  - [ ] Every card answers "what job is the user hiring this for?" in one sentence.
+  - [ ] Outcomes are stated explicitly — functional, and where relevant emotional and social.
+  - [ ] No card title uses pure feature/technical language ("API endpoint", "migration", "dashboard") without an outcome anchor.
+  - [ ] Forces of progress (push, pull, anxiety, habit) have been considered for at least the MVP path.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # Jobs-to-be-Done Framing
+
+      Jobs-to-be-Done frames a product idea around the *progress a user is trying to make in a situation*, not the features that idea will ship. The rule is one sentence: every workflow, card, and capability should answer "what job is the user hiring this for?" Most product plans that drifted toward feature lists and away from outcomes lost the lens here — they started naming what the system would do before naming what the user was trying to accomplish.
+
+  - sequence: 2
+    fragment_type: rationale
+    content: |
+      ## Job, outcome, forces
+
+      A **job** is the progress a user is trying to make in a given situation. The canonical form is "When I'm [situation], I want to [motivation] so I can [expected outcome]." A trip-planner's job is not "search hotels" but "when I'm planning a trip, I want to compare options so I can choose the best fit." The situation anchors the job in real life; the outcome anchors it in success.
+
+      An **outcome** is the result the user expects. Outcomes are functional ("find an affordable hotel near the conference"), emotional ("feel confident I picked well"), and social ("be able to recommend it to coworkers without embarrassment"). All three matter; products that nail only functional outcomes feel cold.
+
+      **Forces of progress** explain why a user moves toward a new solution and why they don't. Push (the pain of the current state) and pull (the attraction of the new) move them toward change; anxiety (will the new thing work?) and habit (what I already do) hold them back. A product wins when push + pull exceed anxiety + habit.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## Frame workflows and cards as jobs, not features
+
+      When generating workflows, prefer titles in the user's voice: "Help me…", "When I… I want to… so I can…". Avoid feature-shaped titles like "Search API", "Admin dashboard", "Settings page". Those are system parts; users do not hire system parts, they hire progress.
+
+      At the card level, ask two questions before naming or shipping:
+
+      - What job is the user hiring this card for?
+      - What does success look like for them?
+
+      If the card has no answer to either question, it is probably a technical task masquerading as user value. Either reframe it around the job it serves, or recognize it as scaffolding and absorb it into a job-shaped card.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Avoid feature-first language
+
+      "Add a filter dropdown" is feature-first. "Help me narrow down options without re-scanning the whole list" is outcome-first. The same UI change might result; the difference is what the team optimizes for during implementation. Outcome-first language survives the design changes that feature-first language collides with.
+
+      Feature-first creeps in through pressure: a stakeholder asks for "a chart", a competitor "has a dashboard". Translate every such request back to the job before scoping it. The chart exists to support a user outcome; name that outcome first.
+
+      JTBD is most valuable at the scaffold and populate stages of planning — when the team is still deciding *what* to build. It is less useful for pure technical decisions; trying to JTBD-frame every architectural choice produces strained narratives.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Every workflow title reads as user progress, not system function.
+      - [ ] Every card answers "what job is the user hiring this for?" in one sentence.
+      - [ ] Outcomes are stated explicitly — functional, and where relevant emotional and social.
+      - [ ] No card title uses pure feature/technical language ("API endpoint", "migration", "dashboard") without an outcome anchor.
+      - [ ] Forces of progress (push, pull, anxiety, habit) have been considered for at least the MVP path.

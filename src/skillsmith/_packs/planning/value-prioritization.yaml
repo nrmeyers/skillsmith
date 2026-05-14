@@ -1,0 +1,130 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/value-prioritization.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+
+skill_type: domain
+skill_id: value-prioritization
+canonical_name: Value Prioritization (MVP Slice, MoSCoW, Job Completion)
+category: engineering
+skill_class: domain
+domain_tags: [prioritization, mvp, moscow, job-completion, must-should-could, dependency-ordering]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/value-prioritization.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — DSDM's MoSCoW prioritization framework (Must/Should/Could/Won't); Eric Ries, *The Lean Startup*, on minimum viable product as the smallest end-to-end slice that proves the job is doable. Skill scope: ordering activities and assigning card priority within a story map; not roadmapping, not estimation, not release planning.
+
+raw_prose: |
+  # Value Prioritization
+
+  Value Prioritization orders activities and assigns priority to cards so the team builds the most valuable slice first. The rule is one sentence: priority 1 cards form a usable end-to-end MVP, priority 2 enhances it, priority 3 polishes. Most priority schemes that degenerated did so by labeling everything Priority 1 (every team's favorite anti-pattern) — when everything is must-have, nothing is, and the team optimizes against false constraints.
+
+  ## User value first — order activities by journey position
+
+  Order activities left-to-right by how early the user encounters them in their journey. The leftmost activity is the entry point ("Discover", "Sign up"); the rightmost is the outcome or exit ("Receive", "Look back"). This is the same horizontal ordering used in story mapping; prioritization respects it.
+
+  Within an activity, priority is *vertical* — top card is highest priority, cards below are lower. The map literally encodes the priority decision.
+
+  ## The MVP slice
+
+  Cards with priority 1 form the MVP — the minimum set that makes the workflow usable end-to-end. The MVP must be a *slice*, not a layer. A backend with no UI is not an MVP; a UI with no data is not an MVP. The MVP is the thinnest path through the backbone where the user can complete the core job.
+
+  Priority 2 cards enhance the experience. They make the MVP nicer, faster, more delightful. Priority 3 cards are nice-to-have — polish and delight that can wait.
+
+  ## MoSCoW mapping
+
+  The three priorities map cleanly onto MoSCoW:
+
+  - Priority 1 = **Must have.** The workflow breaks without it. Removing it leaves the user unable to complete the core job.
+  - Priority 2 = **Should have.** The workflow is significantly better with it. Removing it leaves the user able to complete the job, but the experience is degraded.
+  - Priority 3 = **Could have.** Polish and delight. Removing it leaves the workflow functionally identical from the user's standpoint.
+
+  "Won't have (this release)" is a fourth bucket — explicitly out of scope. Tracking out-of-scope items prevents them from quietly drifting back in.
+
+  ## Prioritize job completion over delight
+
+  A user who cannot complete their core job will not stay long enough to be delighted. Prioritize the cards that get them across the finish line first; delight cards come second.
+
+  Concretely, when choosing between "the workflow works for everyone" (priority 1) and "the workflow feels great for power users" (priority 3), the first wins until the workflow works for everyone. After that, delight becomes a legitimate priority-1 candidate in the next slice.
+
+  ## Dependency awareness
+
+  If card B depends on card A — A must be built first for B to function — then A has equal or higher priority than B. The priority encodes a build order; violating dependencies in the priority assignment means the team will block itself.
+
+  Flag dependencies in card descriptions: "Depends on: [card A]" makes the build order explicit and lets the team schedule accordingly.
+
+  ## Anti-patterns
+
+  - **Everything is priority 1.** When every card is must-have, the team has not actually prioritized; it has labeled. The pressure of cutting honestly is what makes prioritization useful.
+  - **Technical infrastructure dressed as priority 1.** "Set up the database" is technically required but not a *user* must-have; it is scaffolding for the actual must-haves. Track infrastructure separately or fold it into the first user-facing card that needs it.
+  - **Activities with only priority-3 cards.** Every activity needs at least one must-have, otherwise the activity itself is not in the MVP and probably should not appear on the priority-1 backbone slice.
+  - **Priority labels with no MVP cut.** If "the priority-1 set" cannot be assembled into a coherent end-to-end MVP, the labels are decorative.
+
+  ## Verification
+
+  - [ ] Activities are ordered left-to-right by user-journey position, not by build difficulty.
+  - [ ] Priority 1 cards together form a coherent end-to-end MVP that lets the user complete the core job.
+  - [ ] Priority distribution is not flat — not all cards are priority 1; honest cuts have been made.
+  - [ ] Every activity has at least one priority-1 card; no activity is entirely priority 3.
+  - [ ] Card dependencies are flagged; dependent cards have equal-or-lower priority than what they depend on.
+  - [ ] Cards that complete the core job are prioritized above cards that optimize or delight.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # Value Prioritization
+
+      Value Prioritization orders activities and assigns priority to cards so the team builds the most valuable slice first. The rule is one sentence: priority 1 cards form a usable end-to-end MVP, priority 2 enhances it, priority 3 polishes. Most priority schemes that degenerated did so by labeling everything Priority 1 — when everything is must-have, nothing is, and the team optimizes against false constraints.
+
+  - sequence: 2
+    fragment_type: execution
+    content: |
+      ## Order activities by user-journey position, assign priority vertically
+
+      Order activities left-to-right by how early the user encounters them in their journey. The leftmost activity is the entry point; the rightmost is the outcome or exit. Within an activity, priority is *vertical* — top card is highest priority, cards below are lower. The map literally encodes the priority decision.
+
+      Cards with priority 1 form the MVP — the minimum set that makes the workflow usable end-to-end. The MVP must be a *slice*, not a layer. A backend with no UI is not an MVP; a UI with no data is not an MVP. Priority 2 cards enhance; priority 3 cards polish.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## MoSCoW mapping and job-completion-first
+
+      The three priorities map onto MoSCoW:
+
+      - Priority 1 = **Must have.** Workflow breaks without it; user cannot complete the core job.
+      - Priority 2 = **Should have.** Workflow significantly better with it; user can still complete the job.
+      - Priority 3 = **Could have.** Polish and delight; functionally identical without it.
+
+      A user who cannot complete their core job will not stay long enough to be delighted. Prioritize the cards that get them across the finish line first; delight cards come second. After the core job works for everyone, delight becomes a legitimate priority-1 candidate in the next slice.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Dependencies and anti-patterns
+
+      If card B depends on card A — A must be built first for B to function — then A has equal or higher priority than B. The priority encodes a build order; violating dependencies in the priority assignment means the team will block itself. Flag dependencies in card descriptions.
+
+      Anti-patterns:
+
+      - **Everything is priority 1.** When every card is must-have, the team has not actually prioritized; it has labeled.
+      - **Technical infrastructure dressed as priority 1.** "Set up the database" is not a *user* must-have; it is scaffolding. Fold it into the first user-facing card that needs it.
+      - **Activities with only priority-3 cards.** Every activity needs at least one must-have, otherwise it does not belong in the MVP slice.
+      - **Priority labels with no MVP cut.** If the priority-1 set does not assemble into an end-to-end MVP, the labels are decorative.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Activities are ordered left-to-right by user-journey position, not by build difficulty.
+      - [ ] Priority 1 cards together form a coherent end-to-end MVP.
+      - [ ] Priority distribution is not flat — honest cuts have been made.
+      - [ ] Every activity has at least one priority-1 card.
+      - [ ] Card dependencies are flagged; dependent cards have equal-or-lower priority than what they depend on.
+      - [ ] Cards that complete the core job are prioritized above cards that optimize or delight.

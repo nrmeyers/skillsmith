@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/user-story-mapping.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+
+skill_type: domain
+skill_id: user-story-mapping
+canonical_name: User Story Mapping (Backbone, Activities, Cards)
+category: engineering
+skill_class: domain
+domain_tags: [story-mapping, backbone, activities, cards, mvp-slice, jeff-patton, user-journey]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/user-story-mapping.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — Jeff Patton, *User Story Mapping* (O'Reilly, 2014), the canonical reference for the backbone/activities/cards model. Skill scope: structuring an idea as a left-to-right user journey of activities with prioritized cards beneath; not requirement writing (covered in user-stories-and-requirements), not estimation.
+
+raw_prose: |
+  # User Story Mapping
+
+  User Story Mapping organizes a product idea as a *backbone* of user activities running left-to-right in journey order, with *cards* of capability stacked beneath each activity in priority order. The rule is one sentence: build the backbone first, then fill in activities, then split each activity into thin cards. Most maps that lost value broke this order — they started with cards (features), grouped them into activities post-hoc, and ended up with a system-feature taxonomy wearing a journey costume.
+
+  ## Backbone — the order of user activities
+
+  The backbone is the left-to-right sequence of *what the user does*, not what the system does. For a trip-planner: "Decide where to go" → "Compare options" → "Book" → "Travel" → "Look back." Backbone steps are user-centric, named in the user's voice, and ordered by when they happen in the user's life, not by when the team will build them.
+
+  Build the backbone before anything else. A weak backbone produces a noisy map; a strong backbone makes priority calls obvious because every card sits under an activity that itself has a position in the journey.
+
+  ## Activities — the jobs under each backbone step
+
+  Activities are the columns under each backbone step — the "jobs" or tasks the user performs in that part of the journey. For "Compare options": "Search by criteria", "Read reviews", "Save favorites", "Share with travel companions." User-centric phrasing again — "Search by criteria" not "Search API".
+
+  Each activity should be one nameable job. If you cannot name an activity in five words, it is probably two jobs glued together; split it.
+
+  ## Cards — thin slices of capability
+
+  Cards are specific capabilities that support an activity. One card equals one slice of value — small enough to build and test in a few days. For "Search by criteria": "Filter by price range", "Filter by date range", "Sort by rating", "Reset all filters."
+
+  Cards are vertical slices through the stack — UI, logic, data — that deliver one piece of user value. A card titled "Set up database" is not a card; it is scaffolding. Either fold it into the first card that needs it, or recognize it as infrastructure and track it outside the map.
+
+  ## Ordering
+
+  - **Horizontal** = user journey order, left to right.
+  - **Vertical** under an activity = priority. The top card is MVP — without it, the activity does not work. Cards below are enhancement and polish.
+
+  Two orderings, two dimensions. Mixing them — putting MVP cards horizontally and enhancements vertically — destroys the map's information value.
+
+  ## Anti-patterns
+
+  - **Workflows named as system modules.** "Search API", "Admin module", "Settings page" — these are system parts, not user activities. Rename to the user-outcome ("Find and compare", "Manage account", "Configure preferences").
+  - **Too many cards per activity.** If an activity has fifteen cards, it is probably three activities. Split.
+  - **Huge cards.** A card that needs a week of work is two or three cards in a trench coat. Slice it.
+  - **Cards with no user-facing outcome.** "Refactor auth module" is not a card; it is a technical task. Track it elsewhere or fold it into a feature card that justifies the work.
+
+  ## Verification
+
+  - [ ] Backbone exists and is named in user-journey order, not system-feature order.
+  - [ ] Every workflow / backbone step is named in user-outcome language (no "API", "module", "service" in titles).
+  - [ ] Activities are columnar under backbone steps; each activity is one nameable job.
+  - [ ] Cards are thin vertical slices delivering one piece of value; no card requires more than ~2-3 days of work.
+  - [ ] Vertical position under each activity reflects priority (MVP on top, enhancement below).
+  - [ ] No activity has only enhancement-level cards — every activity has at least one MVP card.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # User Story Mapping
+
+      User Story Mapping organizes a product idea as a *backbone* of user activities running left-to-right in journey order, with *cards* of capability stacked beneath each activity in priority order. The rule is one sentence: build the backbone first, then fill in activities, then split each activity into thin cards. Most maps that lost value broke this order — they started with cards (features), grouped them into activities post-hoc, and ended up with a system-feature taxonomy wearing a journey costume.
+
+  - sequence: 2
+    fragment_type: rationale
+    content: |
+      ## Backbone — the order of user activities
+
+      The backbone is the left-to-right sequence of *what the user does*, not what the system does. For a trip-planner: "Decide where to go" → "Compare options" → "Book" → "Travel" → "Look back." Backbone steps are user-centric, named in the user's voice, and ordered by when they happen in the user's life, not by when the team will build them.
+
+      Build the backbone before anything else. A weak backbone produces a noisy map; a strong backbone makes priority calls obvious because every card sits under an activity that itself has a position in the journey.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## Activities and cards
+
+      Activities are the columns under each backbone step — the "jobs" or tasks the user performs in that part of the journey. Each activity should be one nameable job. If you cannot name an activity in five words, it is probably two jobs glued together; split it.
+
+      Cards are specific capabilities that support an activity. One card equals one slice of value — small enough to build and test in a few days. Cards are vertical slices through the stack — UI, logic, data — that deliver one piece of user value. A card titled "Set up database" is not a card; it is scaffolding.
+
+      Ordering rules:
+      - **Horizontal** = user journey order, left to right.
+      - **Vertical** under an activity = priority. The top card is MVP — without it, the activity does not work. Cards below are enhancement and polish.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Anti-patterns
+
+      - **Workflows named as system modules.** "Search API", "Admin module", "Settings page" — these are system parts, not user activities. Rename to the user-outcome ("Find and compare", "Manage account", "Configure preferences").
+      - **Too many cards per activity.** If an activity has fifteen cards, it is probably three activities. Split.
+      - **Huge cards.** A card that needs a week of work is two or three cards in a trench coat. Slice it.
+      - **Cards with no user-facing outcome.** "Refactor auth module" is not a card; it is a technical task. Track it elsewhere or fold it into a feature card that justifies the work.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Backbone exists and is named in user-journey order, not system-feature order.
+      - [ ] Every workflow / backbone step is named in user-outcome language (no "API", "module", "service" in titles).
+      - [ ] Activities are columnar under backbone steps; each activity is one nameable job.
+      - [ ] Cards are thin vertical slices delivering one piece of value; no card requires more than ~2-3 days of work.
+      - [ ] Vertical position under each activity reflects priority (MVP on top, enhancement below).
+      - [ ] No activity has only enhancement-level cards — every activity has at least one MVP card.

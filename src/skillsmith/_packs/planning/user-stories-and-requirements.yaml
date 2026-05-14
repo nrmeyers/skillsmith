@@ -1,0 +1,135 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/user-stories-requirements.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+
+skill_type: domain
+skill_id: user-stories-and-requirements
+canonical_name: User Stories and Requirements (Capability Titles, Testable Criteria)
+category: engineering
+skill_class: domain
+domain_tags: [user-stories, acceptance-criteria, requirements, thin-vertical-slice, definition-of-done, given-when-then]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/user-stories-requirements.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — Mike Cohn, *User Stories Applied* (Addison-Wesley, 2004); Liz Keogh and the BDD community on the given/when/then form of acceptance criteria. Skill scope: writing card titles as user capabilities and requirements as testable acceptance criteria; not estimation, not story-mapping (covered in user-story-mapping).
+
+raw_prose: |
+  # User Stories and Requirements
+
+  A user story names a *capability the user gains*; a requirement is a *testable acceptance criterion* for that capability. The rule is one sentence: each card title reads as user value, and each requirement is specific enough that a developer knows when it is done. Most cards that became muddy broke one of these — the title was a technical task instead of a capability, or the requirements were vague aspirations ("works well", "is fast") that no test could prove.
+
+  ## Card titles as user stories
+
+  Each card title should read as a capability the user gains — "Filter by category", "View order history", "Reset password". The user can hear the title and understand what they will be able to do. Avoid:
+
+  - Technical titles ("API endpoint", "Database migration", "Refactor auth").
+  - Vague titles ("Improve search", "Better UX").
+  - Marketing titles ("Lightning-fast filtering").
+
+  A useful test: read the title to a non-technical stakeholder. If they cannot tell you what changes for the user, rename it.
+
+  ## Acceptance criteria as requirements
+
+  Each requirement is one testable acceptance criterion. The most reliable forms:
+
+  - "User can [action] and sees [result]." — e.g. "User can apply a price-range filter and sees only listings within the range."
+  - "When [condition], then [outcome]." — e.g. "When the filter returns zero results, then the empty-state message appears with a 'clear filters' action."
+
+  Each criterion is one statement, one expectation, one test. "User can filter and sort and search" is three criteria pretending to be one; split them. A requirement vague enough to pass without being verified ("works correctly") fails the criterion test — rewrite it as a concrete observable behavior.
+
+  ## Thin vertical slices
+
+  Each card is a thin slice through the stack — UI, logic, and data — that delivers one piece of user value. A card that touches only the backend ("Add filter endpoint") is not done; the user gains nothing until the UI exposes it. A card that touches only the UI ("Add filter dropdown") is not done; without the backend, it does not filter.
+
+  Slice vertically until the card delivers value end-to-end. If a card requires more than ~2-3 days of work, it is too thick; split it along the natural seams — different filter types, different sort modes, different result views.
+
+  ## One card, one job
+
+  Each card serves exactly one user job. Ask: "What progress does the user make by having this card built?" If the answer is two things, split. Two examples:
+
+  - "Filter and sort by price" → split into "Filter by price range" and "Sort by price ascending/descending." Different user actions, different acceptance criteria, different test sets.
+  - "View order history with refunds" → split into "View order history" and "Display refund status on past orders." Each is shippable on its own.
+
+  ## Definition of done
+
+  A card is done when:
+
+  - All its requirements pass (the acceptance criteria are observably met).
+  - The feature is accessible to the user in the running product (not behind an unflipped flag with no plan to flip it).
+  - Edge cases are handled — empty states, error states, loading states. Missing the edges leaves the card half-done from the user's perspective.
+  - Verified against the job (the card serves the user job it was scoped against, not a different job that emerged during build).
+
+  ## Anti-patterns
+
+  - **Purely technical cards.** "Set up database", "Upgrade framework", "Refactor auth." These are not cards; they are infrastructure or maintenance. Track them outside the user-facing map.
+  - **Cards with no user outcome.** If you cannot finish "By having this card, the user can ___" in one sentence, the card is mis-scoped.
+  - **Vague requirements.** "Works well", "is intuitive", "feels fast." Replace with observable behavior or measurable thresholds.
+  - **Duplicate cards across activities.** The same capability listed under two activities means the activities are not well-scoped; rename one.
+
+  ## Verification
+
+  - [ ] Each card title reads as a user capability ("User can …" / "View …" / "Reset …"), not a technical task.
+  - [ ] Each requirement is one testable criterion in "User can / When … then …" form.
+  - [ ] No card requires more than ~2-3 days of work; thicker cards have been split.
+  - [ ] Each card serves exactly one user job; cards that serve two have been split.
+  - [ ] Edge cases (empty, error, loading) are explicitly covered by requirements.
+  - [ ] No duplicate cards across activities; if two activities seem to need the same card, the activities are mis-scoped.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # User Stories and Requirements
+
+      A user story names a *capability the user gains*; a requirement is a *testable acceptance criterion* for that capability. The rule is one sentence: each card title reads as user value, and each requirement is specific enough that a developer knows when it is done. Most cards that became muddy broke one of these — the title was a technical task instead of a capability, or the requirements were vague aspirations ("works well", "is fast") that no test could prove.
+
+  - sequence: 2
+    fragment_type: execution
+    content: |
+      ## Card titles as user stories
+
+      Each card title should read as a capability the user gains — "Filter by category", "View order history", "Reset password". The user can hear the title and understand what they will be able to do. Avoid technical titles ("API endpoint", "Database migration", "Refactor auth"), vague titles ("Improve search"), and marketing titles ("Lightning-fast filtering").
+
+      A useful test: read the title to a non-technical stakeholder. If they cannot tell you what changes for the user, rename it.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## Acceptance criteria as requirements
+
+      Each requirement is one testable acceptance criterion. The most reliable forms:
+
+      - "User can [action] and sees [result]." — e.g. "User can apply a price-range filter and sees only listings within the range."
+      - "When [condition], then [outcome]." — e.g. "When the filter returns zero results, then the empty-state message appears with a 'clear filters' action."
+
+      Each criterion is one statement, one expectation, one test. "User can filter and sort and search" is three criteria pretending to be one; split them.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Thin vertical slices, one card / one job, edges handled
+
+      Each card is a thin slice through the stack — UI, logic, and data — that delivers one piece of user value. A backend-only or UI-only card is not done from the user's perspective. If a card needs more than ~2-3 days, split it along natural seams.
+
+      Each card serves exactly one user job. Two jobs glued together → two cards.
+
+      A card is done when all requirements pass, the feature is reachable in the running product, and edge cases (empty, error, loading) are handled.
+
+      Anti-patterns: purely technical cards ("Set up database"), cards with no user outcome, vague requirements ("works well", "feels fast"), duplicate cards across activities.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Each card title reads as a user capability, not a technical task.
+      - [ ] Each requirement is one testable criterion in "User can / When … then …" form.
+      - [ ] No card requires more than ~2-3 days of work; thicker cards have been split.
+      - [ ] Each card serves exactly one user job; cards that serve two have been split.
+      - [ ] Edge cases (empty, error, loading) are explicitly covered by requirements.
+      - [ ] No duplicate cards across activities.

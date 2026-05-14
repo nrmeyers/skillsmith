@@ -1,0 +1,158 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/design-systems.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+
+skill_type: domain
+skill_id: design-systems-for-product-ui
+canonical_name: Design Systems (Tokens, Components, Patterns Derived from Context)
+category: design
+skill_class: domain
+domain_tags: [design-system, design-tokens, atomic-design, typography-scale, spacing-system, color-tokens, interaction-patterns]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/design-systems.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — Brad Frost, *Atomic Design* (2016), for the atoms / molecules / organisms taxonomy; Nathan Curtis on design tokens; Material and HIG as reference systems. Skill scope: producing a project-specific design-system document — tokens, taxonomy, scales, interaction patterns — derived from the project's tech stack and design inspiration; not detailed component implementation, not brand identity authoring.
+
+raw_prose: |
+  # Design Systems for Product UI
+
+  A design system is the *named, reusable vocabulary* a product uses to render its UI consistently — tokens for color, typography, spacing; a component taxonomy; layout and interaction patterns. The rule is one sentence: every decision in the design system is derived from the project's actual context (tech stack, design inspiration, workflow needs) — never generic, never copy-pasted from a template. Most design systems that felt off-brand or thin were generic — they shipped a default palette and three button sizes without ever asking what the product actually needed.
+
+  ## Component taxonomy — atoms, molecules, organisms
+
+  Categorize UI components in three tiers (Brad Frost's atomic design):
+
+  - **Atoms** — the smallest reusable primitives: Button, Input, Badge, Avatar, Icon. They have no app context; they compose into everything.
+  - **Molecules** — small compositions of atoms with a clear purpose: FormField (Label + Input + Error), Card (Image + Title + Description), SearchBar (Input + Icon + Button).
+  - **Organisms** — larger, app-aware components: Header, Sidebar, DataTable, OrderRow.
+
+  List only components the project actually needs based on its workflows and cards. A design system listing thirty components for a six-card product is theater; ship the eight that match the actual UI surface.
+
+  ## Color tokens
+
+  Define a semantic color palette — `primary`, `secondary`, `accent`, `success`, `warning`, `error`, `neutral`. Semantic names (`primary`, `success`) survive theme changes; literal names (`blue-500`, `green-400`) do not.
+
+  Specify light and dark values if the project uses dark mode. Use CSS custom properties or Tailwind conventions matching the tech stack:
+
+  - Tailwind project → `bg-primary`, theme extended in `tailwind.config.{js,ts}`.
+  - Plain CSS → `var(--color-primary)` defined in `:root` and `[data-theme=dark]`.
+
+  ## Typography scale
+
+  Define heading levels (`h1`–`h4`), body text, small/caption, and code. For each, specify font family, size, weight, and line-height. Match the project's design inspiration — a brutalist news product and a friendly consumer app have different scales, and the design system should encode that.
+
+  Keep the scale small enough to memorize. Six type styles cover most products; sixteen is a signal the system is theatrical.
+
+  ## Spacing system
+
+  Define a spacing scale on a consistent base (4px or 8px). A 4px base, for example: `xs=4, sm=8, md=16, lg=24, xl=32, 2xl=48`. Apply the same scale to padding, margin, and gap — mixing scales between properties creates inconsistent rhythm that readers notice without knowing why.
+
+  ## Layout patterns
+
+  Specify the page layouts the product needs:
+
+  - Sidebar + main (admin dashboards, settings).
+  - Full-width (marketing, content-first surfaces).
+  - Centered (auth flows, single-task surfaces).
+
+  Define the grid system, responsive breakpoints, and container max-widths. Container width caps prevent text columns from becoming unreadably wide on big screens.
+
+  ## Interaction patterns
+
+  Define *how* common UX patterns work:
+
+  - **Forms** validate (when? on blur? on submit?) and show errors (inline, summary, both).
+  - **Navigation** uses tabs / breadcrumbs / sidebar; rules for when each.
+  - **Loading states** appear (skeletons, spinners, optimistic UI).
+  - **Feedback** is communicated (toasts, inline success messages, modals for destructive actions).
+
+  Naming these once at the system level prevents every feature from reinventing them. Reinvented feedback is the most visible inconsistency in most products.
+
+  ## Iconography
+
+  Recommend an icon set (Lucide, Heroicons, Material Symbols) and specify sizing conventions — usually 16px / 20px / 24px. Pick one set; mixing sets is immediately visible.
+
+  Match the project's tone: outline icons feel light and modern, filled icons feel solid and conservative.
+
+  ## Derive from context — never generic
+
+  Base every decision on the project's *design_inspiration* field, *tech_stack*, and the actual UI needs implied by the workflow cards. A generic design system is worse than no design system — it ships an unfounded set of constraints the team will later have to fight.
+
+  When in doubt, ask: "What does *this* product need?" Not "What do design systems usually have?"
+
+  ## Verification
+
+  - [ ] Component taxonomy lists only the components the product actually uses.
+  - [ ] Color tokens are semantic (`primary`, `success`) not literal (`blue-500`).
+  - [ ] Light/dark values are defined if dark mode is supported.
+  - [ ] Typography scale has 4–8 named styles, each with family/size/weight/line-height.
+  - [ ] Spacing scale uses a single base unit (4px or 8px) and is applied consistently to padding/margin/gap.
+  - [ ] Layout patterns, responsive breakpoints, and container max-widths are specified.
+  - [ ] Interaction patterns (form validation, navigation, loading, feedback) are named once at the system level.
+  - [ ] Iconography uses one icon set with a defined size scale.
+  - [ ] Every decision is traceable to the project's design inspiration, tech stack, or workflow needs — none are generic defaults.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # Design Systems for Product UI
+
+      A design system is the *named, reusable vocabulary* a product uses to render its UI consistently — tokens for color, typography, spacing; a component taxonomy; layout and interaction patterns. The rule is one sentence: every decision in the design system is derived from the project's actual context (tech stack, design inspiration, workflow needs) — never generic, never copy-pasted from a template. Most design systems that felt off-brand or thin were generic — they shipped a default palette and three button sizes without ever asking what the product actually needed.
+
+  - sequence: 2
+    fragment_type: execution
+    content: |
+      ## Component taxonomy and color tokens
+
+      **Component taxonomy.** Categorize UI components in three tiers (atomic design):
+
+      - **Atoms** — Button, Input, Badge, Avatar, Icon. No app context.
+      - **Molecules** — FormField, Card, SearchBar. Small compositions of atoms.
+      - **Organisms** — Header, Sidebar, DataTable. Larger, app-aware components.
+
+      List only components the project actually needs based on its workflows and cards.
+
+      **Color tokens.** Define a semantic palette — `primary`, `secondary`, `accent`, `success`, `warning`, `error`, `neutral`. Semantic names survive theme changes; literal names (`blue-500`) do not. Specify light/dark values if dark mode is supported. Use CSS custom properties or Tailwind conventions matching the tech stack.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## Typography, spacing, layout
+
+      **Typography scale.** Define heading levels (h1–h4), body, small/caption, and code, each with font family, size, weight, and line-height. Match the project's design inspiration. Keep the scale small enough to memorize (six type styles cover most products).
+
+      **Spacing system.** Define a single-base scale (e.g. 4px base: `xs=4, sm=8, md=16, lg=24, xl=32, 2xl=48`). Apply consistently to padding, margin, gap — mixing scales between properties creates inconsistent rhythm.
+
+      **Layout patterns.** Specify the page layouts the product needs (sidebar + main, full-width, centered), grid system, responsive breakpoints, and container max-widths. Container caps prevent unreadably wide text columns on big screens.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Interaction patterns, iconography, derive-from-context
+
+      **Interaction patterns.** Define once how forms validate and show errors, how navigation works (tabs / breadcrumbs / sidebar), how loading states appear (skeletons, spinners), and how feedback is communicated (toasts, inline messages, modals for destructive actions). Reinvented feedback is the most visible inconsistency in most products.
+
+      **Iconography.** Pick one icon set (Lucide, Heroicons, Material Symbols) and specify sizing (16/20/24px). Mixing icon sets is immediately visible.
+
+      **Derive from context.** Base every decision on the project's design_inspiration, tech_stack, and the actual UI needs implied by the workflow cards. Never produce a generic design system — a generic system is worse than no system because it ships unfounded constraints the team will later fight.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Component taxonomy lists only the components the product actually uses.
+      - [ ] Color tokens are semantic, not literal.
+      - [ ] Light/dark values are defined if dark mode is supported.
+      - [ ] Typography scale has 4–8 named styles, each with family/size/weight/line-height.
+      - [ ] Spacing scale uses a single base unit and is applied consistently to padding/margin/gap.
+      - [ ] Layout patterns, responsive breakpoints, and container max-widths are specified.
+      - [ ] Interaction patterns (form validation, navigation, loading, feedback) are named once at the system level.
+      - [ ] Iconography uses one icon set with a defined size scale.
+      - [ ] Every decision is traceable to the project's design inspiration, tech stack, or workflow needs.

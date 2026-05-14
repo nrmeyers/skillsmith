@@ -1,0 +1,150 @@
+# SPDX-License-Identifier: MIT
+# Adapted from the Dossier project — https://github.com/ruvnet/Dossier
+# Copyright (c) 2025 Dossier contributors. Released under the MIT License.
+# Original source: lib/llm/skills/system-design.ts
+#
+# Reshaped 2026-05-14 into Skillsmith's domain-skill YAML format for BUC-1629.
+
+skill_type: domain
+skill_id: system-design-for-build-agents
+canonical_name: System Design (Precise Topology for Build Agents)
+category: design
+skill_class: domain
+domain_tags: [system-design, service-topology, bounded-contexts, api-design, data-modeling, deployment, cross-cutting-concerns]
+always_apply: false
+phase_scope: null
+category_scope: null
+author: navistone
+change_summary: |
+  Adopted 2026-05-14 from the Dossier project (MIT-licensed, https://github.com/ruvnet/Dossier, file lib/llm/skills/system-design.ts). Skillsmith reshape adds the standard fragment_type partitioning and a verification checklist; rationale and execution prose is faithful to the upstream skill. Sources beyond Dossier — Eric Evans, *Domain-Driven Design* (bounded contexts); Roy Fielding's REST dissertation (resource-oriented API design); Sam Newman, *Building Microservices*, on service-boundary heuristics. Skill scope: producing the architectural summary, data contracts, and domain summaries that build agents will consume; not detailed sequence diagrams, not infrastructure-as-code authoring, not pure cloud-architecture pattern selection.
+
+raw_prose: |
+  # System Design for Build Agents
+
+  System Design captures the architectural commitments — service topology, bounded contexts, API shapes, data model, deployment strategy, cross-cutting concerns — at the level of precision a coding agent needs to build the thing. The rule is one sentence: every architectural decision states what, where, and why precisely enough that a downstream agent can produce code without re-guessing. Most architectural docs that wasted later effort were written for humans skimming on a Friday — high-level, vague about file boundaries, comfortable with "use a service for this." Build agents need names, paths, and contracts.
+
+  ## Service topology — name the boundaries
+
+  Identify the service boundaries: frontend, backend, database, external services. Name each service and state its responsibility in one sentence. Prefer simple topologies — monolith, modular monolith — unless the project scope demands separation. Splitting too early creates inter-service coordination overhead before the team has the maturity to absorb it.
+
+  For each service, state:
+
+  - The technology (e.g. Next.js 15 App Router, FastAPI, Postgres 16).
+  - The boundary (what it owns, what it does not touch).
+  - The deployment surface (port, hosting target, environment).
+
+  ## Architectural patterns — pick patterns that fit the stack
+
+  Select patterns that fit the tech stack and state why. "We use server components + API routes" if Next.js. "We use REST with resource-oriented endpoints" if HTTP-API-shaped. "We use the repository pattern for data access" if testability across DB swaps matters. Stating the pattern *and the rationale* is the part that survives churn — the pattern alone reads as cargo culting.
+
+  ## Bounded contexts
+
+  Group related domain concepts into contexts (DDD's *bounded contexts*) — "Catalog", "Orders", "Users". Each context owns its entities, has clear interfaces, and avoids leaking internals. The naming follows the domain vocabulary the team uses in conversation (ubiquitous language).
+
+  Bounded contexts inside a monolith look like modules with no cross-module reach-through. Inside a microservice topology they look like services with API boundaries.
+
+  ## API design — verb + path + request/response
+
+  Define endpoints as verb + path + request/response shapes. Use consistent naming — plural nouns for collections, nested resources for sub-resources, kebab-case or camelCase consistently. Specify status codes for success and the common errors (4xx for client error, 5xx for server error; 404 for missing, 409 for conflict, 422 for validation failure).
+
+  Example shape:
+
+  ```
+  GET    /api/v1/orders                 → 200 [Order]
+  GET    /api/v1/orders/{id}            → 200 Order | 404 NotFound
+  POST   /api/v1/orders                 → 201 Order | 422 Validation
+  PATCH  /api/v1/orders/{id}            → 200 Order | 404 | 409 | 422
+  ```
+
+  ## Data modeling
+
+  Define entities with typed fields, relationships (1:1, 1:N, N:N), and constraints (required, unique, indexed). Use the project's database conventions — Postgres column types and migration syntax; Prisma/SQLAlchemy/ActiveRecord schema if an ORM is in use. State which fields are indexed for which queries; "we index `orders.created_at`" is enough for a build agent to reproduce the migration.
+
+  ## Deployment strategy
+
+  Specify hosting target, build pipeline, environment variables, and scaling approach. The deployment section is what makes the architecture buildable end-to-end — a system that compiles but cannot ship is not done. Match the project's stated deployment target (Vercel, Fly, ECS, on-prem).
+
+  ## Cross-cutting concerns
+
+  Address authentication, authorization, error handling, logging, and caching at the *architecture* level — not per-feature. State the auth mechanism (session cookies, JWT, OAuth flow), the error envelope, the logging conventions (structured JSON with correlation IDs), the caching policy (HTTP cache, Redis, none). Per-feature reinvention is the slow drift toward inconsistency.
+
+  ## Write for build agents, not humans skimming
+
+  Documents you produce will be consumed by coding agents, not humans. Be precise about file paths, module boundaries, and interface contracts. Avoid vague guidance ("use a service for this"). Specify:
+
+  - Where the file lives (`src/services/orders.ts`, `app/api/orders/route.ts`).
+  - The module's exported interface (function signatures, return types).
+  - The data the module touches and the data it must not.
+
+  Vague architecture docs save the author time and cost the implementer (human or agent) more than that in re-decoding.
+
+  ## Verification
+
+  - [ ] Every service is named and given a one-sentence responsibility, a technology, and a deployment surface.
+  - [ ] Architectural patterns are stated with rationale, not as bullets.
+  - [ ] Bounded contexts are named in the team's domain vocabulary, with clear ownership.
+  - [ ] APIs are specified as verb + path + request/response shapes + status codes.
+  - [ ] Data entities have typed fields, relationships, constraints, and indexing notes.
+  - [ ] Deployment strategy covers host, build, env vars, scaling.
+  - [ ] Cross-cutting concerns (auth, errors, logging, caching) are addressed once at the architecture level, not per-feature.
+  - [ ] File paths, module names, and interface signatures are explicit enough for a build agent to act on.
+
+fragments:
+  - sequence: 1
+    fragment_type: rationale
+    content: |
+      # System Design for Build Agents
+
+      System Design captures the architectural commitments — service topology, bounded contexts, API shapes, data model, deployment strategy, cross-cutting concerns — at the level of precision a coding agent needs to build the thing. The rule is one sentence: every architectural decision states what, where, and why precisely enough that a downstream agent can produce code without re-guessing. Most architectural docs that wasted later effort were written for humans skimming on a Friday — high-level, vague about file boundaries, comfortable with "use a service for this." Build agents need names, paths, and contracts.
+
+  - sequence: 2
+    fragment_type: execution
+    content: |
+      ## Service topology, patterns, bounded contexts
+
+      **Service topology.** Identify the service boundaries: frontend, backend, database, external services. Name each service and state its responsibility in one sentence. Prefer simple topologies (monolith / modular monolith) unless the project scope demands separation. For each service, state the technology, the boundary (what it owns, what it does not touch), and the deployment surface.
+
+      **Architectural patterns.** Select patterns that fit the tech stack and state why. "Server components + API routes" if Next.js. "REST with resource-oriented endpoints" if HTTP-API-shaped. "Repository pattern" if DB-swap testability matters. The rationale is what survives churn; the pattern alone reads as cargo culting.
+
+      **Bounded contexts.** Group related domain concepts into contexts ("Catalog", "Orders", "Users"). Each context owns its entities, has clear interfaces, and avoids leaking internals. Naming follows the team's domain vocabulary.
+
+  - sequence: 3
+    fragment_type: execution
+    content: |
+      ## API design and data modeling
+
+      **API design.** Define endpoints as verb + path + request/response shapes. Use consistent naming — plural nouns for collections, nested resources for sub-resources. Specify status codes for success and common errors. Example:
+
+      ```
+      GET    /api/v1/orders                 → 200 [Order]
+      GET    /api/v1/orders/{id}            → 200 Order | 404 NotFound
+      POST   /api/v1/orders                 → 201 Order | 422 Validation
+      PATCH  /api/v1/orders/{id}            → 200 Order | 404 | 409 | 422
+      ```
+
+      **Data modeling.** Define entities with typed fields, relationships (1:1, 1:N, N:N), and constraints (required, unique, indexed). Use the project's database conventions. State which fields are indexed for which queries.
+
+  - sequence: 4
+    fragment_type: guardrail
+    content: |
+      ## Deployment, cross-cutting concerns, and writing for build agents
+
+      **Deployment strategy.** Specify hosting target, build pipeline, environment variables, and scaling approach. A system that compiles but cannot ship is not done.
+
+      **Cross-cutting concerns.** Address authentication, authorization, error handling, logging, and caching at the architecture level — once, not per-feature. State the auth mechanism, the error envelope, the logging conventions (structured JSON with correlation IDs), the caching policy.
+
+      **Write for build agents.** Documents you produce will be consumed by coding agents, not humans skimming. Be precise: where the file lives (`src/services/orders.ts`), what it exports (function signatures, return types), what data it touches and what it must not. Vague guidance like "use a service for this" saves the author time and costs the implementer more.
+
+  - sequence: 5
+    fragment_type: verification
+    content: |
+      ## Verification
+
+      - [ ] Every service is named and given a one-sentence responsibility, a technology, and a deployment surface.
+      - [ ] Architectural patterns are stated with rationale, not as bullets.
+      - [ ] Bounded contexts are named in the team's domain vocabulary, with clear ownership.
+      - [ ] APIs are specified as verb + path + request/response shapes + status codes.
+      - [ ] Data entities have typed fields, relationships, constraints, and indexing notes.
+      - [ ] Deployment strategy covers host, build, env vars, scaling.
+      - [ ] Cross-cutting concerns (auth, errors, logging, caching) are addressed once at the architecture level.
+      - [ ] File paths, module names, and interface signatures are explicit enough for a build agent to act on.

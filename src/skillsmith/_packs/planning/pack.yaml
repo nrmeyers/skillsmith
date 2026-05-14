@@ -1,0 +1,33 @@
+name: planning
+version: 1.0.0
+tier: domain
+description: Product and architecture planning skills — Jobs-to-be-Done framing, User Story Mapping, User Stories & Requirements, Value Prioritization, System Design, and Design Systems. Adopted from the Dossier project (MIT-licensed) and re-shaped to Skillsmith's domain-skill format. Useful in spec and design phases when translating a fuzzy product idea into a backbone of workflows, cards, and architectural commitments.
+author: navistone
+embed_model: qwen3-embedding:0.6b
+embedding_dim: 1024
+license: MIT
+homepage: https://github.com/nrmeyers/skillsmith
+always_install: false
+depends_on: [core]
+attribution: |
+  Skill prose adapted from the Dossier project — https://github.com/ruvnet/Dossier — MIT License.
+  Each skill file preserves the upstream copyright header verbatim.
+skills:
+  - skill_id: jobs-to-be-done-framing
+    file: jobs-to-be-done-framing.yaml
+    fragment_count: 5
+  - skill_id: user-story-mapping
+    file: user-story-mapping.yaml
+    fragment_count: 5
+  - skill_id: user-stories-and-requirements
+    file: user-stories-and-requirements.yaml
+    fragment_count: 5
+  - skill_id: value-prioritization
+    file: value-prioritization.yaml
+    fragment_count: 5
+  - skill_id: system-design-for-build-agents
+    file: system-design-for-build-agents.yaml
+    fragment_count: 5
+  - skill_id: design-systems-for-product-ui
+    file: design-systems-for-product-ui.yaml
+    fragment_count: 5
