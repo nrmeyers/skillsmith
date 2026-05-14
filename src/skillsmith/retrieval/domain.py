@@ -42,7 +42,7 @@ _PHASE_RRF_CONFIG: dict[str, dict] = {
 # Regex to extract high-signal technical terms for BM25 boosting.
 # Matches: file extensions, CamelCase classes, snake_case functions, version numbers, common tech terms.
 _TECH_KEYWORD_RE = _re.compile(
-    r'\b(?:\.\w{2,4}|[A-Z][a-z]+\w*|[a-z_]+\d+\w*|[a-z]+-[a-z]+|[A-Z]{2,})\b',
+    r"\b(?:\.\w{2,4}|[A-Z][a-z]+\w*|[a-z_]+\d+\w*|[a-z]+-[a-z]+|[A-Z]{2,})\b",
     _re.IGNORECASE,
 )
 
@@ -229,7 +229,9 @@ def retrieve_domain_candidates(
 
     # Apply phase-specific RRF weights
     rrf_k, dense_weight, bm25_weight = _get_rrf_params(phase)
-    fused_ids = _rrf_fuse(dense_hits, bm25_ids, k=rrf_k, dense_weight=dense_weight, bm25_weight=bm25_weight)
+    fused_ids = _rrf_fuse(
+        dense_hits, bm25_ids, k=rrf_k, dense_weight=dense_weight, bm25_weight=bm25_weight
+    )
 
     # Hydrate ActiveFragment metadata from the source. Pull domain fragments
     # for the eligible categories; intersect with the fused ids.
