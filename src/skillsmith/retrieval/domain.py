@@ -21,7 +21,7 @@ import os as _os
 import re as _re
 import time
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import Protocol, TypedDict, runtime_checkable
 
 from skillsmith.api.compose_models import Phase
 from skillsmith.lm_client import OpenAICompatClient
@@ -31,9 +31,16 @@ from skillsmith.storage.vector_store import SimilarityHit, VectorStore
 
 _RRF_K_DEFAULT = 60
 
+
+class _RRFConfig(TypedDict):
+    k: int
+    dense_weight: float
+    bm25_weight: float
+
+
 # Phase -> RRF configuration: k value, dense weight, bm25 weight.
 # Adjusting weights allows biasing retrieval towards semantic (dense) or lexical (bm25) matches.
-_PHASE_RRF_CONFIG: dict[str, dict] = {
+_PHASE_RRF_CONFIG: dict[str, _RRFConfig] = {
     "default": {"k": _RRF_K_DEFAULT, "dense_weight": 1.0, "bm25_weight": 1.0},
     "qa": {"k": _RRF_K_DEFAULT, "dense_weight": 0.8, "bm25_weight": 1.2},
     "spec": {"k": _RRF_K_DEFAULT, "dense_weight": 1.2, "bm25_weight": 0.8},
