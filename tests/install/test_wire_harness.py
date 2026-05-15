@@ -191,9 +191,7 @@ class TestWindsurf:
 class TestHermesAgent:
     def test_user_scope_writes_soul_md(self, tmp_path: Path) -> None:
         """User scope wires ~/.hermes/SOUL.md, sentinel-bounded."""
-        result = wire_harness(
-            "hermes-agent", port=8000, root=tmp_path, scope="user"
-        )
+        result = wire_harness("hermes-agent", port=8000, root=tmp_path, scope="user")
         assert result["integration_vector"] == "markdown_injection"
         soul = tmp_path / ".hermes" / "SOUL.md"
         assert soul.exists()
@@ -205,9 +203,7 @@ class TestHermesAgent:
 
     def test_repo_scope_writes_agents_md(self, repo_root: Path) -> None:
         """Repo scope wires <repo>/AGENTS.md, sentinel-bounded."""
-        result = wire_harness(
-            "hermes-agent", port=8000, root=repo_root, scope="repo"
-        )
+        result = wire_harness("hermes-agent", port=8000, root=repo_root, scope="repo")
         assert result["integration_vector"] == "markdown_injection"
         agents = repo_root / "AGENTS.md"
         assert agents.exists()
