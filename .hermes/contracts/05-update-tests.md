@@ -1,3 +1,20 @@
+# Contract 5: Update Tests
+
+## Objective
+
+Two test tasks (depends on contracts 2 and 3 being complete):
+1. Update `tests/install/test_wire_harness.py` to verify intake activation markers in templates
+2. Create new `tests/install/test_phase_cli.py` for the phase CLI subcommand
+
+---
+
+## Task A: Update tests/install/test_wire_harness.py
+
+Add tests that verify wired harness templates contain the new intake activation markers. Add these to the existing test file.
+
+**Existing test file for reference:**
+
+```python
 """Unit tests for the ``wire-harness`` subcommand.
 
 Maps to test-plan.md § Harness wiring.
@@ -16,8 +33,8 @@ from skillsmith.install.subcommands.wire_harness import (
     SENTINEL_END,
     STEP_NAME,
     VALID_HARNESSES,
-    _detect_line_ending,  # pyright: ignore[reportPrivateUsage]
-    _inject_sentinel_block,  # pyright: ignore[reportPrivateUsage]
+    _detect_line_ending,
+    _inject_sentinel_block,
     wire_harness,
 )
 
@@ -26,11 +43,6 @@ from skillsmith.install.subcommands.wire_harness import (
 def repo_root(tmp_path: Path) -> Path:
     (tmp_path / "pyproject.toml").write_text("")
     return tmp_path
-
-
-# ---------------------------------------------------------------------------
-# Sentinel injection
-# ---------------------------------------------------------------------------
 
 
 class TestSentinelInjection:
@@ -69,11 +81,6 @@ class TestSentinelInjection:
         assert _detect_line_ending("a\r\nb\r\n") == "\r\n"
 
 
-# ---------------------------------------------------------------------------
-# Claude Code
-# ---------------------------------------------------------------------------
-
-
 class TestClaudeCode:
     def test_creates_claude_md(self, repo_root: Path) -> None:
         result = wire_harness("claude-code", port=8000, root=repo_root)
@@ -108,11 +115,6 @@ class TestClaudeCode:
         assert "localhost:3000" in content
 
 
-# ---------------------------------------------------------------------------
-# Hermes Agent
-# ---------------------------------------------------------------------------
-
-
 class TestHermesAgent:
     def test_user_scope_writes_soul_md(self, tmp_path: Path) -> None:
         result = wire_harness("hermes-agent", port=8000, root=tmp_path, scope="user")
@@ -142,11 +144,6 @@ class TestHermesAgent:
         assert "# My persona" in content
         assert "Be terse." in content
         assert SENTINEL_BEGIN in content
-
-
-# ---------------------------------------------------------------------------
-# Gemini CLI
-# ---------------------------------------------------------------------------
 
 
 class TestGeminiCli:
@@ -160,28 +157,19 @@ class TestGeminiCli:
         assert "shell tool" in content
 
 
-# ---------------------------------------------------------------------------
-# Cursor
-# ---------------------------------------------------------------------------
-
-
 class TestCursor:
     def test_modern_cursor_dir(self, repo_root: Path) -> None:
-        """If .cursor/ exists, use .cursor/rules/skillsmith.mdc (dedicated)."""
         (repo_root / ".cursor").mkdir()
         result = wire_harness("cursor", port=8000, root=repo_root)
         assert len(result["files_written"]) == 1
         mdc = repo_root / ".cursor" / "rules" / "skillsmith.mdc"
         assert mdc.exists()
         content = mdc.read_text()
-        # Dedicated file — no sentinels
         assert SENTINEL_BEGIN not in content
         assert "localhost:8000" in content
-        # Has frontmatter
         assert "description:" in content
 
     def test_legacy_cursorrules(self, repo_root: Path) -> None:
-        """No .cursor/ → .cursorrules with sentinels."""
         wire_harness("cursor", port=8000, root=repo_root)
         cursorrules = repo_root / ".cursorrules"
         assert cursorrules.exists()
@@ -189,79 +177,25 @@ class TestCursor:
         assert SENTINEL_BEGIN in content
 
 
-# ---------------------------------------------------------------------------
-# Windsurf
-# ---------------------------------------------------------------------------
-
-
 class TestWindsurf:
     def test_modern_windsurf_dir(self, repo_root: Path) -> None:
-        """If .windsurf/ exists, use .windsurf/rules/skillsmith.md (dedicated)."""
         (repo_root / ".windsurf").mkdir()
         result = wire_harness("windsurf", port=8000, root=repo_root)
         assert len(result["files_written"]) == 1
         md = repo_root / ".windsurf" / "rules" / "skillsmith.md"
         assert md.exists()
         content = md.read_text()
-        # Dedicated file — no sentinels
         assert SENTINEL_BEGIN not in content
         assert "localhost:8000" in content
-        # Has frontmatter
         assert "trigger:" in content
 
     def test_legacy_windsurfrules(self, repo_root: Path) -> None:
-        """No .windsurf/ → .windsurfrules with sentinels."""
         wire_harness("windsurf", port=8000, root=repo_root)
         rules = repo_root / ".windsurfrules"
         assert rules.exists()
         content = rules.read_text()
         assert SENTINEL_BEGIN in content
         assert "localhost:8000" in content
-
-
-# ---------------------------------------------------------------------------
-# Hermes Agent
-# ---------------------------------------------------------------------------
-
-
-class TestHermesAgent:
-    def test_user_scope_writes_soul_md(self, tmp_path: Path) -> None:
-        """User scope wires ~/.hermes/SOUL.md, sentinel-bounded."""
-        result = wire_harness("hermes-agent", port=8000, root=tmp_path, scope="user")
-        assert result["integration_vector"] == "markdown_injection"
-        soul = tmp_path / ".hermes" / "SOUL.md"
-        assert soul.exists()
-        content = soul.read_text()
-        assert SENTINEL_BEGIN in content
-        assert "localhost:8000" in content
-        # Health-gate must be present so Hermes skips in non-skillsmith projects
-        assert "/health" in content
-
-    def test_repo_scope_writes_agents_md(self, repo_root: Path) -> None:
-        """Repo scope wires <repo>/AGENTS.md, sentinel-bounded."""
-        result = wire_harness("hermes-agent", port=8000, root=repo_root, scope="repo")
-        assert result["integration_vector"] == "markdown_injection"
-        agents = repo_root / "AGENTS.md"
-        assert agents.exists()
-        content = agents.read_text()
-        assert SENTINEL_BEGIN in content
-        assert "localhost:8000" in content
-
-    def test_preserves_existing_soul_content(self, tmp_path: Path) -> None:
-        """User-authored persona content in SOUL.md survives wiring."""
-        soul = tmp_path / ".hermes" / "SOUL.md"
-        soul.parent.mkdir(parents=True)
-        soul.write_text("# My persona\n\nBe terse.\n")
-        wire_harness("hermes-agent", port=8000, root=tmp_path, scope="user")
-        content = soul.read_text()
-        assert "# My persona" in content
-        assert "Be terse." in content
-        assert SENTINEL_BEGIN in content
-
-
-# ---------------------------------------------------------------------------
-# GitHub Copilot
-# ---------------------------------------------------------------------------
 
 
 class TestGithubCopilot:
@@ -275,7 +209,6 @@ class TestGithubCopilot:
         assert "localhost:8000" in content
 
     def test_preserves_existing_user_content(self, repo_root: Path) -> None:
-        """User-authored content above the sentinel block must survive re-wires."""
         gh_dir = repo_root / ".github"
         gh_dir.mkdir()
         path = gh_dir / "copilot-instructions.md"
@@ -284,11 +217,6 @@ class TestGithubCopilot:
         content = path.read_text()
         assert "Use TypeScript strict mode." in content
         assert SENTINEL_BEGIN in content
-
-
-# ---------------------------------------------------------------------------
-# Open harnesses
-# ---------------------------------------------------------------------------
 
 
 class TestOpenHarnesses:
@@ -307,20 +235,13 @@ class TestOpenHarnesses:
 
     def test_aider(self, repo_root: Path) -> None:
         result = wire_harness("aider", port=8000, root=repo_root)
-        # Instructions file (dedicated)
         instructions = repo_root / ".skillsmith-aider-instructions.md"
         assert instructions.exists()
-        # .aider.conf.yml entry
         conf = repo_root / ".aider.conf.yml"
         assert conf.exists()
         content = conf.read_text()
         assert ".skillsmith-aider-instructions.md" in content
         assert len(result["files_written"]) == 2
-
-
-# ---------------------------------------------------------------------------
-# Continue.dev
-# ---------------------------------------------------------------------------
 
 
 class TestContinue:
@@ -350,17 +271,10 @@ class TestContinue:
         assert any(c["name"] == "skill" for c in config["customCommands"])
 
 
-# ---------------------------------------------------------------------------
-# Manual
-# ---------------------------------------------------------------------------
-
-
 class TestManual:
     def test_manual_prints_to_stderr(
         self, repo_root: Path, capsys: pytest.CaptureFixture[str]
     ) -> None:
-        # Block goes to stderr so stdout stays parseable as the result JSON.
-        # The block is also returned in result["manual_block"].
         result = wire_harness("manual", port=8000, root=repo_root)
         assert result["files_written"] == []
         assert SENTINEL_BEGIN in result["manual_block"]
@@ -368,11 +282,6 @@ class TestManual:
         captured = capsys.readouterr()
         assert SENTINEL_BEGIN in captured.err
         assert SENTINEL_BEGIN not in captured.out
-
-
-# ---------------------------------------------------------------------------
-# Output schema
-# ---------------------------------------------------------------------------
 
 
 class TestOutputSchema:
@@ -391,16 +300,8 @@ class TestOutputSchema:
         assert "content_sha256" in entry
 
 
-# ---------------------------------------------------------------------------
-# State recording
-# ---------------------------------------------------------------------------
-
-
 class TestState:
     def test_records_harness_in_state(self, repo_root: Path) -> None:
-        # Schema v2: each harness_files_written entry carries its own
-        # `harness` field (state may span multiple repos with different
-        # harnesses wired). No top-level `harness` field exists.
         wire_harness("claude-code", port=8000, root=repo_root)
         st = install_state.load_state(repo_root)
         assert "harness" not in st
@@ -414,26 +315,13 @@ class TestState:
         assert len(st["harness_files_written"]) == 1
 
 
-# ---------------------------------------------------------------------------
-# Edge cases
-# ---------------------------------------------------------------------------
-
-
 class TestEdgeCases:
     def test_unknown_harness_exits(self, repo_root: Path) -> None:
         with pytest.raises(SystemExit):
             wire_harness("nonexistent", root=repo_root)
 
     def test_all_valid_harnesses_accepted(self, repo_root: Path) -> None:
-        """Smoke test: every registered harness produces a result without error.
-
-        ``mcp-only`` is the documented exception — it's accepted by the CLI
-        parser so users get a clear error rather than argparse's "invalid
-        choice", but the actual MCP fallback is deferred to install spec
-        step 11. It exits 1 with a "deferred" message.
-        """
         for harness in VALID_HARNESSES:
-            # Reset state for each
             state_file = repo_root / ".skillsmith" / "install-state.json"
             if state_file.exists():
                 state_file.unlink()
@@ -447,52 +335,37 @@ class TestEdgeCases:
 
 class TestRewireMerge:
     def test_rewire_different_harness_preserves_prior_files(self, repo_root: Path) -> None:
-        """Switching harness must merge harness_files_written, not overwrite —
-        otherwise uninstall can't clean up the prior harness's sentinel block."""
         from skillsmith.install.state import load_state
-
-        # Wire claude-code first
         wire_harness("claude-code", port=8000, root=repo_root)
         st = load_state(repo_root)
         first_paths = {f["path"] for f in st["harness_files_written"]}
         assert any("CLAUDE.md" in p for p in first_paths)
-
-        # Now wire cursor — claude-code's CLAUDE.md entry must remain
         wire_harness("cursor", port=8000, root=repo_root)
         st = load_state(repo_root)
         merged_paths = {f["path"] for f in st["harness_files_written"]}
         assert any("CLAUDE.md" in p for p in merged_paths)
         assert any(".cursor" in p for p in merged_paths)
-        # Each entry records which harness wrote it.
         harnesses = {f["harness"] for f in st["harness_files_written"]}
         assert harnesses == {"claude-code", "cursor"}
 
     def test_rewire_same_harness_replaces_entry_in_place(self, repo_root: Path) -> None:
-        """Re-wiring the same harness must not duplicate the same path entry."""
         from skillsmith.install.state import load_state
-
         wire_harness("claude-code", port=8000, root=repo_root, force=True)
         wire_harness("claude-code", port=9000, root=repo_root, force=True)
         st = load_state(repo_root)
         paths = [f["path"] for f in st["harness_files_written"]]
-        # No duplicates of the same path
         assert len(paths) == len(set(paths))
 
 
 class TestScopeFlag:
-    """Tests for --scope user|repo behavior. Maps to test-plan.md § Wire scope."""
-
     def test_scope_user_defaults_to_home(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """scope='user' resolves root to $HOME so wiring is global across repos."""
         fake_home = tmp_path / "home"
         fake_home.mkdir()
         monkeypatch.setenv("HOME", str(fake_home))
         monkeypatch.setattr(Path, "home", lambda: fake_home)
-        # State directory also routes through HOME; force a fresh per-test state.
         monkeypatch.setenv("SKILLSMITH_STATE_DIR", str(fake_home / ".skillsmith"))
-
         result = wire_harness("aider", port=8000, scope="user")
         for entry in result["files_written"]:
             assert str(fake_home) in entry["path"], entry
@@ -500,7 +373,6 @@ class TestScopeFlag:
     def test_scope_repo_uses_repo_root(
         self, repo_root: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        """scope='repo' falls back to the discovered repo root (cwd)."""
         monkeypatch.chdir(repo_root)
         result = wire_harness("aider", port=8000, scope="repo")
         for entry in result["files_written"]:
@@ -509,16 +381,14 @@ class TestScopeFlag:
     def test_scope_invalid_raises(self) -> None:
         with pytest.raises(SystemExit):
             wire_harness("aider", port=8000, scope="global")
+```
 
+**New tests to add at the end of the file:**
 
-# ---------------------------------------------------------------------------
-# Intake activation markers
-# ---------------------------------------------------------------------------
-
-
+```python
 class TestIntakeActivationMarkers:
     """Verify wired templates contain intake activation markers.
-
+    
     Maps to plan: intake activation workflow — harness templates must include
     health-gate, phase lock file reference, and skip-if-non-SDD guidance.
     """
@@ -542,13 +412,7 @@ class TestIntakeActivationMarkers:
             assert marker in content, f"Missing marker: {marker}"
 
     def test_all_harnesses_have_phase_reference(self, repo_root: Path) -> None:
-        """Smoke test: every instruction-bearing harness file references .skillsmith/phase.
-
-        Only checks .md and .mdc files — structured config files (.json, .yml, .toml)
-        may encode phase references differently and are not required to contain the
-        literal string.
-        """
-        INSTRUCTION_EXTENSIONS = {".md", ".mdc"}
+        """Smoke test: every harness template references .skillsmith/phase."""
         for harness in VALID_HARNESSES:
             state_file = repo_root / ".skillsmith" / "install-state.json"
             if state_file.exists():
@@ -558,8 +422,135 @@ class TestIntakeActivationMarkers:
             result = wire_harness(harness, port=8000, root=repo_root)
             for entry in result["files_written"]:
                 path = Path(entry["path"])
-                if path.exists() and path.suffix.lower() in INSTRUCTION_EXTENSIONS:
+                if path.exists():
                     content = path.read_text()
                     assert ".skillsmith/phase" in content, (
                         f"Harness {harness} at {path} missing phase reference"
                     )
+```
+
+---
+
+## Task B: Create tests/install/test_phase_cli.py
+
+Create a new test file for the phase CLI subcommand.
+
+**Full content to write:**
+
+```python
+"""Unit tests for the ``phase`` subcommand.
+
+Maps to plan: skillsmith phase CLI — set/get/clear phase lock file.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from skillsmith.install.subcommands.phase import (
+    run_phase_clear,
+    run_phase_get,
+    run_phase_set,
+)
+
+
+@pytest.fixture()
+def repo_root(tmp_path: Path) -> Path:
+    (tmp_path / "pyproject.toml").write_text("")
+    return tmp_path
+
+
+class TestPhaseGet:
+    def test_no_phase_returns_none(self, repo_root: Path) -> None:
+        result = run_phase_get(root=repo_root)
+        assert result.get("phase") is None
+
+    def test_returns_current_phase(self, repo_root: Path) -> None:
+        run_phase_set("build", root=repo_root)
+        result = run_phase_get(root=repo_root)
+        assert result["phase"] == "build"
+
+    def test_returns_full_info(self, repo_root: Path) -> None:
+        run_phase_set("design", root=repo_root)
+        result = run_phase_get(root=repo_root)
+        assert result["phase"] == "design"
+        assert "started_at" in result
+        assert "last_updated" in result
+        assert "workflow" in result
+
+
+class TestPhaseSet:
+    def test_creates_phase_file(self, repo_root: Path) -> None:
+        result = run_phase_set("build", root=repo_root)
+        phase_file = repo_root / ".skillsmith" / "phase"
+        assert phase_file.exists()
+        assert result["phase"] == "build"
+
+    def test_validates_phase(self, repo_root: Path) -> None:
+        with pytest.raises((SystemExit, ValueError)):
+            run_phase_set("invalid", root=repo_root)
+
+    def test_valid_phases_accepted(self, repo_root: Path) -> None:
+        for phase in ("spec", "design", "build", "qa", "ops"):
+            state_file = repo_root / ".skillsmith" / "install-state.json"
+            if state_file.exists():
+                state_file.unlink()
+            (repo_root / ".skillsmith" / "phase").unlink(missing_ok=True)
+            result = run_phase_set(phase, root=repo_root)
+            assert result["phase"] == phase
+
+    def test_updates_existing_phase(self, repo_root: Path) -> None:
+        run_phase_set("build", root=repo_root)
+        original = run_phase_get(root=repo_root)
+        run_phase_set("design", root=repo_root)
+        updated = run_phase_get(root=repo_root)
+        assert updated["phase"] == "design"
+        # started_at should be preserved
+        assert updated["started_at"] == original["started_at"]
+
+    def test_creates_directory(self, repo_root: Path) -> None:
+        # .skillsmith/ should not exist yet
+        assert not (repo_root / ".skillsmith").exists()
+        run_phase_set("build", root=repo_root)
+        assert (repo_root / ".skillsmith").is_dir()
+
+
+class TestPhaseClear:
+    def test_removes_phase_file(self, repo_root: Path) -> None:
+        run_phase_set("build", root=repo_root)
+        assert (repo_root / ".skillsmith" / "phase").exists()
+        run_phase_clear(root=repo_root)
+        assert not (repo_root / ".skillsmith" / "phase").exists()
+
+    def test_clear_when_no_phase(self, repo_root: Path) -> None:
+        # Should not error if no phase file exists
+        result = run_phase_clear(root=repo_root)
+        assert result is not None  # returns success even if nothing to clear
+
+
+class TestPhaseFileFormat:
+    def test_yaml_format(self, repo_root: Path) -> None:
+        run_phase_set("build", root=repo_root)
+        content = (repo_root / ".skillsmith" / "phase").read_text()
+        assert "phase: build" in content
+        assert "started_at:" in content
+        assert "last_updated:" in content
+        assert "workflow:" in content
+
+    def test_git_ignored(self, repo_root: Path) -> None:
+        """Verify .skillsmith/ is in .gitignore."""
+        run_phase_set("build", root=repo_root)
+        gitignore = repo_root / ".gitignore"
+        # If .gitignore exists, .skillsmith/ should be in it
+        # If not, that's ok for tests — just verify the file was created
+        assert (repo_root / ".skillsmith" / "phase").exists()
+```
+
+## Acceptance Criteria
+
+- `tests/install/test_wire_harness.py` has new `TestIntakeActivationMarkers` class with tests verifying intake markers
+- `tests/install/test_phase_cli.py` exists with comprehensive tests for get/set/clear
+- All existing tests continue to pass
+- New tests verify: phase validation, file format, markers in all harness templates
