@@ -268,8 +268,10 @@ def run_setup(cfg: SetupConfig) -> int:
             default=detected,
         )
         if hardware_str not in ("nvidia", "radeon", "apple-silicon", "cpu"):
-            _print(f"  [red]Invalid hardware: {hardware_str}. "
-                   "Choose nvidia, radeon, apple-silicon, or cpu.[/red]")
+            _print(
+                f"  [red]Invalid hardware: {hardware_str}. "
+                "Choose nvidia, radeon, apple-silicon, or cpu.[/red]"
+            )
             return 1
         cfg.hardware_target = hardware_str
     else:
