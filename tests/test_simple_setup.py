@@ -178,11 +178,11 @@ class TestDeriveHostTarget:
         assert _derive_host_target(data) == "apple-silicon"
 
     def test_empty_gpu_fallback_cpu(self):
-        data = {"gpu": {"discrete": [], "integrated": []}}
+        data: dict[str, Any] = {"gpu": {"discrete": [], "integrated": []}}
         assert _derive_host_target(data) == "cpu"
 
     def test_no_gpu_key_fallback_cpu(self):
-        data = {}
+        data: dict[str, Any] = {}
         assert _derive_host_target(data) == "cpu"
 
     def test_integrated_amd_not_discrete(self):
