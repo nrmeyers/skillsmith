@@ -291,12 +291,14 @@ class TestSimpleSetupExecution:
         setup_config, run_setup = self._import_run_setup()
         cfg = setup_config(non_interactive=False, recommended_host="nvidia")
         # Mock _prompt_context to return invalid hardware
-        with patch(
-            "skillsmith.install.subcommands.simple_setup._prompt_context",
-            return_value="invalid-gpu",
+        with (
+            patch(
+                "skillsmith.install.subcommands.simple_setup._prompt_context",
+                return_value="invalid-gpu",
+            ),
+            patch("skillsmith.install.subcommands.simple_setup.sys.stdin.isatty", return_value=True),
         ):
-            with patch("skillsmith.install.subcommands.simple_setup.sys.stdin.isatty", return_value=True):
-                rc = run_setup(cfg)
+            rc = run_setup(cfg)
         assert rc == 1
 
 
