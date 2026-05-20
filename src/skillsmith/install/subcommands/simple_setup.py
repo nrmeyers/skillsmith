@@ -22,7 +22,6 @@ import json
 import sys
 import time
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Any
 
 from skillsmith.install import state as install_state
@@ -378,8 +377,8 @@ def run_setup(cfg: SetupConfig) -> int:
     _print(f"  Config:  {install_state.user_config_dir()}")
     _print(f"  Data:    {install_state.user_data_dir()}")
     _print(
-        f"\n  [bold]Next:[/bold] cd to your project repo and run "
-        f"[bold]skillsmith wire[/bold]"
+        "\n  [bold]Next:[/bold] cd to your project repo and run "
+        "[bold]skillsmith wire[/bold]"
     )
     return 0
 

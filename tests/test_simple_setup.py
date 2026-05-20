@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import sys
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -190,8 +191,8 @@ class TestSimpleSetupExecution:
             ],
             "fatal_failures": ["python_version"],
         }
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(non_interactive=True))
         assert rc == 1
         self.mock.mocks["write_env"].assert_not_called()
 
@@ -216,8 +217,8 @@ class TestSimpleSetupExecution:
                 "fatal_failures": ["ollama_present"],
             },  # runner
         ]
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(non_interactive=True))
         assert rc == 1
         # write_env should NOT be called after runner preflight failure
         self.mock.mocks["write_env"].assert_not_called()
@@ -226,15 +227,15 @@ class TestSimpleSetupExecution:
         self, tmp_state_dir: tuple[Path, Path]
     ):
         """Setup writes .env with preset resolved from runner + hardware."""
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(runner="ollama", non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(runner="ollama", non_interactive=True))
         assert rc == 0
         self.mock.mocks["write_env"].assert_called_once()
 
     def test_run_setup_all_steps_called(self, tmp_state_dir: tuple[Path, Path]):
         """Full setup flow runs all expected steps."""
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(non_interactive=True))
         assert rc == 0
 
         # All core steps called at least once
@@ -255,8 +256,8 @@ class TestSimpleSetupExecution:
 
     def test_run_setup_pulls_model(self, tmp_state_dir: tuple[Path, Path]):
         """Setup calls pull_models to ensure the model is present."""
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(non_interactive=True))
         assert rc == 0
         self.mock.mocks["pull_models"].assert_called_once()
 
@@ -264,8 +265,8 @@ class TestSimpleSetupExecution:
         self, tmp_state_dir: tuple[Path, Path]
     ):
         """Setup wires the harness when a non-manual harness is selected."""
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(harness="claude-code", non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(harness="claude-code", non_interactive=True))
         assert rc == 0
         self.mock.mocks["wire_harness"].assert_called_once()
 
@@ -273,16 +274,16 @@ class TestSimpleSetupExecution:
         self, tmp_state_dir: tuple[Path, Path]
     ):
         """Setup does not call wire_harness when harness is 'manual'."""
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(harness="manual", non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(harness="manual", non_interactive=True))
         assert rc == 0
         self.mock.mocks["wire_harness"].assert_not_called()
 
     def test_run_setup_stops_on_step_failure(self, tmp_state_dir: tuple[Path, Path]):
         """Setup aborts when an intermediate step fails."""
         self.mock.mocks["seed_corpus"].return_value = 1
-        SetupConfig, run_setup = self._import_run_setup()
-        rc = run_setup(SetupConfig(non_interactive=True))
+        setup_config, run_setup = self._import_run_setup()
+        rc = run_setup(setup_config(non_interactive=True))
         assert rc == 1
         # Steps after seed_corpus should NOT be called
         self.mock.mocks["start_embed_server"].assert_not_called()
