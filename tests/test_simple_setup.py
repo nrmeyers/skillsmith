@@ -562,8 +562,8 @@ class TestPackDiscovery:
 
         class MockSetup:
             def __init__(self):
-                self.mocks = {}
-                self.patchers = []
+                self.mocks: dict[str, Any] = {}
+                self.patchers: list[Any] = []
 
             def setup_all(self):
                 for name in (

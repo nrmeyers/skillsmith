@@ -179,7 +179,9 @@ def _discover_packs() -> dict[str, dict[str, Any]]:
         if not manifest_path.is_file():
             continue
         try:
-            manifest = _yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+            manifest: dict[str, Any] = (
+                _yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+            )
         except Exception:
             continue
         name = str(manifest.get("name") or pack_dir.name)
