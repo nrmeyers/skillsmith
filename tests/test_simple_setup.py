@@ -567,8 +567,14 @@ class TestPackDiscovery:
 
             def setup_all(self):
                 for name in (
-                    "detect", "pull_models", "seed_corpus", "start_embed_server",
-                    "install_packs", "enable_service", "write_env", "verify",
+                    "detect",
+                    "pull_models",
+                    "seed_corpus",
+                    "start_embed_server",
+                    "install_packs",
+                    "enable_service",
+                    "write_env",
+                    "verify",
                     "wire_harness",
                 ):
                     mp = patch(f"skillsmith.install.subcommands.{name}.run")
@@ -578,7 +584,9 @@ class TestPackDiscovery:
                 pf = patch("skillsmith.install.subcommands.preflight.run_preflight")
                 self.mocks["preflight"] = pf.start()
                 self.mocks["preflight"].return_value = {
-                    "checks": [], "fatal_failures": [], "warn_failures": [],
+                    "checks": [],
+                    "fatal_failures": [],
+                    "warn_failures": [],
                 }
                 self.patchers.append(pf)
 
@@ -592,6 +600,7 @@ class TestPackDiscovery:
         # Also need detect.json
         import tempfile
         import json
+
         tmpdir = tempfile.mkdtemp()
         detect_file = f"{tmpdir}/detect.json"
         with open(detect_file, "w") as f:
@@ -613,5 +622,7 @@ class TestPackDiscovery:
         mock.teardown()
 
         # Non-interactive should skip pack prompt entirely
-        assert not call_tracker["called"], "_prompt_for_packs() should not be called in non-interactive mode"
+        assert not call_tracker["called"], (
+            "_prompt_for_packs() should not be called in non-interactive mode"
+        )
         assert rc == 0
