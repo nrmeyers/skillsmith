@@ -457,7 +457,9 @@ def run_setup(cfg: SetupConfig) -> int:
     if h == "continue":
         cfg.harness = "continue-closed"
     elif h not in VALID_HARNESSES:
-        _print(f"  [red]Invalid harness: {cfg.harness}. Choices: {', '.join(sorted(VALID_HARNESSES))}[/red]")
+        _print(
+            f"  [red]Invalid harness: {cfg.harness}. Choices: {', '.join(sorted(VALID_HARNESSES))}[/red]"
+        )
         return 1
     _print(f"  Harness: {cfg.harness}")
 
