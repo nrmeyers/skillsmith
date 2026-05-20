@@ -160,6 +160,7 @@ def _discover_packs() -> dict[str, dict[str, Any]]:
     """Discover available packs from the _packs directory."""
     try:
         from pathlib import Path
+
         import yaml as _yaml
 
         import skillsmith
@@ -246,13 +247,9 @@ def _prompt_for_packs() -> str:
         _print()
 
     _print(f"  Always-on (auto-installed): {', '.join(sorted(always_on)) or '(none)'}")
-    _print(
-        "\n  Tip: You can also use tiers (comma-separated):"
-    )
+    _print("\n  Tip: You can also use tiers (comma-separated):")
     _print(f"    {', '.join(tier_labels.get(t, t) for t in tier_order if t in tiers)}")
-    _print(
-        "\n  Enter pack/tier names (comma-separated), 'all', or blank for always-on only."
-    )
+    _print("\n  Enter pack/tier names (comma-separated), 'all', or blank for always-on only.")
 
     try:
         raw = input("  Skill packs: ").strip()
@@ -430,14 +427,14 @@ def run_setup(cfg: SetupConfig) -> int:
     # 6. Harness
     if not cfg.non_interactive:
         cfg.harness = _prompt_context(
-        "  IDE harness",
-        "  Wire SkillsSmith into your coding assistant:\n"
-        "    claude-code  - Claude Code CLI (Anthropic)\n"
-        "    cursor       - Cursor IDE\n"
-        "    continue     - Continue.dev extension\n"
-        "    manual       - Skip (configure later)",
-        default="manual",
-    )
+            "  IDE harness",
+            "  Wire SkillsSmith into your coding assistant:\n"
+            "    claude-code  - Claude Code CLI (Anthropic)\n"
+            "    cursor       - Cursor IDE\n"
+            "    continue     - Continue.dev extension\n"
+            "    manual       - Skip (configure later)",
+            default="manual",
+        )
     _print(f"  Harness: {cfg.harness}")
 
     # 7. Hardware / Hosting target
