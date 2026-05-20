@@ -223,9 +223,7 @@ class TestSimpleSetupExecution:
         # write_env should NOT be called after runner preflight failure
         self.mock.mocks["write_env"].assert_not_called()
 
-    def test_run_setup_writes_env_with_correct_preset(
-        self, tmp_state_dir: tuple[Path, Path]
-    ):
+    def test_run_setup_writes_env_with_correct_preset(self, tmp_state_dir: tuple[Path, Path]):
         """Setup writes .env with preset resolved from runner + hardware."""
         setup_config, run_setup = self._import_run_setup()
         rc = run_setup(setup_config(runner="ollama", non_interactive=True))
@@ -261,18 +259,14 @@ class TestSimpleSetupExecution:
         assert rc == 0
         self.mock.mocks["pull_models"].assert_called_once()
 
-    def test_run_setup_wires_harness_when_specified(
-        self, tmp_state_dir: tuple[Path, Path]
-    ):
+    def test_run_setup_wires_harness_when_specified(self, tmp_state_dir: tuple[Path, Path]):
         """Setup wires the harness when a non-manual harness is selected."""
         setup_config, run_setup = self._import_run_setup()
         rc = run_setup(setup_config(harness="claude-code", non_interactive=True))
         assert rc == 0
         self.mock.mocks["wire_harness"].assert_called_once()
 
-    def test_run_setup_skips_harness_when_manual(
-        self, tmp_state_dir: tuple[Path, Path]
-    ):
+    def test_run_setup_skips_harness_when_manual(self, tmp_state_dir: tuple[Path, Path]):
         """Setup does not call wire_harness when harness is 'manual'."""
         setup_config, run_setup = self._import_run_setup()
         rc = run_setup(setup_config(harness="manual", non_interactive=True))
@@ -358,9 +352,7 @@ class TestRunFromArgs:
         )
         # Just verify it builds a valid config -- actual run_setup is tested above
         # We'll just check _run_from_args doesn't raise with valid args
-        with patch(
-            "skillsmith.install.subcommands.simple_setup.run_setup", return_value=0
-        ):
+        with patch("skillsmith.install.subcommands.simple_setup.run_setup", return_value=0):
             rc = _run_from_args(args)
         assert rc == 0
 
@@ -378,8 +370,6 @@ class TestRunFromArgs:
             harness="cursor",
             non_interactive=True,
         )
-        with patch(
-            "skillsmith.install.subcommands.simple_setup.run_setup", return_value=0
-        ):
+        with patch("skillsmith.install.subcommands.simple_setup.run_setup", return_value=0):
             rc = _run_from_args(args)
         assert rc == 0

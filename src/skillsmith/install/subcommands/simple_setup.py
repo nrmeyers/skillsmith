@@ -254,9 +254,7 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # Step b: Preflight (runner)
     _print("  [dim]-> Preflight (runner)[/dim]")
-    runner_preflight = preflight.run_preflight(
-        phase="runner", runner=cfg.runner, port=cfg.port
-    )
+    runner_preflight = preflight.run_preflight(phase="runner", runner=cfg.runner, port=cfg.port)
     runner_fatal = [
         c["name"]
         for c in runner_preflight.get("checks", [])
@@ -273,9 +271,7 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # Step c: Write .env
     _print("  [dim]-> Writing .env[/dim]")
-    ns = _build_namespace(
-        cfg, preset=preset, port=cfg.port, overrides=None, force=False
-    )
+    ns = _build_namespace(cfg, preset=preset, port=cfg.port, overrides=None, force=False)
     rc = write_env.run(ns)
     if rc not in (0, 4):
         _print(f"  [red]  write-env failed (exit {rc}).[/red]")
@@ -292,14 +288,9 @@ def run_setup(cfg: SetupConfig) -> int:
     }
     models_fp = install_state.outputs_dir() / "recommend-models.json"
     models_fp.write_text(json.dumps(models_json))
-    rc = pull_models.run(
-        _build_namespace(cfg, models=str(models_fp), runner=cfg.runner)
-    )
+    rc = pull_models.run(_build_namespace(cfg, models=str(models_fp), runner=cfg.runner))
     if rc not in (0, 4):
-        _print(
-            f"  [yellow]  pull-models returned {rc} "
-            "(model may already be present).[/yellow]"
-        )
+        _print(f"  [yellow]  pull-models returned {rc} (model may already be present).[/yellow]")
     _print("  [green]  Done.[/green]")
 
     # Step e: Seed corpus
@@ -312,9 +303,7 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # Step f: Start embed server
     _print("  [dim]-> Starting embed server[/dim]")
-    rc = start_embed_server.run(
-        _build_namespace(cfg, models=str(models_fp), timeout=120.0)
-    )
+    rc = start_embed_server.run(_build_namespace(cfg, models=str(models_fp), timeout=120.0))
     if rc not in (0, 4):
         _print(f"  [red]  start-embed-server failed (exit {rc}).[/red]")
         return rc
@@ -339,9 +328,7 @@ def run_setup(cfg: SetupConfig) -> int:
     # Step h: Enable service
     _print("  [dim]-> Enabling service[/dim]")
     mode_flag = "native" if cfg.mode == "persistent" else "manual"
-    rc = enable_service.run(
-        _build_namespace(cfg, mode=mode_flag, runtime=None, port=cfg.port)
-    )
+    rc = enable_service.run(_build_namespace(cfg, mode=mode_flag, runtime=None, port=cfg.port))
     if rc not in (0, 4):
         _print(f"  [red]  enable-service failed (exit {rc}).[/red]")
         return rc
@@ -350,9 +337,7 @@ def run_setup(cfg: SetupConfig) -> int:
     # Step i: Wire harness (if requested)
     if cfg.harness and cfg.harness != "manual":
         _print(f"  [dim]-> Wiring harness ({cfg.harness})[/dim]")
-        rc = wire_harness.run(
-            _build_namespace(cfg, harness=cfg.harness, force=False)
-        )
+        rc = wire_harness.run(_build_namespace(cfg, harness=cfg.harness, force=False))
         if rc not in (0, 4):
             _print(f"  [red]  wire-harness failed (exit {rc}).[/red]")
             return rc
@@ -369,17 +354,12 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # -- Done --
 
-    _print(
-        f"\n[green]  Setup complete in {int((time.monotonic() - t0) * 1000)}ms[/green]\n"
-    )
+    _print(f"\n[green]  Setup complete in {int((time.monotonic() - t0) * 1000)}ms[/green]\n")
     _print(f"  Service: {cfg.mode}")
     _print(f"  URL:     http://localhost:{cfg.port}")
     _print(f"  Config:  {install_state.user_config_dir()}")
     _print(f"  Data:    {install_state.user_data_dir()}")
-    _print(
-        "\n  [bold]Next:[/bold] cd to your project repo and run "
-        "[bold]skillsmith wire[/bold]"
-    )
+    _print("\n  [bold]Next:[/bold] cd to your project repo and run [bold]skillsmith wire[/bold]")
     return 0
 
 
