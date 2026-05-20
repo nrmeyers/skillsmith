@@ -39,17 +39,17 @@ from skillsmith.install.subcommands import (
 )
 
 try:
-    from rich.console import Console
+    from rich.console import Console  # type: ignore[import-untyped]
 
-    console = Console()
+    console: Console | None = Console()  # type: ignore[assignment]
 except ImportError:
-    console = None
+    console = None  # type: ignore[assignment]
 
 
-def _print(*args, **kwargs):
+def _print(*args: Any, **kwargs: Any) -> None:  # type: ignore[no-untyped-def]
     """Print with Rich if available, plain stdout otherwise."""
     if console is not None:
-        console.print(*args, **kwargs)
+        console.print(*args, **kwargs)  # type: ignore[union-attr, arg-type]
     else:
         print(*args, **kwargs)
 
@@ -70,7 +70,7 @@ class SetupConfig:
     # Resolved during execution -- not user-facing.
     detected_runner: str | None = None  # from detect.json (e.g. "ollama", "llama-server")
     recommended_host: str | None = None  # from recommend-host-targets.json
-    models_output: dict[str, Any] = field(default_factory=dict)  # recommend-models.json
+    models_output: dict[str, Any] = field(default_factory=dict)  # type: ignore[type-arg]
 
 
 _MODEL_DEFAULTS: dict[str, str] = {
@@ -108,7 +108,7 @@ def _resolve_preset(cfg: SetupConfig) -> str:
     return preset
 
 
-def _build_namespace(cfg: SetupConfig, **overrides) -> argparse.Namespace:
+def _build_namespace(cfg: SetupConfig, **overrides: Any) -> argparse.Namespace:  # type: ignore[no-untyped-def]
     """Build an argparse.Namespace from SetupConfig for subcommand dispatch.
 
     Each subcommand's .run() expects an argparse.Namespace with specific
@@ -136,11 +136,11 @@ def _build_namespace(cfg: SetupConfig, **overrides) -> argparse.Namespace:
         "scope": "user",  # wire_harness scope
         "mcp_fallback": False,  # wire_harness mcp_fallback
     }
-    attrs.update(overrides)
+    attrs.update(overrides)  # type: ignore[arg-type]
     return argparse.Namespace(**attrs)
 
 
-def _prompt(text: str, default=None) -> str:
+def _prompt(text: str, default: Any = None) -> str:
     """Interactive prompt with default. Returns default if non-TTY."""
     if not sys.stdin.isatty():
         return str(default) if default is not None else ""
@@ -364,8 +364,8 @@ def run_setup(cfg: SetupConfig) -> int:
 
 
 def add_parser(
-    subparsers: argparse._SubParsersAction[argparse.ArgumentParser],
-) -> None:
+    subparsers: Any,  # type: ignore[type-arg]
+) -> None:  # type: ignore[no-untyped-def]
     """Register 'setup' as a subcommand in the existing argparse dispatcher."""
     p: argparse.ArgumentParser = subparsers.add_parser(
         "setup",
