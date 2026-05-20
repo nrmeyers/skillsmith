@@ -10,6 +10,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+# Private member imports for pyright strict mode testing (I001 excluded — private names)
+# ruff: noqa: I001
+from skillsmith.install.subcommands.simple_setup import (
+    _prompt as _prompt,  # type: ignore[attr-defined]
+    _resolve_preset as _resolve_preset,  # type: ignore[attr-defined]
+    _run_from_args as _run_from_args,  # type: ignore[attr-defined]
+    SetupConfig,
+)
+# ruff: noqa: I001
+
 # ---------------------------------------------------------------------------
 # Shared mock setup
 # ---------------------------------------------------------------------------
@@ -90,56 +100,33 @@ class TestSimpleSetupPrompts:
 
     def test_prompt_returns_default_in_non_tty(self):
         with patch.object(sys.stdin, "isatty", return_value=False):
-            from skillsmith.install.subcommands.simple_setup import _prompt  # type: ignore[attr-defined]
-
             result = _prompt("Test prompt", default="hello")
             assert result == "hello"
 
     def test_prompt_returns_empty_when_no_default(self):
         with patch.object(sys.stdin, "isatty", return_value=False):
-            from skillsmith.install.subcommands.simple_setup import _prompt  # type: ignore[attr-defined]
-
             result = _prompt("Test prompt")
             assert result == ""
 
     def test_invalid_runner_rejected(self, tmp_state_dir: tuple[Path, Path]):
-        with patch.object(sys.stdin, "isatty", return_value=False):
-            from skillsmith.install.subcommands.simple_setup import (
-                SetupConfig,
-                run_setup,
-            )
+        from skillsmith.install.subcommands.simple_setup import run_setup
 
-            cfg = SetupConfig(runner="invalid", non_interactive=True)
-            rc = run_setup(cfg)
-            assert rc == 1
+        cfg = SetupConfig(runner="invalid", non_interactive=True)
+        rc = run_setup(cfg)
+        assert rc == 1
 
     def test_preset_resolved_from_runner_and_host(self):
-        from skillsmith.install.subcommands.simple_setup import (  # type: ignore[attr-defined]
-            SetupConfig,
-            _resolve_preset,
-        )
-
         cfg = SetupConfig(runner="ollama", recommended_host="nvidia")
         preset = _resolve_preset(cfg)
         assert preset == "nvidia"
         assert cfg.preset == "nvidia"
 
     def test_preset_fallback_unknown_combination(self):
-        from skillsmith.install.subcommands.simple_setup import (  # type: ignore[attr-defined]
-            SetupConfig,
-            _resolve_preset,
-        )
-
         cfg = SetupConfig(runner="ollama", recommended_host="unknown-hw")
         preset = _resolve_preset(cfg)
         assert preset == "cpu"  # fallback
 
     def test_preset_llama_server_cpu(self):
-        from skillsmith.install.subcommands.simple_setup import (  # type: ignore[attr-defined]
-            SetupConfig,
-            _resolve_preset,
-        )
-
         cfg = SetupConfig(runner="llama-server", recommended_host="cpu")
         preset = _resolve_preset(cfg)
         assert preset == "cpu-llama-server"
@@ -339,8 +326,6 @@ class TestRunFromArgs:
     def test_defaults(self):
         import argparse
 
-        from skillsmith.install.subcommands.simple_setup import _run_from_args  # type: ignore[attr-defined]
-
         args = argparse.Namespace(
             runner=None,
             model=None,
@@ -358,8 +343,6 @@ class TestRunFromArgs:
 
     def test_explicit_values(self):
         import argparse
-
-        from skillsmith.install.subcommands.simple_setup import _run_from_args  # type: ignore[attr-defined]
 
         args = argparse.Namespace(
             runner="llama-server",
