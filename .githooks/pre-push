@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Pre-push quality gate: runs the full CI quality checks locally before pushing.
+# Pre-push quality gate: catches lint/format/type issues before pushing.
+# Skips full test suite (too slow for interactive use) - CI handles that.
 # Install: git config core.hooksPath .githooks
 # Bypass: git push --no-verify
 
@@ -46,15 +47,6 @@ if "$PYTHON" -m pyright 2>/dev/null; then
     echo "OK"
 else
     echo "FAILED (check output above)"
-    FAILED=1
-fi
-
-# 4. Unit tests
-echo -n "pytest (unit)... "
-if "$PYTHON" -m pytest tests/ -m "not integration" -q --tb=no 2>/dev/null; then
-    echo "OK"
-else
-    echo "FAILED"
     FAILED=1
 fi
 
