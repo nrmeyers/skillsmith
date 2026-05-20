@@ -144,6 +144,25 @@ def _build_namespace(cfg: SetupConfig, **overrides: Any) -> argparse.Namespace: 
     return argparse.Namespace(**attrs)
 
 
+# ---------------------------------------------------------------------------
+# Quiet stdout for subcommand calls inside the setup wizard
+# ---------------------------------------------------------------------------
+
+import io as _io  # noqa: E402 (module-level import is fine; kept local above for historical reasons)
+from contextlib import contextmanager as _contextmanager  # noqa: E402
+
+
+@_contextmanager
+def _quiet_stdout():
+    """Suppress stdout during a subcommand call (captures JSON output)."""
+    saved = sys.stdout
+    sys.stdout = _io.StringIO()
+    try:
+        yield
+    finally:
+        sys.stdout = saved
+
+
 def _prompt(text: str, default: Any = None) -> str:
     """Interactive prompt with default. Returns default if non-TTY."""
     if not sys.stdin.isatty():
@@ -341,14 +360,8 @@ def run_setup(cfg: SetupConfig) -> int:
     _print("\n[dim]Detecting hardware...[/dim]")
 
     # Suppress detect's raw JSON dump (goes to detect.json file instead)
-    import io as _io
-
-    _stdout = sys.stdout
-    sys.stdout = _io.StringIO()
-    try:
+    with _quiet_stdout():
         detect_result = detect.run(_build_namespace(cfg))
-    finally:
-        sys.stdout = _stdout
 
     if detect_result not in (0, 4):
         _print("  [red]Hardware detection failed. Continuing with defaults.[/red]")
@@ -560,7 +573,8 @@ def run_setup(cfg: SetupConfig) -> int:
     # Step c: Write .env
     _print("  [dim]-> Writing .env[/dim]")
     ns = _build_namespace(cfg, preset=preset, port=cfg.port, overrides=None, force=False)
-    rc = write_env.run(ns)
+    with _quiet_stdout():
+        rc = write_env.run(ns)
     if rc not in (0, 4):
         _print(f"  [red]  write-env failed (exit {rc}).[/red]")
         return rc
@@ -585,14 +599,16 @@ def run_setup(cfg: SetupConfig) -> int:
     }
     models_fp = install_state.outputs_dir() / "recommend-models.json"
     models_fp.write_text(json.dumps(models_json))
-    rc = pull_models.run(_build_namespace(cfg, models=str(models_fp), runner=cfg.runner))
+    with _quiet_stdout():
+        rc = pull_models.run(_build_namespace(cfg, models=str(models_fp), runner=cfg.runner))
     if rc not in (0, 4):
         _print(f"  [yellow]  pull-models returned {rc} (model may already be present).[/yellow]")
     _print("  [green]  Done.[/green]")
 
     # Step e: Seed corpus
     _print("  [dim]-> Seeding corpus[/dim]")
-    rc = seed_corpus.run(_build_namespace(cfg))
+    with _quiet_stdout():
+        rc = seed_corpus.run(_build_namespace(cfg))
     if rc not in (0, 4):  # 4 = EXIT_NOOP
         _print(f"  [red]  seed-corpus failed (exit {rc}).[/red]")
         return rc
@@ -600,7 +616,8 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # Step f: Start embed server
     _print("  [dim]-> Starting embed server[/dim]")
-    rc = start_embed_server.run(_build_namespace(cfg, models=str(models_fp), timeout=120.0))
+    with _quiet_stdout():
+        rc = start_embed_server.run(_build_namespace(cfg, models=str(models_fp), timeout=120.0))
     if rc not in (0, 4):
         _print(f"  [red]  start-embed-server failed (exit {rc}).[/red]")
         return rc
@@ -608,15 +625,16 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # Step g: Install packs
     _print("  [dim]-> Installing packs[/dim]")
-    rc = install_packs.run(
-        _build_namespace(
-            cfg,
-            packs=cfg.packs,
-            non_interactive=cfg.non_interactive,
-            ignore_unknown=False,
-            list=False,
+    with _quiet_stdout():
+        rc = install_packs.run(
+            _build_namespace(
+                cfg,
+                packs=cfg.packs,
+                non_interactive=cfg.non_interactive,
+                ignore_unknown=False,
+                list=False,
+            )
         )
-    )
     if rc not in (0, 4):
         _print(f"  [red]  install-packs failed (exit {rc}).[/red]")
         return rc
@@ -625,7 +643,8 @@ def run_setup(cfg: SetupConfig) -> int:
     # Step h: Enable service
     _print("  [dim]-> Enabling service[/dim]")
     mode_flag = "native" if cfg.mode == "persistent" else "manual"
-    rc = enable_service.run(_build_namespace(cfg, mode=mode_flag, runtime=None, port=cfg.port))
+    with _quiet_stdout():
+        rc = enable_service.run(_build_namespace(cfg, mode=mode_flag, runtime=None, port=cfg.port))
     if rc not in (0, 4):
         _print(f"  [red]  enable-service failed (exit {rc}).[/red]")
         return rc
@@ -634,7 +653,8 @@ def run_setup(cfg: SetupConfig) -> int:
     # Step i: Wire harness (if requested)
     if cfg.harness and cfg.harness != "manual":
         _print(f"  [dim]-> Wiring harness ({cfg.harness})[/dim]")
-        rc = wire_harness.run(_build_namespace(cfg, harness=cfg.harness, force=False))
+        with _quiet_stdout():
+            rc = wire_harness.run(_build_namespace(cfg, harness=cfg.harness, force=False))
         if rc not in (0, 4):
             _print(f"  [red]  wire-harness failed (exit {rc}).[/red]")
             return rc
@@ -643,7 +663,8 @@ def run_setup(cfg: SetupConfig) -> int:
     # -- Phase 4: Validate --
 
     _print("\n[bold]Validating installation...[/bold]")
-    rc = verify.run(_build_namespace(cfg))
+    with _quiet_stdout():
+        rc = verify.run(_build_namespace(cfg))
     if rc not in (0, 4):
         _print("  [red]Validation failed.[/red]")
         return rc
