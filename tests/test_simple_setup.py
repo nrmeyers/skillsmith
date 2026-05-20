@@ -296,7 +296,9 @@ class TestSimpleSetupExecution:
                 "skillsmith.install.subcommands.simple_setup._prompt_context",
                 return_value="invalid-gpu",
             ),
-            patch("skillsmith.install.subcommands.simple_setup.sys.stdin.isatty", return_value=True),
+            patch(
+                "skillsmith.install.subcommands.simple_setup.sys.stdin.isatty", return_value=True
+            ),
         ):
             rc = run_setup(cfg)
         assert rc == 1
