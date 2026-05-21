@@ -198,6 +198,16 @@ Commands:
 
 ### Step 1.5 — Refactor `skillsmith setup` to be profile-aware + refuse-if-existing
 
+> **Sequencing prerequisite:** `SETUP_WIZARD_UX_SPEC.md` (in the repo root)
+> must land **before** this step. That spec is a focused UX/bug-fix cluster
+> for `simple_setup.py` (numbered menus, runner-sentinel fix, hardware
+> label map, flow reorder). Its line references assume the pre-refactor
+> state of the file. Phase 1's profile-awareness changes layer on top of
+> the cleaned-up wizard.
+>
+> If you land Phase 1 first, the SETUP_WIZARD line references go stale
+> and that PR becomes much harder to review.
+
 **Modify** `src/skillsmith/install/subcommands/simple_setup.py`.
 
 Changes:

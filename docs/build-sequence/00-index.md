@@ -30,6 +30,15 @@ The three reminder docs in `docs/` are **SUPERSEDED** (see headers).
 The tier model, harness composition story, and binding patterns in them
 still inform Phases 3–5; the reminder script itself is not built.
 
+## Predecessor work (must land before Phase 1)
+
+| Doc | What it defines | Status |
+|---|---|---|
+| `SETUP_WIZARD_UX_SPEC.md` (repo root) | UX overhaul + bug-fix cluster for `simple_setup.py` (numbered menus, hardware label map, runner-sentinel fix, flow reorder) | Must land before Phase 1 Step 1.5 — line references in that spec assume the pre-refactor wizard state |
+
+Phase 1 layers profile-awareness on top of the cleaned-up wizard. Reverse
+order is feasible but makes the SETUP_WIZARD diff much harder to review.
+
 ## Phase order and dependencies
 
 ```
