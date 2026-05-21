@@ -154,7 +154,7 @@ def _check_embedding_1024_dim(embed_url: str, model: str) -> dict[str, Any]:
             "passed": False,
             "duration_ms": duration,
             "error": f"Expected {EMBEDDING_DIM}-dim, got {dim}-dim",
-            "remediation": f"Wrong embedding model. Expected a 1024-dim model; '{model}' returned {dim} dimensions.",
+            "remediation": f"Wrong embedding model. Expected a {EMBEDDING_DIM}-dim model; '{model}' returned {dim} dimensions.",
         }
     except (URLError, OSError, TimeoutError, json.JSONDecodeError) as exc:
         duration = int((time.monotonic() - t0) * 1000)
@@ -365,14 +365,6 @@ def _check_harness_config_present(st: dict[str, Any]) -> dict[str, Any]:
             "duration_ms": 0,
             "detail": "manual harness — user-owned config, no files to verify",
         }
-        duration = int((time.monotonic() - t0) * 1000)
-        return {
-            "name": "harness_config_present",
-            "passed": False,
-            "duration_ms": duration,
-            "error": "No harness files recorded in install state",
-            "remediation": "Run `python -m skillsmith.install wire-harness --harness <name>`",
-        }
     for entry in files_written:
         fp = Path(entry["path"])
         if not fp.exists():
@@ -423,14 +415,6 @@ def _check_harness_config_url(st: dict[str, Any]) -> dict[str, Any]:
             "passed": True,
             "duration_ms": 0,
             "detail": "manual harness — user-owned config, URL not verified",
-        }
-        duration = int((time.monotonic() - t0) * 1000)
-        return {
-            "name": "harness_config_url_matches",
-            "passed": False,
-            "duration_ms": duration,
-            "error": "No harness files recorded",
-            "remediation": "Run wire-harness first",
         }
     for entry in files_written:
         fp = Path(entry["path"])
