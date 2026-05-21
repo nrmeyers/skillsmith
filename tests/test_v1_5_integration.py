@@ -82,7 +82,10 @@ def lm_studio_models(lm_studio_available: bool) -> list[str]:
         return []
     with httpx.Client(timeout=5.0) as c:
         data = c.get(LM_STUDIO_MODELS_URL).json()
-    return [item["id"] for item in data.get("data", []) if isinstance(item, dict)]
+    data_list = data.get("data") if isinstance(data, dict) else None
+    if not data_list:
+        return []
+    return [item["id"] for item in data_list if isinstance(item, dict)]
 
 
 @pytest.fixture

@@ -26,11 +26,11 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from skillsmith.install import state as install_state
+from skillsmith.storage.vector_store import EMBEDDING_DIM
 
 SCHEMA_VERSION = 1
 # Sanity floor — flags truly empty corpora; not a quality bar.
 MIN_SKILL_COUNT = 25
-EXPECTED_EMBEDDING_DIM = 1024
 
 # Allowed schemes for the embedding-runtime URL probe. `.env` is operator-
 # controlled but a hostile dependency or shared dotfile could rewrite it
@@ -142,7 +142,7 @@ def _check_embedding_1024_dim(embed_url: str, model: str) -> dict[str, Any]:
             }
         dim = len(embeddings[0].get("embedding", []))
         duration = int((time.monotonic() - t0) * 1000)
-        if dim == EXPECTED_EMBEDDING_DIM:
+        if dim == EMBEDDING_DIM:
             return {
                 "name": "embedding_endpoint_returns_1024_dim",
                 "passed": True,
@@ -153,7 +153,7 @@ def _check_embedding_1024_dim(embed_url: str, model: str) -> dict[str, Any]:
             "name": "embedding_endpoint_returns_1024_dim",
             "passed": False,
             "duration_ms": duration,
-            "error": f"Expected {EXPECTED_EMBEDDING_DIM}-dim, got {dim}-dim",
+            "error": f"Expected {EMBEDDING_DIM}-dim, got {dim}-dim",
             "remediation": f"Wrong embedding model. Expected a 1024-dim model; '{model}' returned {dim} dimensions.",
         }
     except (URLError, OSError, TimeoutError, json.JSONDecodeError) as exc:
