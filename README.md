@@ -161,6 +161,24 @@ Supported harnesses: `claude-code`, `gemini-cli`, `cursor`, `windsurf`, `github-
 
 ---
 
+## Harness support: what each tier gets
+
+Skillsmith works with any coding harness, but the capability level depends on whether the harness exposes a hook mechanism.
+
+| Feature | Tier 1 (Claude Code, Continue.dev) | Tier 3 (Cursor, Windsurf, Copilot, Cline, Gemini CLI, Aider) |
+|---|---|---|
+| Initial workflow skill context | ✅ | ✅ |
+| Phase transition detection (automatic) | ✅ Per-turn hook | ⚠️ Manual via `skillsmith phase set <name>` |
+| System skill enforcement (gates) | ✅ PreToolUse hook blocks tool call | ⚠️ Advisory text only — no enforcement |
+| Mid-session context updates | ✅ Injected into next turn | ⚠️ Requires file reload (harness-dependent) |
+| Contract → skill injection | ✅ PostToolUse hook | ✅ Sidecar (`skillsmith watch start`) |
+| Semantic gate evaluation (Qwen) | ✅ Runs per-turn | ⚠️ Falls back to `UNKNOWN` without hook |
+| Code-Indexer enrichment | ✅ Automatic on contract write | ✅ Sidecar triggers it |
+
+**Tier 3 is a real reduction in capability.** Without a per-turn hook, system skills become suggestions rather than gates, and phase transitions require a manual command. If you need enforcement, use Claude Code (reference Tier 1 harness) or Continue.dev. See [`docs/tier3-experience.md`](docs/tier3-experience.md) for the full picture and sidecar setup.
+
+---
+
 ## Standalone CLI
 
 The `skillsmith.install` module exposes a single CLI with subcommands. All write paths are user-scoped (LadybugDB and pack drafts live under `user_config_dir()`).

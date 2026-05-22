@@ -75,6 +75,13 @@ Phase 5: Tier 3 Hardening         ←── needs Phase 3 (hooks); independent o
 
 Phases 4 and 5 can be parallelized after Phase 3 completes.
 
+```
+Phase 6: Classifier Elimination      ←── can run after Phase 3; independent of 4 and 5
+   replace chat-model classifier with embed cosine similarity
+   demote artifact_completeness to soft advisory
+   remove runtime_classifier_model config + port 11436
+```
+
 ## Cross-cutting concerns (apply to every phase)
 
 ### Token economics is the load-bearing constraint
@@ -84,7 +91,7 @@ paid-LLM token cost where local compute or deterministic code suffices.**
 
 - No MCP tool registration (the 20k-token tax inverts the math).
 - No generative LLM in the compose path (v5.4 commitment, see findings doc).
-- Qwen is used as embedder + classifier, never as a synthesizer.
+- Qwen is used as embedder and similarity scorer, never as a synthesizer or chat classifier.
 - Assembly is deterministic Python; do not regress to LLM-driven assembly.
 
 ### Soft-fail discipline
@@ -173,4 +180,6 @@ executing if significant time has passed.
 ## What to do next
 
 Open `docs/build-sequence/01-foundation.md` and execute it end to end.
-Then 02, 03; 04 and 05 can be parallel.
+Then 02, 03; 04 and 05 can be parallel. Phase 6 can be queued after Phase 3
+completes — it is a follow-up change to the classifier approach and does not
+block 04 or 05.

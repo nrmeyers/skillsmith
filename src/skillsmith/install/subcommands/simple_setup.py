@@ -68,6 +68,7 @@ class SetupConfig:
     preset: str = ""  # filled by auto-detect: "cpu", "nvidia", etc.
     non_interactive: bool = False
     force: bool = False
+    acknowledge_tier3: bool = False
     hardware_target: str = ""  # explicit user choice: "nvidia", "radeon", "apple-silicon", "cpu"
 
     # Resolved during execution -- not user-facing.
@@ -898,6 +899,13 @@ def add_parser(
         default=None,
         help="Hardware target for embedding (default: auto-detected).",
     )
+    p.add_argument(
+        "--acknowledge-tier3",
+        action="store_true",
+        default=False,
+        dest="acknowledge_tier3",
+        help="Acknowledge Tier 3 harness limitations (required for non-interactive Tier 3 setup).",
+    )
     p.set_defaults(func=_run_from_args)
 
 
@@ -913,6 +921,7 @@ def _run_from_args(args: argparse.Namespace) -> int:
         hardware_target=getattr(args, "hardware", None) or "",
         non_interactive=args.non_interactive,
         force=getattr(args, "force", False),
+        acknowledge_tier3=getattr(args, "acknowledge_tier3", False),
     )
     # Model default is resolved inside run_setup() after cfg.runner is finalized.
     return run_setup(cfg)

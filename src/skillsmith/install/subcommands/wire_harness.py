@@ -511,6 +511,11 @@ def wire_harness(
     if harness == "aider":
         files_written.extend(_wire_aider_conf(root))
 
+    # For Tier 3 harnesses, write watcher config and print guidance
+    _TIER3_HARNESSES = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
+    if harness in _TIER3_HARNESSES:
+        _wire_tier3_watcher_config(harness, root)
+
     # For claude-code, additionally wire signal-layer hooks
     if harness == "claude-code":
         files_written.extend(_wire_claude_code_hooks(root))
@@ -667,6 +672,38 @@ def _wire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
             "content_sha256": _sha256(serialized),
         }
     ]
+
+
+def _wire_tier3_watcher_config(harness: str, root: Path) -> None:
+    """Write watcher config and print Tier 3 guidance. Soft-fail."""
+    try:
+        import yaml as _yaml
+
+        watch_dir = Path.home() / ".skillsmith" / "watch"
+        watch_dir.mkdir(parents=True, exist_ok=True)
+        config = {
+            "project_root": str(root),
+            "profile_name": "default",
+            "harness": harness,
+            "poll_interval_s": 1.0,
+            "debounce_ms": 500,
+        }
+        (watch_dir / "default.yaml").write_text(_yaml.dump(config))
+    except Exception:
+        pass
+
+    print(
+        f"\n[Skillsmith — Tier 3 wiring]\n"
+        f"You selected: {harness}\n\n"
+        "Tier 3 harnesses do not support per-turn hooks. To get phase- and\n"
+        "contract-driven context updates, run the watcher sidecar:\n\n"
+        f"    skillsmith watch start --harness {harness}\n\n"
+        "Run under tmux, systemd, or launchd for persistence. Without the\n"
+        "watcher, you'll only get the initial workflow skill context. System\n"
+        "skills (commit-safety, etc.) are advisory-only on Tier 3.\n\n"
+        "See docs/tier3-experience.md for the full picture.\n",
+        file=sys.stderr,
+    )
 
 
 def _probe_code_indexer(root: Path) -> None:
