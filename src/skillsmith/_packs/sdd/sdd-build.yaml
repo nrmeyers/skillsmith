@@ -85,24 +85,12 @@ raw_prose: |
 
   Signal readiness with: "done building", "ready for qa", or "implementation complete".
 
-  ## Working alongside Code-Indexer
+  ## After writing a task contract
 
   After writing a task contract at `.skillsmith/contracts/build/<slug>.md`,
-  two tools should inform your next action:
+  skillsmith's PostToolUse hook automatically composes the domain skill
+  fragments matching the contract's `domain_tags` and injects them into
+  your next turn. If for some reason the hook didn't fire, you can run
+  composition manually:
 
-  1. **Skillsmith** — domain skill fragments based on the contract's
-     `domain_tags`. Usually injected automatically by the PostToolUse hook;
-     if not, run:
-         skillsmith compose --contract .skillsmith/contracts/build/<slug>.md
-
-  2. **Code-Indexer** (if running on :8003) — existing code patterns in the
-     `scope.touches` paths. Surfaces what already exists so you avoid
-     reimplementing or contradicting existing patterns. Run:
-         curl -s "http://127.0.0.1:8003/search/semantic?q=<task title>&repo=<repo-slug>&top_k=5"
-         curl -s "http://127.0.0.1:8003/search/lexical?q=<domain_tags joined>&repo=<repo-slug>&top_k=5"
-
-  Use Skillsmith for "what patterns should I follow" and Code-Indexer for
-  "what patterns already exist here." If they conflict, Code-Indexer is
-  ground truth for this codebase; Skillsmith is industry best practice.
-  Reconcile in the contract's `scope.avoids` or `success_criteria`
-  before writing code.
+      skillsmith compose --contract .skillsmith/contracts/build/<slug>.md

@@ -738,14 +738,6 @@ def _probe_code_indexer(root: Path) -> None:
     }
     install_state.save_state(st, root)
 
-    if not reachable:
-        print(
-            f"[info] code-indexer not detected on {ci_url}. Workflow skills will still\n"
-            "       instruct usage; install code-indexer to enable automatic code-pattern surfacing.",
-            file=sys.stderr,
-        )
-
-
 def _unwire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
     """Remove Skillsmith signal-layer hooks from .claude/settings.json."""
     settings_path = root / ".claude" / "settings.json"

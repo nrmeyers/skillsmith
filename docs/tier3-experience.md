@@ -26,7 +26,6 @@ Are you OK running a background process?
 | Initial workflow skill context | ✅ Present from the moment you open the harness |
 | Phase transitions → rules file update | ✅ Regenerated within ~1s of `.skillsmith/phase` changing |
 | Contract writes → skill injection | ✅ Regenerated within ~1s of contract write |
-| Code-Indexer integration | ✅ If code-indexer is running, results appear in the rules file |
 | System skill prose | ✅ Included as advisory text in the rules file |
 
 ## What's degraded on Tier 3

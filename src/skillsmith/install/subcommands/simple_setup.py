@@ -1,8 +1,6 @@
 """``skillsmith setup`` — interactive one-shot install wizard.
 
-Mirrors the code-indexer-service UX:
-
-    pipx install git+https://github.com/navistone/skillsmith.git
+    pipx install git+https://github.com/nrmeyers/skillsmith.git
     skillsmith setup          # interactive: questions -> execution -> validation
 
 The command:
