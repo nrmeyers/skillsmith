@@ -234,7 +234,9 @@ def retrieve_domain_candidates(
         bm25_query = " ".join(contract_tags)
         if _os.environ.get("SKILLSMITH_UNION_KEYWORDS") == "1":
             bm25_query += " " + _extract_bm25_keywords(task)
-        _bm25_source = "contract"
+            _bm25_source = "union"
+        else:
+            _bm25_source = "contract"
     else:
         bm25_query = _extract_bm25_keywords(task)
         _bm25_source = "rule-extracted"

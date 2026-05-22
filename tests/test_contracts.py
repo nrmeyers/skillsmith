@@ -196,3 +196,60 @@ def test_latest_contract_no_phase_filter(tmp_path: Path):
     latest = latest_contract(tmp_path)
     assert latest is not None
     assert latest.name == "spec.md"
+
+
+# ---------------------------------------------------------------------------
+# safe_contract_path — path-containment guard
+# ---------------------------------------------------------------------------
+
+
+def test_safe_contract_path_accepts_valid_contract(tmp_path: Path):
+    from skillsmith.contracts import safe_contract_path
+
+    f = _write_contract(tmp_path / ".skillsmith" / "contracts" / "build" / "task.md")
+    safe, project = safe_contract_path(str(f))
+    assert safe is not None
+    assert project is not None
+    assert safe == f.resolve()
+    assert project == tmp_path.resolve()
+
+
+def test_safe_contract_path_rejects_path_outside_skillsmith(tmp_path: Path):
+    from skillsmith.contracts import safe_contract_path
+
+    f = _write_contract(tmp_path / "loose.md")
+    safe, project = safe_contract_path(str(f))
+    assert safe is None
+    assert project is None
+
+
+def test_safe_contract_path_rejects_nonexistent_path(tmp_path: Path):
+    from skillsmith.contracts import safe_contract_path
+
+    safe, _ = safe_contract_path(str(tmp_path / ".skillsmith" / "contracts" / "build" / "nope.md"))
+    assert safe is None
+
+
+def test_safe_contract_path_rejects_escape_via_parent(tmp_path: Path):
+    """A path containing ``..`` that escapes .skillsmith/contracts/ must be rejected."""
+    from skillsmith.contracts import safe_contract_path
+
+    # Write a sibling outside contracts/, then try to reach it via .. from inside.
+    outside = tmp_path / "outside.md"
+    outside.write_text("---\nphase: build\n---\nbody\n")
+    sneaky = tmp_path / ".skillsmith" / "contracts" / "build" / ".." / ".." / ".." / "outside.md"
+    safe, _ = safe_contract_path(str(sneaky))
+    assert safe is None
+
+
+def test_safe_contract_path_rejects_path_outside_pinned_root(tmp_path: Path):
+    """When project_root is pinned, paths outside that root must be rejected even if
+    they live in a valid .skillsmith/contracts/ tree of a sibling project."""
+    from skillsmith.contracts import safe_contract_path
+
+    other_project = tmp_path / "other"
+    other_project.mkdir()
+    f = _write_contract(other_project / ".skillsmith" / "contracts" / "build" / "task.md")
+
+    safe, _ = safe_contract_path(str(f), project_root=tmp_path / "this-project")
+    assert safe is None

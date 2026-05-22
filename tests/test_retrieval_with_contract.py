@@ -43,9 +43,21 @@ def test_resolved_contract_tags_from_explicit(tmp_path: Path):
 def test_resolved_contract_tags_from_path(tmp_path: Path):
     from skillsmith.api.compose_models import ComposeRequest
 
-    f = _write_contract(tmp_path / "c.md", domain_tags=["NestJS", "JWT"])
+    # Must live under a project's .skillsmith/contracts/<phase>/ directory
+    # to pass the path-containment guard.
+    contract_dir = tmp_path / ".skillsmith" / "contracts" / "build"
+    f = _write_contract(contract_dir / "c.md", domain_tags=["NestJS", "JWT"])
     req = ComposeRequest(task="do thing", phase="build", contract_path=str(f))
     assert req.resolved_contract_tags == ["NestJS", "JWT"]
+
+
+def test_resolved_contract_tags_rejects_unsafe_path(tmp_path: Path):
+    """Paths outside any .skillsmith/contracts/ tree are silently rejected (returns None)."""
+    from skillsmith.api.compose_models import ComposeRequest
+
+    f = _write_contract(tmp_path / "loose-contract.md", domain_tags=["X"])
+    req = ComposeRequest(task="do thing", phase="build", contract_path=str(f))
+    assert req.resolved_contract_tags is None
 
 
 def test_resolved_contract_tags_none_when_not_set():
@@ -154,7 +166,7 @@ def test_retrieval_union_when_env_var_set(monkeypatch: pytest.MonkeyPatch):
         contract_tags=["NestJS"],
     )
 
-    assert result.bm25_source == "contract"
+    assert result.bm25_source == "union"
     assert len(bm25_calls) == 1
     # Union: should contain both the contract tag and something rule-extracted
     assert "NestJS" in bm25_calls[0]

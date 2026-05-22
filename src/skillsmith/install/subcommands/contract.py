@@ -161,8 +161,11 @@ def _load_contract_template(phase: str) -> str | None:
             phases_raw, _raw_prose = row
             phases: list[Any] = phases_raw or []
             if phase in phases:
-                # Extract contract_template from raw_prose YAML (if stored as YAML)
-                return None  # Phase 1 profile store doesn't include contract_template yet
+                # The Phase 1 profile_skills table doesn't persist
+                # contract_template yet, so even when the profile datastore
+                # has a workflow skill for this phase we still need the
+                # shipped pack's template. Fall through to packs lookup.
+                break
 
     except Exception:
         pass

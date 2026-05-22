@@ -49,11 +49,15 @@ def _read_phase(project_root: Path) -> str | None:
 
 
 def _write_phase_atomic(project_root: Path, phase: str) -> None:
+    import os as _os
+
     phase_file = project_root / ".skillsmith" / "phase"
     phase_file.parent.mkdir(parents=True, exist_ok=True)
     tmp = phase_file.with_suffix(".tmp")
     tmp.write_text(f"phase: {phase}\n", encoding="utf-8")
-    tmp.rename(phase_file)
+    # os.replace is atomic and overwrites cross-platform; Path.rename fails
+    # on Windows when the destination exists.
+    _os.replace(tmp, phase_file)
 
 
 def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:

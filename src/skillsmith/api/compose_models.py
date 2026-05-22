@@ -90,16 +90,23 @@ class ComposeRequest(BaseModel):
 
     @property
     def resolved_contract_tags(self) -> list[str] | None:
-        """Return contract domain_tags if available, else None."""
+        """Return contract domain_tags if available, else None.
+
+        When loading from ``contract_path``, the path is run through the
+        same containment guard the API endpoint uses — paths outside any
+        ``.skillsmith/contracts/`` tree return ``None`` rather than reading
+        arbitrary local files.
+        """
         if self.contract_tags is not None:
             return self.contract_tags
         if self.contract_path is not None:
-            from pathlib import Path
+            from skillsmith.contracts import parse_contract, safe_contract_path
 
-            from skillsmith.contracts import parse_contract
-
+            safe_path, _ = safe_contract_path(self.contract_path)
+            if safe_path is None:
+                return None
             try:
-                return parse_contract(Path(self.contract_path)).domain_tags
+                return parse_contract(safe_path).domain_tags
             except Exception:
                 return None
         return None

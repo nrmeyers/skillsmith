@@ -198,6 +198,67 @@ def parse_contract(path: Path) -> Contract:
 
 
 # ---------------------------------------------------------------------------
+# Path containment
+# ---------------------------------------------------------------------------
+
+
+def safe_contract_path(
+    path_str: str,
+    project_root: Path | None = None,
+) -> tuple[Path | None, Path | None]:
+    """Validate a user-supplied contract path is contained under ``.skillsmith/contracts/``.
+
+    Returns ``(resolved_path, project_root)`` on success, ``(None, None)`` on failure.
+    Resolution failures, missing ``.skillsmith`` ancestor, or paths that escape the
+    contracts directory all return ``(None, None)`` — callers should treat that as a
+    400 / reject.
+
+    When ``project_root`` is ``None``, the project root is derived from the path itself
+    by walking up to the ``.skillsmith`` parent. This is the common case for the API:
+    the caller supplies an absolute path and we verify it's a well-formed contract path
+    living inside *some* project's ``.skillsmith/contracts/`` tree.
+    """
+    try:
+        resolved = Path(path_str).resolve()
+    except OSError:
+        return None, None
+
+    if not resolved.is_file():
+        return None, None
+
+    # Walk up until we find the .skillsmith parent (the project's skillsmith dir).
+    contracts_root: Path | None = None
+    for ancestor in resolved.parents:
+        if ancestor.name == ".skillsmith":
+            contracts_root = ancestor / "contracts"
+            break
+    if contracts_root is None:
+        return None, None
+
+    derived_root = contracts_root.parent.parent  # `.skillsmith/`.parent = project root
+
+    # If caller pinned a project_root, the resolved path must also live under it.
+    if project_root is not None:
+        try:
+            project_resolved = project_root.resolve()
+        except OSError:
+            return None, None
+        try:
+            resolved.relative_to(project_resolved)
+        except ValueError:
+            return None, None
+        derived_root = project_resolved
+
+    # And the path must live under derived_root/.skillsmith/contracts/
+    try:
+        resolved.relative_to(contracts_root.resolve())
+    except (ValueError, OSError):
+        return None, None
+
+    return resolved, derived_root
+
+
+# ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
 

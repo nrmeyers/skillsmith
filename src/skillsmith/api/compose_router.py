@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
@@ -79,18 +77,38 @@ async def compose_from_contract(
     req: FromContractRequest,
     orchestrator: ComposeOrchestrator = Depends(get_orchestrator),
 ) -> ComposedResult | EmptyResult:
-    from skillsmith.contracts import ContractMalformed, parse_contract, validate_contract
+    from skillsmith.contracts import (
+        ContractMalformed,
+        parse_contract,
+        safe_contract_path,
+        validate_contract,
+    )
 
-    path = Path(req.contract_path)
+    # Containment guard: the supplied path must resolve to a file under
+    # some project's .skillsmith/contracts/ tree. Rejects path traversal,
+    # symlinks pointing outside, and arbitrary local-file reads.
+    safe_path, project_root = safe_contract_path(req.contract_path)
+    if safe_path is None or project_root is None:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "contract_path_unsafe",
+                "issues": [
+                    "contract_path must be an absolute path to a file under "
+                    "a project's .skillsmith/contracts/ directory"
+                ],
+            },
+        )
+
     try:
-        contract = parse_contract(path)
+        contract = parse_contract(safe_path)
     except ContractMalformed as exc:
         raise HTTPException(
             status_code=400,
             detail={"error": "contract_malformed", "issues": [str(exc)]},
         ) from exc
 
-    issues = validate_contract(contract, path.parent.parent.parent)
+    issues = validate_contract(contract, project_root)
     if issues:
         raise HTTPException(
             status_code=400,
@@ -101,6 +119,6 @@ async def compose_from_contract(
         task=contract.body or contract.task_slug,
         phase=contract.phase,  # type: ignore[arg-type]
         contract_tags=contract.domain_tags,
-        contract_path=req.contract_path,
+        contract_path=str(safe_path),
     )
     return await orchestrator.compose(compose_req)

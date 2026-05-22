@@ -103,7 +103,7 @@ def _evaluate_single(
         return result
     raise ValueError(
         f"Unknown predicate '{predicate_name}'. "
-        f"Available: {sorted(list(PREDICATES) + list(SEMANTIC_PREDICATES if False else []))}"
+        f"Available: {sorted(list(PREDICATES) + list(SEMANTIC_PREDICATES))}"
     )
 
 

@@ -30,7 +30,15 @@ def update_block(path: Path, marker: str, body: str) -> None:
 
     if begin in existing and end in existing:
         start_idx = existing.index(begin)
-        end_idx = existing.index(end) + len(end) + 1  # +1 for newline after END
+        end_idx = existing.index(end) + len(end)
+        # Consume a single trailing newline after the END marker so the block
+        # replacement doesn't leave a blank line, but only if one actually
+        # exists — guards against EOF-without-newline and \r\n line endings.
+        if end_idx < len(existing):
+            if existing[end_idx] == "\n":
+                end_idx += 1
+            elif existing[end_idx : end_idx + 2] == "\r\n":
+                end_idx += 2
         new_content = existing[:start_idx] + block + existing[end_idx:]
     else:
         separator = "\n" if existing and not existing.endswith("\n") else ""

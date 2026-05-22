@@ -651,6 +651,36 @@ def run_setup(cfg: SetupConfig) -> int:
         return 1
     _print(f"  Harness: {cfg.harness}")
 
+    # Tier 3 harness guardrail: these harnesses lack per-turn hooks so
+    # system-skill gating degrades to advisory. Non-interactive installs must
+    # explicitly acknowledge that with --acknowledge-tier3; interactive
+    # installs get a y/n prompt with a 'no' default.
+    _tier3_harnesses = frozenset(
+        {"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"}
+    )
+    if cfg.harness in _tier3_harnesses:
+        tier3_msg = (
+            f"\n  [yellow]Tier 3 harness selected: {cfg.harness}[/yellow]\n"
+            "  Skillsmith routes context best on harnesses with per-turn hooks.\n"
+            "  This harness has no hook API, so a file-watching sidecar is used\n"
+            "  instead. System skill enforcement is advisory-only; phase transitions\n"
+            "  require a manual command.\n"
+            "  See docs/tier3-experience.md for the full picture."
+        )
+        if cfg.non_interactive:
+            if not cfg.acknowledge_tier3:
+                _print(tier3_msg)
+                _print(
+                    "  [red]Non-interactive Tier 3 setup requires --acknowledge-tier3.[/red]"
+                )
+                return 1
+        else:
+            _print(tier3_msg)
+            ans = _prompt_context("  Continue with Tier 3?", "y/n", default="n")
+            if (ans or "n").strip().lower() != "y":
+                _print("  [yellow]Setup cancelled.[/yellow]")
+                return 0
+
     # Resolve preset from explicit choices (after all user input)
     preset = _resolve_preset(cfg)
     # Preset is an internal write-env detail; not shown to the user.
@@ -860,7 +890,7 @@ def add_parser(
     p.add_argument(
         "--force",
         action="store_true",
-        help="Bypass the already-initialized check (dangerous; prompts for confirmation).",
+        help="Bypass the already-initialized check and overwrite existing state without prompting (dangerous).",
     )
     p.add_argument(
         "--runner",
