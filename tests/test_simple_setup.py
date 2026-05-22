@@ -920,42 +920,48 @@ class TestEnsureRunnerReachable:
                 raise URLError("Connection refused")
             return mock_resp
 
-        with patch.object(sys.stdin, "isatty", return_value=True):
-            with patch("builtins.input", side_effect=["", ""]):  # Empty Enter twice
-                with patch(
-                    "skillsmith.install.subcommands.simple_setup.urlopen",
-                    side_effect=mock_urlopen,
-                ):
-                    result = _ensure_runner_reachable("ollama", False)
-                    assert result is True
-                    # First attempt fails, second succeeds
-                    assert call_count[0] == 2
+        with (
+            patch.object(sys.stdin, "isatty", return_value=True),
+            patch("builtins.input", side_effect=["", ""]),  # Empty Enter twice
+            patch(
+                "skillsmith.install.subcommands.simple_setup.urlopen",
+                side_effect=mock_urlopen,
+            ),
+        ):
+            result = _ensure_runner_reachable("ollama", False)
+            assert result is True
+            # First attempt fails, second succeeds
+            assert call_count[0] == 2
 
     def test_ollama_not_reachable_interactive_abort(self):
         """User can abort the wait loop by typing 'abort'."""
         from urllib.error import URLError
 
-        with patch.object(sys.stdin, "isatty", return_value=True):
-            with patch("builtins.input", return_value="abort"):
-                with patch(
-                    "skillsmith.install.subcommands.simple_setup.urlopen",
-                    side_effect=URLError("Connection refused"),
-                ):
-                    result = _ensure_runner_reachable("ollama", False)
-                    assert result is False
+        with (
+            patch.object(sys.stdin, "isatty", return_value=True),
+            patch("builtins.input", return_value="abort"),
+            patch(
+                "skillsmith.install.subcommands.simple_setup.urlopen",
+                side_effect=URLError("Connection refused"),
+            ),
+        ):
+            result = _ensure_runner_reachable("ollama", False)
+            assert result is False
 
     def test_ollama_not_reachable_interactive_skip(self):
         """User can skip the wait loop by typing 'skip'."""
         from urllib.error import URLError
 
-        with patch.object(sys.stdin, "isatty", return_value=True):
-            with patch("builtins.input", return_value="skip"):
-                with patch(
-                    "skillsmith.install.subcommands.simple_setup.urlopen",
-                    side_effect=URLError("Connection refused"),
-                ):
-                    result = _ensure_runner_reachable("ollama", False)
-                    assert result is False
+        with (
+            patch.object(sys.stdin, "isatty", return_value=True),
+            patch("builtins.input", return_value="skip"),
+            patch(
+                "skillsmith.install.subcommands.simple_setup.urlopen",
+                side_effect=URLError("Connection refused"),
+            ),
+        ):
+            result = _ensure_runner_reachable("ollama", False)
+            assert result is False
 
     def test_llama_server_skips_reachability_check(self):
         """llama-server runner skips reachability check (started by pipeline)."""

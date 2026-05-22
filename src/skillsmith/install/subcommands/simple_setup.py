@@ -218,12 +218,12 @@ def _ensure_runner_reachable(runner: str, non_interactive: bool) -> bool:
     _print(f"  {hint}")
 
     if non_interactive:
-        _print(f"  [yellow]Continuing anyway — runner preflight will verify later.[/yellow]")
+        _print("  [yellow]Continuing anyway — runner preflight will verify later.[/yellow]")
         return False
 
     # Interactive: poll until user starts it
     _print(f"  Press Enter once {runner} is running.")
-    _print(f"  Type 'skip' to continue anyway, or 'abort' to cancel.")
+    _print("  Type 'skip' to continue anyway, or 'abort' to cancel.")
 
     while True:
         raw = _prompt(f"  Waiting for {runner}...")
