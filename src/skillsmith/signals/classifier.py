@@ -100,6 +100,7 @@ def eval_user_intent_matches(
     lm_client: "OpenAICompatClient",
     model: str,
 ) -> PredicateResult:
+    # recent_prompts arg is not supported; similarity runs against recent_prompt_text only.
     intent = args.get("intent", "")
     text = (ctx.recent_prompt_text or "").strip()
     if not text or not intent:

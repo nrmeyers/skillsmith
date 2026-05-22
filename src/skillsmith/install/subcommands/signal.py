@@ -16,6 +16,11 @@ import sys
 from pathlib import Path
 from typing import Any
 
+try:
+    from skillsmith.lm_client import OpenAICompatClient
+except Exception:  # pragma: no cover
+    OpenAICompatClient = None  # type: ignore[assignment,misc]
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -211,14 +216,24 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
         print(json.dumps({"matched": False}))
         return 0
 
-    # Gate evaluation
+    # Gate evaluation — build embed client (soft-fail: None degrades semantic predicates to UNKNOWN)
+    lm_client = None
+    try:
+        from skillsmith.config import get_settings
+
+        cfg = get_settings()
+        if OpenAICompatClient is not None:
+            lm_client = OpenAICompatClient(cfg.runtime_embed_base_url)
+    except Exception:
+        pass
+
     from skillsmith.signals.gates import decide_transition
 
     decision = decide_transition(
         current_phase=current_phase,
         gate_spec=gate_spec,
         ctx=ctx,
-        lm_client=None,  # classifier requires explicit opt-in
+        lm_client=lm_client,
     )
 
     _write_telemetry({

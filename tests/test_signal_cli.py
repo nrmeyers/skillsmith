@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
@@ -231,6 +232,122 @@ def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.Monk
     call_args = mock_run.call_args[0][0]
     assert "compose" in call_args
     assert "--contract" in call_args
+
+
+# ---------------------------------------------------------------------------
+# check — returns structured JSON
+# ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# evaluate-phase — advisory emitted to stdout when artifact_completeness gate present
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_phase_emits_advisory_to_stdout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Advisory text from artifact_completeness appears in stdout alongside the transition output."""
+    from skillsmith.install.subcommands import signal as sig
+
+    _write_phase(tmp_path, "spec")
+    monkeypatch.chdir(tmp_path)
+
+    spec_file = tmp_path / "spec.md"
+    spec_file.write_text("# Spec\nsome content\n")
+
+    skill = {
+        "skill_id": "sdd-spec",
+        "raw_prose": "SPEC PROSE",
+        "applies_to_phases": ["spec"],
+        "exit_gates": {
+            "all_of": [
+                {"artifact_exists": {"path": "spec.md"}},
+                {"artifact_completeness": {"path": "spec.md", "criteria": "ACs testable"}},
+            ]
+        },
+        "signal_keywords": ["done"],
+    }
+    next_skill = {
+        "skill_id": "sdd-design",
+        "raw_prose": "DESIGN PROSE",
+        "applies_to_phases": ["design"],
+        "exit_gates": {},
+        "signal_keywords": [],
+    }
+
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("done")
+
+    def mock_load(phase):
+        return skill if phase == "spec" else next_skill
+
+    import io, sys
+
+    captured_stdout = io.StringIO()
+    with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
+         patch.object(sig, "_write_telemetry"), \
+         patch("skillsmith.install.subcommands.signal.OpenAICompatClient", side_effect=RuntimeError("no server")):
+        args = argparse.Namespace(prompt_file=str(prompt_file), tool=None, tool_path=None)
+        sys.stdout = captured_stdout
+        sys.stderr = io.StringIO()
+        try:
+            rc = sig._evaluate_phase(args)
+        finally:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+
+    assert rc == 0
+    output = captured_stdout.getvalue()
+    # artifact_exists MET → all_of short-circuits at UNKNOWN (from artifact_completeness) → no transition
+    # but advisory should still appear
+    assert "[skillsmith-eval]" in output
+    assert "ACs testable" in output
+
+
+def test_evaluate_phase_lm_client_constructed_from_embed_url(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """_evaluate_phase builds an OpenAICompatClient against runtime_embed_base_url."""
+    from skillsmith.install.subcommands import signal as sig
+
+    _write_phase(tmp_path, "build")
+    monkeypatch.chdir(tmp_path)
+
+    skill = {
+        "skill_id": "sdd-build",
+        "raw_prose": "prose",
+        "applies_to_phases": ["build"],
+        "exit_gates": {"artifact_exists": {"path": "nope.md"}},
+        "signal_keywords": ["SKILLSMITH_FORCE_CHECK"],
+    }
+
+    import io, sys
+
+    constructed_urls: list[str] = []
+
+    class _FakeClient:
+        def __init__(self, url: str):
+            constructed_urls.append(url)
+
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("done")
+
+    with patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill), \
+         patch.object(sig, "_write_telemetry"), \
+         patch("skillsmith.install.subcommands.signal.OpenAICompatClient", _FakeClient), \
+         patch.dict(os.environ, {"SKILLSMITH_FORCE_CHECK": "1"}):
+        args = argparse.Namespace(prompt_file=str(prompt_file), tool=None, tool_path=None)
+        sys.stdout = io.StringIO()
+        sys.stderr = io.StringIO()
+        try:
+            sig._evaluate_phase(args)
+        finally:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+
+    assert len(constructed_urls) == 1
+    assert "11436" in constructed_urls[0] or "localhost" in constructed_urls[0]
 
 
 # ---------------------------------------------------------------------------

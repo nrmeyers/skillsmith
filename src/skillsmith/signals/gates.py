@@ -96,8 +96,11 @@ def _evaluate_single(
         from skillsmith.config import get_settings
 
         model = get_settings().runtime_embedding_model
-        qwen_calls[0] += 1
-        return SEMANTIC_PREDICATES[predicate_name](args, ctx, lm_client, model)
+        result = SEMANTIC_PREDICATES[predicate_name](args, ctx, lm_client, model)
+        # Only count actual embed calls; artifact_completeness returns UNKNOWN without calling embed.
+        if predicate_name != "artifact_completeness":
+            qwen_calls[0] += 1
+        return result
     raise ValueError(
         f"Unknown predicate '{predicate_name}'. "
         f"Available: {sorted(list(PREDICATES) + list(SEMANTIC_PREDICATES if False else []))}"
