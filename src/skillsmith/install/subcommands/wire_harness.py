@@ -738,6 +738,7 @@ def _probe_code_indexer(root: Path) -> None:
     }
     install_state.save_state(st, root)
 
+
 def _unwire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
     """Remove Skillsmith signal-layer hooks from .claude/settings.json."""
     settings_path = root / ".claude" / "settings.json"

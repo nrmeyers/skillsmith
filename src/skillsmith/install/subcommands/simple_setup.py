@@ -670,9 +670,7 @@ def run_setup(cfg: SetupConfig) -> int:
         if cfg.non_interactive:
             if not cfg.acknowledge_tier3:
                 _print(tier3_msg)
-                _print(
-                    "  [red]Non-interactive Tier 3 setup requires --acknowledge-tier3.[/red]"
-                )
+                _print("  [red]Non-interactive Tier 3 setup requires --acknowledge-tier3.[/red]")
                 return 1
         else:
             _print(tier3_msg)
