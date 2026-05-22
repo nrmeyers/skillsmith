@@ -229,7 +229,6 @@ def retrieve_domain_candidates(
     # BM25 query: contract tags take priority over rule-extracted keywords.
     # The paid LLM picked them deliberately; they're better keywords than
     # rule-extracted ones. Union mode enabled by SKILLSMITH_UNION_KEYWORDS=1.
-    import os as _os
 
     if contract_tags:
         bm25_query = " ".join(contract_tags)

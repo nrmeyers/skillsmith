@@ -7,11 +7,10 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 import yaml
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -29,7 +28,7 @@ def _write_skill(root: Path, phase: str, signal_keywords: list[str] | None = Non
     import skillsmith
 
     packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
-    for f in packs_root.glob(f"sdd-*.yaml"):
+    for f in packs_root.glob("sdd-*.yaml"):
         data = yaml.safe_load(f.read_text()) or {}
         if phase in (data.get("applies_to_phases") or []):
             return  # already exists
@@ -193,8 +192,9 @@ def test_hook_routing_ups_calls_evaluate_phase(tmp_path: Path):
 
     with patch("skillsmith.install.subcommands.signal._evaluate_phase", return_value=0) as mock_ep, \
          patch("skillsmith.install.subcommands.signal._load_workflow_skill_for_phase", return_value=None):
-        from skillsmith.install.subcommands.signal import _dispatch
         import argparse
+
+        from skillsmith.install.subcommands.signal import _dispatch
 
         args = argparse.Namespace(signal_cmd="evaluate-phase", prompt_file=None, tool=None, tool_path=None)
         rc = _dispatch(args)
@@ -205,8 +205,9 @@ def test_hook_routing_ups_calls_evaluate_phase(tmp_path: Path):
 
 def test_hook_routing_pretool_calls_evaluate_system(tmp_path: Path):
     """signal_cmd=evaluate-system routes to _evaluate_system."""
-    from skillsmith.install.subcommands.signal import _dispatch
     import argparse
+
+    from skillsmith.install.subcommands.signal import _dispatch
 
     with patch("skillsmith.install.subcommands.signal._evaluate_system", return_value=0) as mock_es:
         args = argparse.Namespace(signal_cmd="evaluate-system", tool="Bash")

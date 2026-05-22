@@ -31,15 +31,13 @@ Format::
 from __future__ import annotations
 
 import fnmatch
-import os
 import re
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from dataclasses import dataclass
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
-
 
 # ---------------------------------------------------------------------------
 # Data structures
@@ -179,7 +177,7 @@ def parse_contract(path: Path) -> Contract:
     if created_at is None:
         try:
             mtime = path.stat().st_mtime
-            created_at = datetime.fromtimestamp(mtime, tz=timezone.utc)
+            created_at = datetime.fromtimestamp(mtime, tz=UTC)
         except OSError:
             pass
 
@@ -265,7 +263,7 @@ class CodeIndexerQuery:
     path_globs: list[str]
 
 
-def code_indexer_query_params(contract: "Contract", project_root: Path) -> CodeIndexerQuery:
+def code_indexer_query_params(contract: Contract, project_root: Path) -> CodeIndexerQuery:
     """Build code-indexer query parameters from a contract.
 
     Derives the repo slug from `git remote get-url origin` (GitHub owner__repo form).

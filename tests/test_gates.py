@@ -4,17 +4,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
-from skillsmith.signals.predicates import PredicateContext, PredicateResult
 from skillsmith.signals.gates import (
-    GateEvaluation,
-    PhaseTransitionDecision,
     aggregate,
     decide_transition,
     evaluate_gates,
     evaluate_node,
 )
+from skillsmith.signals.predicates import PredicateContext, PredicateResult
 
 MET = PredicateResult.MET
 NOT_MET = PredicateResult.NOT_MET

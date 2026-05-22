@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import threading
 import time
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -20,7 +19,6 @@ from skillsmith.watch.regenerators import (
     regenerate_windsurf,
     update_block,
 )
-
 
 # ---------------------------------------------------------------------------
 # update_block
@@ -218,7 +216,11 @@ def test_debounce_coalesces_burst_writes(tmp_path: Path):
 
 
 def test_watch_status_reports_not_running(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    import argparse, io, sys, json
+    import argparse
+    import io
+    import json
+    import sys
+
     from skillsmith.install.subcommands.watch import _status
 
     monkeypatch.setattr("skillsmith.install.subcommands.watch._watch_dir", lambda: tmp_path)

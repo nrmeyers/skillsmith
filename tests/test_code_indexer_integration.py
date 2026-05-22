@@ -2,14 +2,11 @@
 
 from __future__ import annotations
 
-import json
-import time
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -102,8 +99,8 @@ def test_query_params_falls_back_to_dir_name(tmp_path: Path):
 
 
 def test_state_json_records_code_indexer_presence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
     from skillsmith.install import state as install_state
+    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
 
     with patch("urllib.request.urlopen") as mock_urlopen:
         mock_resp = MagicMock()
@@ -121,8 +118,8 @@ def test_state_json_records_code_indexer_presence(tmp_path: Path, monkeypatch: p
 
 
 def test_state_json_records_unreachable(tmp_path: Path):
-    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
     from skillsmith.install import state as install_state
+    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
 
     with patch("urllib.request.urlopen", side_effect=OSError("refused")):
         _probe_code_indexer(tmp_path)
@@ -143,7 +140,8 @@ def test_hook_skips_code_indexer_when_unreachable(tmp_path: Path, monkeypatch: p
     contract_path = tmp_path / ".skillsmith" / "contracts" / "build" / "task.md"
     _write_contract(contract_path)
 
-    import io, sys
+    import io
+    import sys
 
     captured = io.StringIO()
     with patch("urllib.request.urlopen", side_effect=OSError("refused")), \

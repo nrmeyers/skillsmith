@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Any
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 import yaml
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -79,8 +77,6 @@ def test_retrieval_uses_contract_tags_as_bm25(tmp_path: Path, monkeypatch: pytes
 
     source, lm, vector_store = _make_mock_retrieval_env()
     bm25_calls: list[str] = []
-    orig_search = vector_store.search_bm25.side_effect
-
     def capture_bm25(query: str, **kwargs: Any):
         bm25_calls.append(query)
         return []
@@ -194,8 +190,9 @@ def test_workflow_schema_accepts_phase2_minimal_gates():
 
 def test_sdd_workflow_skills_pass_validation():
     """All shipped sdd-*.yaml files must pass the Phase 2 validator."""
-    import skillsmith
     import yaml as _yaml
+
+    import skillsmith
     from skillsmith.install.subcommands.customize import _validate_skill_data
 
     packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
@@ -207,4 +204,4 @@ def test_sdd_workflow_skills_pass_validation():
             if errors:
                 failures.append(f"{f.name}: {errors}")
 
-    assert not failures, f"SDD workflow skill validation failures:\n" + "\n".join(failures)
+    assert not failures, "SDD workflow skill validation failures:\n" + "\n".join(failures)

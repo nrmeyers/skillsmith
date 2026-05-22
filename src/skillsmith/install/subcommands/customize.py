@@ -185,9 +185,8 @@ def _validate_skill_data(data: dict[str, Any], name: str) -> list[str]:
         if not data.get("contract_template"):
             errors.append("workflow skill must have 'contract_template' (non-empty string)")
 
-    if skill_class == "system":
-        if not data.get("applies_when"):
-            errors.append("system skill must have 'applies_when' (non-empty object)")
+    if skill_class == "system" and not data.get("applies_when"):
+        errors.append("system skill must have 'applies_when' (non-empty object)")
 
     return errors
 
@@ -387,7 +386,6 @@ def _edit_skill(args: argparse.Namespace) -> int:
 
 def _validate_skill(args: argparse.Namespace) -> int:
     name: str = args.name
-    use_project = getattr(args, "project", False)
     profile_name = getattr(args, "profile", None)
 
     layers = _resolve_skill_layers(name, profile_name)

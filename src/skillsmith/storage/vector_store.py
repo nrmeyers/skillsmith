@@ -604,7 +604,7 @@ def open_or_create(path: str | Path) -> VectorStore:
     return VectorStore(conn)
 
 
-def append_trace(db_path: "Path", trace: "CompositionTrace") -> None:
+def append_trace(db_path: Path, trace: CompositionTrace) -> None:
     """Convenience: open the store at db_path, insert trace, close. Soft-fail."""
     try:
         with open_or_create(db_path) as store:

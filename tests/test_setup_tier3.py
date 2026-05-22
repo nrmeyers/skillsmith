@@ -43,14 +43,13 @@ def test_tier3_non_interactive_requires_flag(tmp_path: Path, monkeypatch: pytest
 
 def test_tier3_interactive_code_path(tmp_path: Path):
     """The Tier 3 interactive code path calls _prompt_context with 'Continue' message."""
-    import io, sys
     from skillsmith.install.subcommands import simple_setup as ss
 
     # Directly test the code block that would fire for Tier 3 interactive
     # by simulating the harness check inline
-    _TIER3 = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
+    _tier3 = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
     harness = "cursor"
-    assert harness in _TIER3  # sanity check
+    assert harness in _tier3  # sanity check
 
     # Simulate: non_interactive=False, user answers 'n'
     prompt_calls: list[str] = []
@@ -64,7 +63,7 @@ def test_tier3_interactive_code_path(tmp_path: Path):
     with patch.object(ss, "_prompt_context", side_effect=mock_prompt), \
          patch.object(ss, "_print", return_value=None):
         # Simulate what run_setup does for Tier 3 non-interactive=False
-        if harness in _TIER3:
+        if harness in _tier3:
             ans = ss._prompt_context("  Continue with Tier 3? [y/n]", default="n")
             if (ans or "n").strip().lower() != "y":
                 rc = 0  # cancelled
@@ -81,6 +80,7 @@ def test_tier3_interactive_code_path(tmp_path: Path):
 def test_tier3_wire_writes_watcher_config_via_watch_dir(tmp_path: Path):
     """_wire_tier3_watcher_config writes watch config to ~/.skillsmith/watch/."""
     import yaml
+
     from skillsmith.install.subcommands.wire_harness import _wire_tier3_watcher_config
 
     watch_dir = tmp_path / ".skillsmith" / "watch"

@@ -22,8 +22,6 @@ from skillsmith.install.subcommands import (
     compose,
     contract,
     customize,
-    signal as signal_cmd,
-    watch as watch_cmd,
     detect,
     doctor,
     enable_service,
@@ -36,12 +34,12 @@ from skillsmith.install.subcommands import (
     recommend_host_targets,
     recommend_models,
     reembed,
+    reset,
     reset_step,
     seed_corpus,
     serve,
     server_restart,
     server_start,
-    reset,
     server_status,
     server_stop,
     simple_setup,
@@ -55,6 +53,12 @@ from skillsmith.install.subcommands import (
     wire,
     wire_harness,
     write_env,
+)
+from skillsmith.install.subcommands import (
+    signal as signal_cmd,
+)
+from skillsmith.install.subcommands import (
+    watch as watch_cmd,
 )
 
 EXIT_OK = 0

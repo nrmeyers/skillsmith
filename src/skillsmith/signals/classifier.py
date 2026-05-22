@@ -44,7 +44,7 @@ _MAX_INPUT_CHARS = 2000
 
 
 def _cosine(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = math.sqrt(sum(x * x for x in a))
     norm_b = math.sqrt(sum(x * x for x in b))
     if norm_a == 0 or norm_b == 0:
@@ -55,7 +55,7 @@ def _cosine(a: list[float], b: list[float]) -> float:
 def _intent_similarity(
     text: str,
     intent: str,
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
     threshold: float = _SIMILARITY_THRESHOLD,
 ) -> PredicateResult:
@@ -77,7 +77,7 @@ def _intent_similarity(
 def _topic_similarity(
     text: str,
     topics: list[str],
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
     threshold: float = _SIMILARITY_THRESHOLD,
 ) -> PredicateResult:
@@ -97,7 +97,7 @@ def _topic_similarity(
 def eval_user_intent_matches(
     args: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
 ) -> PredicateResult:
     # recent_prompts arg is not supported; similarity runs against recent_prompt_text only.
@@ -111,7 +111,7 @@ def eval_user_intent_matches(
 def eval_agent_intent_matches(
     args: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
 ) -> PredicateResult:
     intent = args.get("intent", "")
@@ -125,7 +125,7 @@ def eval_agent_intent_matches(
 def eval_artifact_completeness(
     args: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
 ) -> PredicateResult:
     # Soft advisory only — gate handling (advisory emission) lives in gates.py.
@@ -136,7 +136,7 @@ def eval_artifact_completeness(
 def eval_prompt_topic_matches(
     args: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient",
+    lm_client: OpenAICompatClient,
     model: str,
 ) -> PredicateResult:
     topics = args.get("topics", [])

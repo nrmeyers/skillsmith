@@ -11,7 +11,6 @@ import pytest
 from skillsmith.signals.predicates import (
     PredicateContext,
     PredicateResult,
-    evaluate_predicate,
     eval_artifact_absent,
     eval_artifact_contains,
     eval_artifact_exists,
@@ -24,7 +23,7 @@ from skillsmith.signals.predicates import (
     eval_phase_in,
     eval_phase_not_in,
     eval_tool_use_about_to_fire,
-    eval_tool_use_just_completed,
+    evaluate_predicate,
 )
 
 MET = PredicateResult.MET

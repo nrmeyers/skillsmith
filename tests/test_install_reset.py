@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
-from unittest.mock import patch
 
 import pytest
 import yaml
@@ -33,8 +31,8 @@ def _make_override(
 
 
 def test_reset_requires_confirmation(profiles_tmp: Path, monkeypatch: pytest.MonkeyPatch):
-    from skillsmith.profiles import init_profile
     from skillsmith.install.subcommands.reset import reset
+    from skillsmith.profiles import init_profile
 
     init_profile("testprofile")
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
@@ -45,8 +43,8 @@ def test_reset_requires_confirmation(profiles_tmp: Path, monkeypatch: pytest.Mon
 
 
 def test_reset_clears_profile_overrides(profiles_tmp: Path, monkeypatch: pytest.MonkeyPatch):
-    from skillsmith.profiles import init_profile
     from skillsmith.install.subcommands.reset import reset
+    from skillsmith.profiles import init_profile
 
     init_profile("r1")
     override = _make_override("r1", "system", "my-skill")
@@ -58,8 +56,8 @@ def test_reset_clears_profile_overrides(profiles_tmp: Path, monkeypatch: pytest.
 
 
 def test_reset_does_not_touch_domain(profiles_tmp: Path):
-    from skillsmith.profiles import init_profile, domain_datastore_path
     from skillsmith.install.subcommands.reset import reset
+    from skillsmith.profiles import domain_datastore_path, init_profile
 
     init_profile("r2")
     domain = domain_datastore_path()
@@ -73,8 +71,8 @@ def test_reset_does_not_touch_domain(profiles_tmp: Path):
 
 
 def test_reset_does_not_touch_other_profiles(profiles_tmp: Path):
-    from skillsmith.profiles import init_profile
     from skillsmith.install.subcommands.reset import reset
+    from skillsmith.profiles import init_profile
 
     init_profile("rA")
     init_profile("rB")

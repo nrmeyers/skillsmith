@@ -504,7 +504,10 @@ def run_setup(cfg: SetupConfig) -> int:
 
     # -- Profile detection and refuse-if-existing check --
     try:
-        from skillsmith.profiles import detect_profile, profiles_yaml_path, _ensure_profile_dir  # pyright: ignore[reportPrivateUsage]
+        from skillsmith.profiles import (  # pyright: ignore[reportPrivateUsage]
+            _ensure_profile_dir,
+            detect_profile,
+        )
 
         _ensure_profile_dir("default")
         active_profile = detect_profile()

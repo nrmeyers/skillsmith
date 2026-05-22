@@ -83,7 +83,7 @@ def _evaluate_single(
     predicate_name: str,
     args: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient | None",
+    lm_client: OpenAICompatClient | None,
     qwen_calls: list[int],
 ) -> PredicateResult:
     if predicate_name in PREDICATES:
@@ -110,7 +110,7 @@ def _evaluate_single(
 def evaluate_node(
     spec: Any,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient | None",
+    lm_client: OpenAICompatClient | None,
     qwen_calls: list[int],
     depth: int = 0,
 ) -> tuple[PredicateResult, list[GateEvaluation]]:
@@ -186,7 +186,7 @@ def evaluate_node(
 def evaluate_gates(
     gate_spec: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient | None" = None,
+    lm_client: OpenAICompatClient | None = None,
 ) -> list[GateEvaluation]:
     """Evaluate the exit_gates spec and return a flat list of GateEvaluation records."""
     qwen_calls: list[int] = [0]
@@ -224,7 +224,7 @@ def decide_transition(
     current_phase: str,
     gate_spec: dict,
     ctx: PredicateContext,
-    lm_client: "OpenAICompatClient | None" = None,
+    lm_client: OpenAICompatClient | None = None,
     next_phase_hint: str | None = None,
 ) -> PhaseTransitionDecision:
     """Evaluate gates and decide whether to transition to the next phase."""

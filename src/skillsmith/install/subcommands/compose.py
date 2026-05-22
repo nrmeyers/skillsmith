@@ -41,8 +41,8 @@ def add_parser(
 
 
 def _run(args: argparse.Namespace) -> int:
-    import urllib.request
     import urllib.error
+    import urllib.request
 
     contract_path = Path(args.contract).resolve()
     if not contract_path.exists():

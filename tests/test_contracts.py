@@ -2,12 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
 import yaml
-
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -165,8 +163,9 @@ def test_validate_contract_valid(tmp_path: Path):
 
 
 def test_list_contracts_for_phase_mtime_order(tmp_path: Path):
-    from skillsmith.contracts import list_contracts_for_phase
     import time
+
+    from skillsmith.contracts import list_contracts_for_phase
 
     _write_contract(tmp_path / ".skillsmith" / "contracts" / "build" / "old.md")
     time.sleep(0.01)
@@ -185,8 +184,9 @@ def test_list_contracts_for_phase_missing_dir(tmp_path: Path):
 
 
 def test_latest_contract_no_phase_filter(tmp_path: Path):
-    from skillsmith.contracts import latest_contract
     import time
+
+    from skillsmith.contracts import latest_contract
 
     _write_contract(tmp_path / ".skillsmith" / "contracts" / "build" / "build.md")
     time.sleep(0.01)

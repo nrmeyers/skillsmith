@@ -7,8 +7,8 @@ content in shared files is preserved.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 SKILLSMITH_MARKER = "SKILLSMITH-CONTEXT"
 _BEGIN = f"<!-- BEGIN {SKILLSMITH_MARKER} -->"

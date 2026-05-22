@@ -512,8 +512,8 @@ def wire_harness(
         files_written.extend(_wire_aider_conf(root))
 
     # For Tier 3 harnesses, write watcher config and print guidance
-    _TIER3_HARNESSES = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
-    if harness in _TIER3_HARNESSES:
+    _tier3_harnesses = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
+    if harness in _tier3_harnesses:
         _wire_tier3_watcher_config(harness, root)
 
     # For claude-code, additionally wire signal-layer hooks

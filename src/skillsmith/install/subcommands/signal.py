@@ -11,10 +11,12 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from skillsmith.signals.predicates import PredicateContext
 
 try:
     from skillsmith.lm_client import OpenAICompatClient
@@ -53,8 +55,9 @@ def _write_phase_atomic(project_root: Path, phase: str) -> None:
 def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
     """Load the active workflow skill for the given phase from the profile datastore."""
     try:
-        from skillsmith.profiles import detect_profile, domain_datastore_path
         import duckdb
+
+        from skillsmith.profiles import detect_profile, domain_datastore_path
 
         profile = detect_profile(cwd=Path.cwd())
         db_path = domain_datastore_path(profile.name if profile else "default")
@@ -76,10 +79,9 @@ def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
             if phase in applies:
                 exit_gates = {}
                 if exit_gates_raw:
-                    try:
+                    import contextlib
+                    with contextlib.suppress(Exception):
                         exit_gates = _json.loads(exit_gates_raw)
-                    except Exception:
-                        pass
                 signal_keywords = signal_keywords_raw or []
                 return {
                     "skill_id": skill_id,
@@ -96,8 +98,9 @@ def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
 
 def _load_workflow_skill_from_packs(phase: str) -> dict[str, Any] | None:
     try:
-        import skillsmith
         import yaml as _yaml
+
+        import skillsmith
 
         packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
         for f in packs_root.glob("sdd-*.yaml"):
@@ -118,7 +121,7 @@ def _build_predicate_context(
     tool_name: str | None = None,
     tool_path: str | None = None,
     file_events: list[Path] | None = None,
-) -> "PredicateContext":
+) -> PredicateContext:
     from skillsmith.signals.predicates import PredicateContext
 
     recent_tool_use: dict[str, Any] | None = None
@@ -140,8 +143,9 @@ def _write_telemetry(record: dict[str, Any]) -> None:
     try:
         import time
         import uuid
-        from skillsmith.storage.vector_store import CompositionTrace, append_trace
+
         from skillsmith.profiles import detect_profile, domain_datastore_path
+        from skillsmith.storage.vector_store import CompositionTrace, append_trace
 
         profile = detect_profile(cwd=Path.cwd())
         db_path = domain_datastore_path(profile.name if profile else "default")
@@ -177,10 +181,9 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
     prompt_text: str | None = None
     prompt_file = getattr(args, "prompt_file", None)
     if prompt_file and prompt_file != "/dev/null":
-        try:
+        import contextlib
+        with contextlib.suppress(OSError):
             prompt_text = Path(prompt_file).read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            pass
 
     if current_phase is None:
         print(json.dumps({"matched": False, "reason": "no phase file"}))
@@ -286,8 +289,9 @@ def _evaluate_system(args: argparse.Namespace) -> int:
     )
 
     try:
-        from skillsmith.profiles import detect_profile, domain_datastore_path
         import duckdb
+
+        from skillsmith.profiles import detect_profile, domain_datastore_path
 
         profile = detect_profile(cwd=Path.cwd())
         db_path = domain_datastore_path(profile.name if profile else "default")
@@ -303,8 +307,7 @@ def _evaluate_system(args: argparse.Namespace) -> int:
         return 0
 
     import yaml as _yaml
-    from skillsmith.signals.gates import decide_transition as _decide
-    from skillsmith.signals.predicates import PredicateResult
+
 
     for skill_id, raw_prose, applies_when_raw in rows:
         if not applies_when_raw:
@@ -314,12 +317,12 @@ def _evaluate_system(args: argparse.Namespace) -> int:
         except Exception:
             continue
 
-        from skillsmith.signals.gates import evaluate_node, decide_transition as _dt
-        from skillsmith.signals.predicates import PredicateResult as PR
+        from skillsmith.signals.gates import evaluate_node
+        from skillsmith.signals.predicates import PredicateResult as PredicateResult_
 
         qwen_calls: list[int] = [0]
         result, _ = evaluate_node(gate_spec, ctx, None, qwen_calls)
-        if result == PR.MET:
+        if result == PredicateResult_.MET:
             print(f"[skillsmith-system:{skill_id}]\n{raw_prose}\n[/skillsmith-system]")
             _write_telemetry({
                 "task": tool_name,
@@ -365,7 +368,7 @@ def _watch_contract(args: argparse.Namespace) -> int:
 
         st = install_state.load_state()
         port = st.get("port", 47950)
-        result = subprocess.run(
+        subprocess.run(
             ["skillsmith", "compose", "--contract", str(contract_path), "--inject",
              "--port", str(port)],
             capture_output=False,
@@ -413,10 +416,11 @@ def _code_indexer_from_contract(args: argparse.Namespace) -> int:
         return 0
 
     try:
-        from skillsmith.contracts import parse_contract, code_indexer_query_params
-        from skillsmith.config import get_settings
-        import urllib.request
         import urllib.parse
+        import urllib.request
+
+        from skillsmith.config import get_settings
+        from skillsmith.contracts import code_indexer_query_params, parse_contract
 
         contract = parse_contract(Path(contract_path_str))
         params = code_indexer_query_params(contract, Path.cwd())

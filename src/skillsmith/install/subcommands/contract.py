@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -114,7 +114,7 @@ def _init(args: argparse.Namespace) -> int:
             "<fill in what you intend to do and why>\n"
         )
 
-    now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     content = (
         template
         .replace("{{phase}}", phase)
@@ -136,6 +136,7 @@ def _load_contract_template(phase: str) -> str | None:
     """Load the contract_template field from the workflow skill for this phase."""
     try:
         import duckdb
+
         from skillsmith.profiles import detect_profile, profile_datastore_path
 
         profile = detect_profile()
@@ -169,8 +170,9 @@ def _load_contract_template(phase: str) -> str | None:
 def _load_template_from_packs(phase: str) -> str | None:
     """Load contract_template from _packs sdd-*.yaml for the given phase."""
     try:
-        import skillsmith
         import yaml
+
+        import skillsmith
 
         packs_root = Path(skillsmith.__file__).resolve().parent / "_packs"
         for yaml_file in packs_root.rglob("*.yaml"):

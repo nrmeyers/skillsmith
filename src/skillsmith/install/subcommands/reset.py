@@ -78,7 +78,7 @@ def _reset_profile(
     from skillsmith.profiles import get_profile, profile_skills_dir
 
     try:
-        profile = get_profile(name)
+        get_profile(name)
     except KeyError:
         return {"profile": name, "error": f"Profile '{name}' not found"}
 

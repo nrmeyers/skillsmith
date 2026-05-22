@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
-import yaml
-
 
 # ---------------------------------------------------------------------------
 # Fixtures
@@ -42,7 +39,7 @@ def test_profiles_root_honors_xdg(profiles_tmp: Path):
 
 
 def test_load_profiles_config_missing_file(profiles_tmp: Path):
-    from skillsmith.profiles import load_profiles_config, DEFAULT_PROFILE_NAME
+    from skillsmith.profiles import DEFAULT_PROFILE_NAME, load_profiles_config
 
     cfg = load_profiles_config()
     assert cfg.default_profile == DEFAULT_PROFILE_NAME
@@ -133,7 +130,7 @@ def test_detect_profile_fallback_to_default(profiles_tmp: Path, tmp_path: Path):
 
 
 def test_init_profile_creates_structure(profiles_tmp: Path):
-    from skillsmith.profiles import init_profile, profile_skills_dir, profile_datastore_path
+    from skillsmith.profiles import init_profile, profile_skills_dir
 
     p = init_profile("mywork", match_remote=["*github.com/myorg/*"])
 
@@ -175,7 +172,7 @@ def test_delete_default_refused(profiles_tmp: Path):
 
 
 def test_delete_profile_removes_dir_and_config(profiles_tmp: Path):
-    from skillsmith.profiles import init_profile, delete_profile, load_profiles_config, profile_dir
+    from skillsmith.profiles import delete_profile, init_profile, load_profiles_config, profile_dir
 
     init_profile("temp")
     assert profile_dir("temp").exists()

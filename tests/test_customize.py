@@ -8,7 +8,6 @@ from typing import Any
 import pytest
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -128,8 +127,8 @@ def test_customize_update_ingests_into_profile(profiles_tmp: Path, tmp_path: Pat
 
 def test_customize_update_reverts_to_inherited(profiles_tmp: Path, tmp_path: Path):
     from skillsmith.install.subcommands.customize import (
-        _ingest_skill,
         _delete_from_store,
+        _ingest_skill,
         _skill_in_store,
     )
     from skillsmith.profiles import init_profile
@@ -153,6 +152,7 @@ def test_customize_validate_rejects_domain(
 ):
     """validate subcommand returns error for domain-class skill."""
     import argparse
+
     from skillsmith.install.subcommands.customize import _validate_skill
 
     skill_file = tmp_path / "domain-skill.yaml"
@@ -191,11 +191,12 @@ def test_customize_validate_rejects_domain(
 
 
 def test_customize_list_has_layer_field(profiles_tmp: Path):
-    from skillsmith.install.subcommands.customize import _list_skills
     import argparse
-    import json
     import io
+    import json
     import sys
+
+    from skillsmith.install.subcommands.customize import _list_skills
 
     args = argparse.Namespace(profile=None, human=False)
     captured = io.StringIO()

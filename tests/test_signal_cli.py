@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -65,7 +64,8 @@ def test_evaluate_phase_no_prefilter_match_exit_0(tmp_path: Path, monkeypatch: p
             tool=None,
             tool_path=None,
         )
-        import io, sys
+        import io
+        import sys
         captured = io.StringIO()
         sys.stdout = captured
         try:
@@ -115,7 +115,8 @@ def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
     def mock_load(phase):
         return skill if phase == "spec" else next_skill
 
-    import io, sys
+    import io
+    import sys
 
     captured_stdout = io.StringIO()
     with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
@@ -156,7 +157,8 @@ def test_evaluate_system_emits_matching_skill_bodies(
 
     monkeypatch.chdir(tmp_path)
 
-    import io, sys
+    import io
+    import sys
 
     captured = io.StringIO()
 
@@ -201,8 +203,9 @@ def test_evaluate_system_emits_matching_skill_bodies(
 
 
 def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
-    from skillsmith.install.subcommands import signal as sig
     import yaml
+
+    from skillsmith.install.subcommands import signal as sig
 
     monkeypatch.chdir(tmp_path)
 
@@ -282,7 +285,8 @@ def test_evaluate_phase_emits_advisory_to_stdout(
     def mock_load(phase):
         return skill if phase == "spec" else next_skill
 
-    import io, sys
+    import io
+    import sys
 
     captured_stdout = io.StringIO()
     with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
@@ -322,7 +326,8 @@ def test_evaluate_phase_lm_client_constructed_from_embed_url(
         "signal_keywords": ["SKILLSMITH_FORCE_CHECK"],
     }
 
-    import io, sys
+    import io
+    import sys
 
     constructed_urls: list[str] = []
 
@@ -361,7 +366,8 @@ def test_check_returns_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.chdir(tmp_path)
     _write_phase(tmp_path, "build")
 
-    import io, sys
+    import io
+    import sys
 
     captured = io.StringIO()
     with patch.object(sig, "_load_workflow_skill_for_phase", return_value=None):

@@ -6,13 +6,13 @@ They never raise; they return UNKNOWN on any IO or context failure.
 
 from __future__ import annotations
 
-import fnmatch
 import re
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 
 class PredicateResult(Enum):
@@ -204,12 +204,10 @@ def eval_git_state(args: dict, ctx: PredicateContext) -> PredicateResult:
     has_uncommitted = args.get("has_uncommitted")
     branch_pattern = args.get("branch_matches")
 
-    if has_staged is not None:
-        if bool(has_staged) != staged:
-            return PredicateResult.NOT_MET
-    if has_uncommitted is not None:
-        if bool(has_uncommitted) != uncommitted:
-            return PredicateResult.NOT_MET
+    if has_staged is not None and bool(has_staged) != staged:
+        return PredicateResult.NOT_MET
+    if has_uncommitted is not None and bool(has_uncommitted) != uncommitted:
+        return PredicateResult.NOT_MET
     if branch_pattern is not None:
         try:
             br = subprocess.run(

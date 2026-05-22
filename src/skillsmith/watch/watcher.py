@@ -11,14 +11,15 @@ import logging
 import os
 import signal
 import subprocess
-import sys
 import threading
-import time
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
 
-from watchdog.events import FileModifiedEvent, FileCreatedEvent, FileSystemEvent, FileSystemEventHandler
+from watchdog.events import (
+    FileSystemEvent,
+    FileSystemEventHandler,
+)
 from watchdog.observers import Observer
 
 _log = logging.getLogger(__name__)
@@ -120,8 +121,6 @@ class _SkillsmithHandler(FileSystemEventHandler):
 
         project_root = self._config.project_root
         phase_file = project_root / ".skillsmith" / "phase"
-        contracts_root = project_root / ".skillsmith" / "contracts"
-
         # Determine what changed
         phase_changed = any("phase" in e for e in events)
         contract_paths = [
