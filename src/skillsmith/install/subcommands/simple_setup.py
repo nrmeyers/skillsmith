@@ -538,8 +538,7 @@ def run_setup(cfg: SetupConfig) -> int:
     cfg.runner = cfg.runner.strip().lower()
     if cfg.runner not in ("ollama", "lm-studio", "llama-server"):
         _print(
-            f"  [red]Invalid runner: {cfg.runner}. "
-            "Choose ollama, lm-studio, or llama-server.[/red]"
+            f"  [red]Invalid runner: {cfg.runner}. Choose ollama, lm-studio, or llama-server.[/red]"
         )
         return 1
     _print(f"  Runner: {cfg.runner}")
