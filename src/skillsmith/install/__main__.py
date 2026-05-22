@@ -19,6 +19,7 @@ import argparse
 import sys
 
 from skillsmith.install.subcommands import (
+    customize,
     detect,
     doctor,
     enable_service,
@@ -26,6 +27,7 @@ from skillsmith.install.subcommands import (
     install_packs,
     phase,
     preflight,
+    profile,
     pull_models,
     recommend_host_targets,
     recommend_models,
@@ -35,6 +37,7 @@ from skillsmith.install.subcommands import (
     serve,
     server_restart,
     server_start,
+    reset,
     server_status,
     server_stop,
     simple_setup,
@@ -60,6 +63,9 @@ _SUBCOMMANDS = [
     # User-facing verbs first — these are what end users typically run.
     preflight,
     simple_setup,
+    profile,
+    customize,
+    reset,
     wire,
     unwire,
     serve,

@@ -67,6 +67,7 @@ class SetupConfig:
     harness: str = "manual"
     preset: str = ""  # filled by auto-detect: "cpu", "nvidia", etc.
     non_interactive: bool = False
+    force: bool = False
     hardware_target: str = ""  # explicit user choice: "nvidia", "radeon", "apple-silicon", "cpu"
 
     # Resolved during execution -- not user-facing.
@@ -496,7 +497,39 @@ def run_setup(cfg: SetupConfig) -> int:
     4. Execute install steps
     5. Validate
     """
+    from skillsmith.install.__main__ import EXIT_NOOP
+
     t0 = time.monotonic()
+
+    # -- Profile detection and refuse-if-existing check --
+    try:
+        from skillsmith.profiles import detect_profile, profiles_yaml_path, _ensure_profile_dir  # pyright: ignore[reportPrivateUsage]
+
+        _ensure_profile_dir("default")
+        active_profile = detect_profile()
+        ds_path = active_profile.datastore_path
+
+        if ds_path.exists() and not getattr(cfg, "force", False):
+            try:
+                import duckdb
+                con = duckdb.connect(str(ds_path), read_only=True)
+                has_skills = con.execute(
+                    "SELECT 1 FROM profile_skills LIMIT 1"
+                ).fetchone() is not None
+                con.close()
+            except Exception:
+                has_skills = False
+
+            if has_skills:
+                _print(
+                    f"\n[yellow]Skillsmith is already initialized for profile "
+                    f"'{active_profile.name}' (datastore: {ds_path}). "
+                    f"Use 'skillsmith update' to refresh defaults or "
+                    f"'skillsmith reset' to wipe and reinstall.[/yellow]"
+                )
+                return EXIT_NOOP
+    except ImportError:
+        active_profile = None  # type: ignore[assignment]
 
     # -- Phase 0: Auto-detect hardware --
 
@@ -788,6 +821,21 @@ def run_setup(cfg: SetupConfig) -> int:
     _print(f"  URL:     http://localhost:{cfg.port}")
     _print(f"  Config:  {install_state.user_config_dir()}")
     _print(f"  Data:    {install_state.user_data_dir()}")
+
+    # Profile-aware completion message
+    try:
+        from skillsmith.profiles import detect_profile  # noqa: PLC0415
+
+        _profile = detect_profile()
+        _print(f"\n  [bold]Profile:[/bold]  {_profile.name}")
+        _print(f"  Datastore: {_profile.datastore_path}")
+        _print(
+            "  Customize skills: [bold]skillsmith customize list[/bold] "
+            "to see available system+workflow skills."
+        )
+    except Exception:
+        pass
+
     _print("\n  [bold]Next:[/bold] cd to your project repo and run [bold]skillsmith wire[/bold]")
     return 0
 
@@ -805,6 +853,11 @@ def add_parser(
         "-n",
         action="store_true",
         help="Accept all defaults without prompting.",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="Bypass the already-initialized check (dangerous; prompts for confirmation).",
     )
     p.add_argument(
         "--runner",
@@ -859,6 +912,7 @@ def _run_from_args(args: argparse.Namespace) -> int:
         harness=args.harness or "manual",
         hardware_target=getattr(args, "hardware", None) or "",
         non_interactive=args.non_interactive,
+        force=getattr(args, "force", False),
     )
     # Model default is resolved inside run_setup() after cfg.runner is finalized.
     return run_setup(cfg)
