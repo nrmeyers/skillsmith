@@ -566,16 +566,18 @@ def run_setup(cfg: SetupConfig) -> int:
             "  Which embedding model to use. We recommend the default for your hardware.",
             default=default_model,
         )
-        cfg.model = chosen or default_model
+        if not chosen:
+            cfg.model = default_model
     else:
-        cfg.model = cfg.model or default_model
+        if not cfg.model:
+            cfg.model = default_model
     _print(f"  Model: {cfg.model}")
 
     # 4. Port
     if not cfg.non_interactive:
         port_str = _prompt_context(
             "  Service port",
-            "  Port the skillsmith FastAPI service will listen on (default: 47950)",
+            "  Port the skillsmith FastAPI service will listen on.",
             default=47950,
         )
         try:

@@ -821,26 +821,31 @@ def test_setup_argparse_accepts_lm_studio_runner():
 
 
 def test_setup_explicit_runner_ollama_is_preserved():
-    """B3: Explicit --runner ollama is preserved through argparse -> _run_from_args bridging."""
+    """B3: --runner ollama survives argparse → _run_from_args → run_setup pipeline."""
     import argparse
 
-    captured: list[Any] = []
+    from skillsmith.install.subcommands.simple_setup import add_parser  # type: ignore[attr-defined]
 
-    import unittest.mock as mock
+    captured_cfg: list[Any] = []
 
-    with mock.patch(
-        "skillsmith.install.subcommands.simple_setup.run_setup",
-        side_effect=lambda cfg: captured.append(cfg) or 0,  # type: ignore[misc]
+    def _capture_run_setup(cfg: SetupConfig) -> int:  # type: ignore[type-arg]
+        captured_cfg.append(cfg)
+        return 0
+
+    with patch.object(
+        sys.modules["skillsmith.install.subcommands.simple_setup"],
+        "run_setup",
+        side_effect=_capture_run_setup,
     ):
         root = argparse.ArgumentParser()
-        sub = root.add_subparsers()
-        from skillsmith.install.subcommands.simple_setup import add_parser  # type: ignore[attr-defined]
-
+        sub = root.add_subparsers(dest="subcommand")
         add_parser(sub)
         args = root.parse_args(["setup", "--runner", "ollama", "--non-interactive"])
         args.func(args)
 
-    assert captured[0].runner == "ollama"
+    assert len(captured_cfg) == 1
+    assert captured_cfg[0].runner == "ollama"
+    assert captured_cfg[0].non_interactive is True
 
 
 def test_hw_labels_cover_all_valid_targets():
