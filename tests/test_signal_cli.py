@@ -1,0 +1,260 @@
+"""CLI smoke tests for skillsmith signal subcommands."""
+
+from __future__ import annotations
+
+import argparse
+import json
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+import yaml
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+
+def _write_phase(project_root: Path, phase: str) -> None:
+    pf = project_root / ".skillsmith" / "phase"
+    pf.parent.mkdir(parents=True, exist_ok=True)
+    pf.write_text(f"phase: {phase}\n")
+
+
+def _write_minimal_skill(packs_root: Path, phase: str = "build") -> None:
+    """Write a minimal workflow skill yaml for the given phase into a tmp _packs dir."""
+    packs_root.mkdir(parents=True, exist_ok=True)
+    data = {
+        "skill_id": f"sdd-{phase}",
+        "skill_class": "workflow",
+        "canonical_name": f"sdd-{phase}",
+        "raw_prose": f"Workflow skill for {phase} phase. " * 5,
+        "applies_to_phases": [phase],
+        "exit_gates": {"artifact_exists": {"path": "*.md"}},
+        "signal_keywords": [phase, "done", "ready"],
+        "contract_template": "---\nphase: build\n---\n\nbody\n",
+    }
+    (packs_root / f"sdd-{phase}.yaml").write_text(yaml.dump(data))
+
+
+# ---------------------------------------------------------------------------
+# evaluate-phase — no prefilter match → exit 0 with matched: false
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_phase_no_prefilter_match_exit_0(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from skillsmith.install.subcommands import signal as sig
+
+    _write_phase(tmp_path, "build")
+    monkeypatch.chdir(tmp_path)
+
+    # Patch skill loader to return a skill with no matching signal_keywords
+    skill = {
+        "skill_id": "sdd-build",
+        "raw_prose": "prose",
+        "applies_to_phases": ["build"],
+        "exit_gates": {"artifact_exists": {"path": "nope.md"}},
+        "signal_keywords": ["unusedkeyword"],
+    }
+    with patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill), \
+         patch.object(sig, "_write_telemetry"):
+        args = argparse.Namespace(
+            prompt_file=None,
+            tool=None,
+            tool_path=None,
+        )
+        import io, sys
+        captured = io.StringIO()
+        sys.stdout = captured
+        try:
+            rc = sig._evaluate_phase(args)
+        finally:
+            sys.stdout = sys.__stdout__
+
+    assert rc == 0
+    out = json.loads(captured.getvalue())
+    assert out.get("matched") is False
+
+
+# ---------------------------------------------------------------------------
+# evaluate-phase — transition writes workflow skill to stdout
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    from skillsmith.install.subcommands import signal as sig
+
+    _write_phase(tmp_path, "spec")
+    monkeypatch.chdir(tmp_path)
+
+    # Create the artifact that the gate checks for
+    (tmp_path / "spec.md").write_text("x" * 900)
+
+    skill = {
+        "skill_id": "sdd-spec",
+        "raw_prose": "THE DESIGN PROSE",
+        "applies_to_phases": ["spec"],
+        "exit_gates": {"artifact_exists": {"path": "spec.md"}},
+        "signal_keywords": ["done", "ready"],
+    }
+    next_skill = {
+        "skill_id": "sdd-design",
+        "raw_prose": "DESIGN WORKFLOW PROSE",
+        "applies_to_phases": ["design"],
+        "exit_gates": {},
+        "signal_keywords": [],
+    }
+
+    prompt_file = tmp_path / "prompt.txt"
+    prompt_file.write_text("done, ready to move on")
+
+    def mock_load(phase):
+        return skill if phase == "spec" else next_skill
+
+    import io, sys
+
+    captured_stdout = io.StringIO()
+    with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
+         patch.object(sig, "_write_telemetry"):
+        args = argparse.Namespace(
+            prompt_file=str(prompt_file),
+            tool=None,
+            tool_path=None,
+        )
+        sys.stdout = captured_stdout
+        sys.stderr = io.StringIO()
+        try:
+            rc = sig._evaluate_phase(args)
+        finally:
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+
+    assert rc == 0
+    output = captured_stdout.getvalue()
+    assert "DESIGN WORKFLOW PROSE" in output
+    assert "[skillsmith-workflow]" in output
+
+    # Phase file should be updated to "design"
+    phase_file = tmp_path / ".skillsmith" / "phase"
+    content = yaml.safe_load(phase_file.read_text())
+    assert content["phase"] == "design"
+
+
+# ---------------------------------------------------------------------------
+# evaluate-system — emits matching skill bodies
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_system_emits_matching_skill_bodies(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    from skillsmith.install.subcommands import signal as sig
+
+    monkeypatch.chdir(tmp_path)
+
+    import io, sys
+
+    captured = io.StringIO()
+
+    # Patch the DuckDB call to simulate a system skill
+    with patch("skillsmith.install.subcommands.signal._read_phase", return_value="build"), \
+         patch("skillsmith.install.subcommands.signal._write_telemetry"), \
+         patch("duckdb.connect") as mock_conn:
+        # system skill applies_when: tool_use_about_to_fire for git commit
+        applies_when = yaml.dump({
+            "all_of": [{"tool_use_about_to_fire": {"tools": ["git commit"]}}]
+        })
+        mock_con = MagicMock()
+        mock_con.__enter__ = lambda s: s
+        mock_con.__exit__ = MagicMock(return_value=False)
+        mock_con.execute.return_value.fetchall.return_value = [
+            ("commit-safety", "COMMIT SAFETY PROSE", applies_when)
+        ]
+        mock_conn.return_value = mock_con
+
+        # Patch datastore path to exist
+        db_file = tmp_path / "skills.duck"
+        db_file.write_text("")
+
+        with patch("skillsmith.profiles.domain_datastore_path", return_value=db_file), \
+             patch("skillsmith.profiles.detect_profile", return_value=None):
+            args = argparse.Namespace(tool="git commit")
+            sys.stdout = captured
+            try:
+                rc = sig._evaluate_system(args)
+            finally:
+                sys.stdout = sys.__stdout__
+
+    assert rc == 0
+    output = captured.getvalue()
+    assert "COMMIT SAFETY PROSE" in output
+    assert "[skillsmith-system:commit-safety]" in output
+
+
+# ---------------------------------------------------------------------------
+# watch-contract — validates and invokes compose
+# ---------------------------------------------------------------------------
+
+
+def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from skillsmith.install.subcommands import signal as sig
+    import yaml
+
+    monkeypatch.chdir(tmp_path)
+
+    contract_path = tmp_path / ".skillsmith" / "contracts" / "build" / "task.md"
+    contract_path.parent.mkdir(parents=True, exist_ok=True)
+    fm = {
+        "phase": "build",
+        "task_slug": "test-task",
+        "domain_tags": ["NestJS"],
+        "scope": {"touches": [], "avoids": []},
+        "success_criteria": [],
+        "related_contracts": [],
+    }
+    contract_path.write_text(f"---\n{yaml.dump(fm)}---\n\nTask body.\n")
+
+    _write_phase(tmp_path, "build")
+
+    with patch("subprocess.run") as mock_run, \
+         patch("skillsmith.install.subcommands.signal._write_telemetry"), \
+         patch("skillsmith.install.state.load_state", return_value={"port": 47950}):
+        mock_run.return_value = MagicMock(returncode=0)
+        args = argparse.Namespace(path=str(contract_path))
+        rc = sig._watch_contract(args)
+
+    assert rc == 0
+    mock_run.assert_called_once()
+    call_args = mock_run.call_args[0][0]
+    assert "compose" in call_args
+    assert "--contract" in call_args
+
+
+# ---------------------------------------------------------------------------
+# check — returns structured JSON
+# ---------------------------------------------------------------------------
+
+
+def test_check_returns_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    from skillsmith.install.subcommands import signal as sig
+
+    monkeypatch.chdir(tmp_path)
+    _write_phase(tmp_path, "build")
+
+    import io, sys
+
+    captured = io.StringIO()
+    with patch.object(sig, "_load_workflow_skill_for_phase", return_value=None):
+        args = argparse.Namespace(json_out=True)
+        sys.stdout = captured
+        try:
+            rc = sig._check(args)
+        finally:
+            sys.stdout = sys.__stdout__
+
+    assert rc == 0
+    data = json.loads(captured.getvalue())
+    assert data["current_phase"] == "build"

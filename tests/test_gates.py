@@ -1,0 +1,186 @@
+"""Gate aggregation and phase-transition decision tests."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pytest
+
+from skillsmith.signals.predicates import PredicateContext, PredicateResult
+from skillsmith.signals.gates import (
+    GateEvaluation,
+    PhaseTransitionDecision,
+    aggregate,
+    decide_transition,
+    evaluate_gates,
+    evaluate_node,
+)
+
+MET = PredicateResult.MET
+NOT_MET = PredicateResult.NOT_MET
+UNKNOWN = PredicateResult.UNKNOWN
+
+
+def _ctx(tmp_path: Path, phase: str = "build") -> PredicateContext:
+    return PredicateContext(project_root=tmp_path, current_phase=phase)
+
+
+# ---------------------------------------------------------------------------
+# aggregate
+# ---------------------------------------------------------------------------
+
+
+def test_all_of_all_met():
+    assert aggregate("all_of", [MET, MET, MET]) == MET
+
+
+def test_all_of_short_circuit_on_not_met():
+    assert aggregate("all_of", [MET, NOT_MET, MET]) == NOT_MET
+
+
+def test_all_of_unknown_no_not_met():
+    assert aggregate("all_of", [MET, UNKNOWN]) == UNKNOWN
+
+
+def test_any_of_short_circuit_on_met():
+    assert aggregate("any_of", [NOT_MET, MET]) == MET
+
+
+def test_any_of_all_not_met():
+    assert aggregate("any_of", [NOT_MET, NOT_MET]) == NOT_MET
+
+
+def test_any_of_unknown_no_met():
+    assert aggregate("any_of", [NOT_MET, UNKNOWN]) == UNKNOWN
+
+
+def test_not_met_inverts_to_met():
+    assert aggregate("not", [MET]) == NOT_MET
+
+
+def test_not_not_met_inverts_to_met():
+    assert aggregate("not", [NOT_MET]) == MET
+
+
+def test_not_unknown_stays_unknown():
+    assert aggregate("not", [UNKNOWN]) == UNKNOWN
+
+
+# ---------------------------------------------------------------------------
+# test_unknown_propagates_correctly
+# ---------------------------------------------------------------------------
+
+
+def test_unknown_propagates_correctly_all_of(tmp_path: Path):
+    ctx = _ctx(tmp_path)
+    spec = {
+        "all_of": [
+            {"phase_in": {"phases": ["build"]}},    # MET
+            {"artifact_exists": {"path": "nope.md"}},  # NOT_MET
+        ]
+    }
+    qwen_calls: list[int] = [0]
+    result, _ = evaluate_node(spec, ctx, None, qwen_calls)
+    # Short-circuits on NOT_MET even though first is MET
+    assert result == NOT_MET
+
+
+def test_unknown_propagates_correctly_any_of(tmp_path: Path):
+    ctx = _ctx(tmp_path)
+    spec = {
+        "any_of": [
+            {"artifact_exists": {"path": "nope.md"}},  # NOT_MET
+            {"artifact_exists": {"path": ""}},          # UNKNOWN (no path)
+        ]
+    }
+    qwen_calls: list[int] = [0]
+    result, _ = evaluate_node(spec, ctx, None, qwen_calls)
+    assert result == UNKNOWN
+
+
+# ---------------------------------------------------------------------------
+# evaluate_node — nested composites
+# ---------------------------------------------------------------------------
+
+
+def test_nested_aggregates(tmp_path: Path):
+    (tmp_path / "spec.md").write_text("## Acceptance Criteria\n\nhi\n")
+    ctx = _ctx(tmp_path)
+    spec = {
+        "all_of": [
+            {
+                "any_of": [
+                    {"artifact_exists": {"path": "spec.md"}},
+                    {"artifact_exists": {"path": "nope.md"}},
+                ]
+            },
+            {
+                "not": {"artifact_exists": {"path": "definitely-missing.md"}}
+            },
+        ]
+    }
+    qwen_calls: list[int] = [0]
+    result, evals = evaluate_node(spec, ctx, None, qwen_calls)
+    assert result == MET
+
+
+# ---------------------------------------------------------------------------
+# decide_transition
+# ---------------------------------------------------------------------------
+
+
+def test_decide_transition_writes_phase_atomically(tmp_path: Path):
+    ctx = _ctx(tmp_path, phase="spec")
+    # spec.md exists → artifact_exists gate MET
+    (tmp_path / "spec.md").write_text("x" * 900)
+    gate_spec = {"artifact_exists": {"path": "spec.md"}}
+    decision = decide_transition("spec", gate_spec, ctx)
+    assert decision.should_transition is True
+    assert decision.to_phase == "design"
+    assert decision.from_phase == "spec"
+
+    # Atomic write
+    phase_file = tmp_path / ".skillsmith" / "phase"
+    phase_file.parent.mkdir(parents=True, exist_ok=True)
+    tmp_phase = phase_file.with_suffix(".tmp")
+    tmp_phase.write_text("phase: design\n")
+    tmp_phase.rename(phase_file)
+    assert phase_file.read_text() == "phase: design\n"
+
+
+def test_decide_transition_no_transition(tmp_path: Path):
+    ctx = _ctx(tmp_path, phase="build")
+    gate_spec = {"artifact_exists": {"path": "missing.md"}}
+    decision = decide_transition("build", gate_spec, ctx)
+    assert decision.should_transition is False
+    assert decision.to_phase is None
+    assert any(e.result == NOT_MET for e in decision.gates_unmet)
+
+
+def test_decide_transition_next_phase_hint(tmp_path: Path):
+    (tmp_path / "f.md").write_text("x")
+    ctx = _ctx(tmp_path, phase="build")
+    gate_spec = {"artifact_exists": {"path": "f.md"}}
+    decision = decide_transition("build", gate_spec, ctx, next_phase_hint="special-phase")
+    assert decision.to_phase == "special-phase"
+
+
+def test_decide_transition_unknown_leaves_phase(tmp_path: Path):
+    # current_phase=None makes phase_in return UNKNOWN → no transition
+    ctx = PredicateContext(project_root=tmp_path, current_phase=None)
+    gate_spec = {"phase_in": {"phases": ["build"]}}
+    decision = decide_transition("build", gate_spec, ctx)
+    assert decision.should_transition is False
+
+
+# ---------------------------------------------------------------------------
+# evaluate_gates
+# ---------------------------------------------------------------------------
+
+
+def test_evaluate_gates_returns_list(tmp_path: Path):
+    (tmp_path / "f.md").write_text("hi")
+    ctx = _ctx(tmp_path)
+    evals = evaluate_gates({"artifact_exists": {"path": "f.md"}}, ctx)
+    assert isinstance(evals, list)
+    assert evals[0].result == MET

@@ -98,6 +98,12 @@ class CompositionTrace:
     contract_path: str | None = None
     contract_tags: list[str] = field(default_factory=lambda: [])
     bm25_source: str = "rule-extracted"  # "rule-extracted" | "contract" | "union"
+    # Signal-layer fields
+    event_type: str = "compose"  # "compose" | "phase_eval" | "phase_transition" | "system_skill_applied" | "contract_retrieval"
+    pre_filter_matched: str | None = None
+    gates_met: list[str] = field(default_factory=list)
+    gates_unmet: list[str] = field(default_factory=list)
+    qwen_calls: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -157,7 +163,12 @@ CREATE TABLE IF NOT EXISTS composition_traces (
     error_code VARCHAR,
     response_size_chars INTEGER,
     prompt_version VARCHAR,
-    workflow_skill_ids VARCHAR[]
+    workflow_skill_ids VARCHAR[],
+    event_type VARCHAR NOT NULL DEFAULT 'compose',
+    pre_filter_matched VARCHAR,
+    gates_met VARCHAR[],
+    gates_unmet VARCHAR[],
+    qwen_calls INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX IF NOT EXISTS idx_traces_ts ON composition_traces(request_ts);
@@ -447,8 +458,9 @@ class VectorStore:
                 system_skill_ids, assembly_tier, assembly_model,
                 retrieval_latency_ms, assembly_latency_ms, total_latency_ms,
                 status, error_code, response_size_chars,
-                prompt_version, workflow_skill_ids
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                prompt_version, workflow_skill_ids,
+                event_type, pre_filter_matched, gates_met, gates_unmet, qwen_calls
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
                 trace.trace_id,
@@ -470,6 +482,11 @@ class VectorStore:
                 trace.response_size_chars,
                 trace.prompt_version,
                 trace.workflow_skill_ids,
+                trace.event_type,
+                trace.pre_filter_matched,
+                trace.gates_met,
+                trace.gates_unmet,
+                trace.qwen_calls,
             ],
         )
 
@@ -585,3 +602,12 @@ def open_or_create(path: str | Path) -> VectorStore:
         pass
 
     return VectorStore(conn)
+
+
+def append_trace(db_path: "Path", trace: "CompositionTrace") -> None:
+    """Convenience: open the store at db_path, insert trace, close. Soft-fail."""
+    try:
+        with open_or_create(db_path) as store:
+            store.record_composition_trace(trace)
+    except Exception:
+        pass
