@@ -60,8 +60,10 @@ def test_tier3_interactive_code_path(tmp_path: Path):
 
     # The Tier 3 check in run_setup calls _prompt_context
     # We verify the check function exists and is correct by calling it directly
-    with patch.object(ss, "_prompt_context", side_effect=mock_prompt), \
-         patch.object(ss, "_print", return_value=None):
+    with (
+        patch.object(ss, "_prompt_context", side_effect=mock_prompt),
+        patch.object(ss, "_print", return_value=None),
+    ):
         # Simulate what run_setup does for Tier 3 non-interactive=False
         if harness in _tier3:
             ans = ss._prompt_context("  Continue with Tier 3? [y/n]", default="n")

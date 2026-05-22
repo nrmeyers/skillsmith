@@ -71,7 +71,7 @@ def test_unknown_propagates_correctly_all_of(tmp_path: Path):
     ctx = _ctx(tmp_path)
     spec = {
         "all_of": [
-            {"phase_in": {"phases": ["build"]}},    # MET
+            {"phase_in": {"phases": ["build"]}},  # MET
             {"artifact_exists": {"path": "nope.md"}},  # NOT_MET
         ]
     }
@@ -86,7 +86,7 @@ def test_unknown_propagates_correctly_any_of(tmp_path: Path):
     spec = {
         "any_of": [
             {"artifact_exists": {"path": "nope.md"}},  # NOT_MET
-            {"artifact_exists": {"path": ""}},          # UNKNOWN (no path)
+            {"artifact_exists": {"path": ""}},  # UNKNOWN (no path)
         ]
     }
     qwen_calls: list[int] = [0]
@@ -110,9 +110,7 @@ def test_nested_aggregates(tmp_path: Path):
                     {"artifact_exists": {"path": "nope.md"}},
                 ]
             },
-            {
-                "not": {"artifact_exists": {"path": "definitely-missing.md"}}
-            },
+            {"not": {"artifact_exists": {"path": "definitely-missing.md"}}},
         ]
     }
     qwen_calls: list[int] = [0]

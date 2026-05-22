@@ -57,8 +57,10 @@ def test_evaluate_phase_no_prefilter_match_exit_0(tmp_path: Path, monkeypatch: p
         "exit_gates": {"artifact_exists": {"path": "nope.md"}},
         "signal_keywords": ["unusedkeyword"],
     }
-    with patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill), \
-         patch.object(sig, "_write_telemetry"):
+    with (
+        patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill),
+        patch.object(sig, "_write_telemetry"),
+    ):
         args = argparse.Namespace(
             prompt_file=None,
             tool=None,
@@ -66,6 +68,7 @@ def test_evaluate_phase_no_prefilter_match_exit_0(tmp_path: Path, monkeypatch: p
         )
         import io
         import sys
+
         captured = io.StringIO()
         sys.stdout = captured
         try:
@@ -119,8 +122,10 @@ def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
     import sys
 
     captured_stdout = io.StringIO()
-    with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
-         patch.object(sig, "_write_telemetry"):
+    with (
+        patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load),
+        patch.object(sig, "_write_telemetry"),
+    ):
         args = argparse.Namespace(
             prompt_file=str(prompt_file),
             tool=None,
@@ -163,13 +168,15 @@ def test_evaluate_system_emits_matching_skill_bodies(
     captured = io.StringIO()
 
     # Patch the DuckDB call to simulate a system skill
-    with patch("skillsmith.install.subcommands.signal._read_phase", return_value="build"), \
-         patch("skillsmith.install.subcommands.signal._write_telemetry"), \
-         patch("duckdb.connect") as mock_conn:
+    with (
+        patch("skillsmith.install.subcommands.signal._read_phase", return_value="build"),
+        patch("skillsmith.install.subcommands.signal._write_telemetry"),
+        patch("duckdb.connect") as mock_conn,
+    ):
         # system skill applies_when: tool_use_about_to_fire for git commit
-        applies_when = yaml.dump({
-            "all_of": [{"tool_use_about_to_fire": {"tools": ["git commit"]}}]
-        })
+        applies_when = yaml.dump(
+            {"all_of": [{"tool_use_about_to_fire": {"tools": ["git commit"]}}]}
+        )
         mock_con = MagicMock()
         mock_con.__enter__ = lambda s: s
         mock_con.__exit__ = MagicMock(return_value=False)
@@ -182,8 +189,10 @@ def test_evaluate_system_emits_matching_skill_bodies(
         db_file = tmp_path / "skills.duck"
         db_file.write_text("")
 
-        with patch("skillsmith.profiles.domain_datastore_path", return_value=db_file), \
-             patch("skillsmith.profiles.detect_profile", return_value=None):
+        with (
+            patch("skillsmith.profiles.domain_datastore_path", return_value=db_file),
+            patch("skillsmith.profiles.detect_profile", return_value=None),
+        ):
             args = argparse.Namespace(tool="git commit")
             sys.stdout = captured
             try:
@@ -223,9 +232,11 @@ def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.Monk
 
     _write_phase(tmp_path, "build")
 
-    with patch("subprocess.run") as mock_run, \
-         patch("skillsmith.install.subcommands.signal._write_telemetry"), \
-         patch("skillsmith.install.state.load_state", return_value={"port": 47950}):
+    with (
+        patch("subprocess.run") as mock_run,
+        patch("skillsmith.install.subcommands.signal._write_telemetry"),
+        patch("skillsmith.install.state.load_state", return_value={"port": 47950}),
+    ):
         mock_run.return_value = MagicMock(returncode=0)
         args = argparse.Namespace(path=str(contract_path))
         rc = sig._watch_contract(args)
@@ -247,9 +258,7 @@ def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.Monk
 # ---------------------------------------------------------------------------
 
 
-def test_evaluate_phase_emits_advisory_to_stdout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
+def test_evaluate_phase_emits_advisory_to_stdout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     """Advisory text from artifact_completeness appears in stdout alongside the transition output."""
     from skillsmith.install.subcommands import signal as sig
 
@@ -289,9 +298,14 @@ def test_evaluate_phase_emits_advisory_to_stdout(
     import sys
 
     captured_stdout = io.StringIO()
-    with patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load), \
-         patch.object(sig, "_write_telemetry"), \
-         patch("skillsmith.install.subcommands.signal.OpenAICompatClient", side_effect=RuntimeError("no server")):
+    with (
+        patch.object(sig, "_load_workflow_skill_for_phase", side_effect=mock_load),
+        patch.object(sig, "_write_telemetry"),
+        patch(
+            "skillsmith.install.subcommands.signal.OpenAICompatClient",
+            side_effect=RuntimeError("no server"),
+        ),
+    ):
         args = argparse.Namespace(prompt_file=str(prompt_file), tool=None, tool_path=None)
         sys.stdout = captured_stdout
         sys.stderr = io.StringIO()
@@ -338,10 +352,12 @@ def test_evaluate_phase_lm_client_constructed_from_embed_url(
     prompt_file = tmp_path / "prompt.txt"
     prompt_file.write_text("done")
 
-    with patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill), \
-         patch.object(sig, "_write_telemetry"), \
-         patch("skillsmith.install.subcommands.signal.OpenAICompatClient", _FakeClient), \
-         patch.dict(os.environ, {"SKILLSMITH_FORCE_CHECK": "1"}):
+    with (
+        patch.object(sig, "_load_workflow_skill_for_phase", return_value=skill),
+        patch.object(sig, "_write_telemetry"),
+        patch("skillsmith.install.subcommands.signal.OpenAICompatClient", _FakeClient),
+        patch.dict(os.environ, {"SKILLSMITH_FORCE_CHECK": "1"}),
+    ):
         args = argparse.Namespace(prompt_file=str(prompt_file), tool=None, tool_path=None)
         sys.stdout = io.StringIO()
         sys.stderr = io.StringIO()

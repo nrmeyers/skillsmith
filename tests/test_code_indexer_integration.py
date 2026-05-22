@@ -144,9 +144,12 @@ def test_hook_skips_code_indexer_when_unreachable(tmp_path: Path, monkeypatch: p
     import sys
 
     captured = io.StringIO()
-    with patch("urllib.request.urlopen", side_effect=OSError("refused")), \
-         patch.object(sig, "_write_telemetry"):
+    with (
+        patch("urllib.request.urlopen", side_effect=OSError("refused")),
+        patch.object(sig, "_write_telemetry"),
+    ):
         import argparse
+
         args = argparse.Namespace(path=str(contract_path))
         sys.stdout = captured
         try:

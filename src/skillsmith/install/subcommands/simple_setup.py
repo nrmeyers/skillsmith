@@ -516,10 +516,11 @@ def run_setup(cfg: SetupConfig) -> int:
         if ds_path.exists() and not getattr(cfg, "force", False):
             try:
                 import duckdb
+
                 con = duckdb.connect(str(ds_path), read_only=True)
-                has_skills = con.execute(
-                    "SELECT 1 FROM profile_skills LIMIT 1"
-                ).fetchone() is not None
+                has_skills = (
+                    con.execute("SELECT 1 FROM profile_skills LIMIT 1").fetchone() is not None
+                )
                 con.close()
             except Exception:
                 has_skills = False

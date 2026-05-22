@@ -35,7 +35,9 @@ class PredicateContext:
     def __post_init__(self) -> None:
         if self.contracts_root is None:
             # Can't set on frozen dataclass directly; use object.__setattr__
-            object.__setattr__(self, "contracts_root", self.project_root / ".skillsmith" / "contracts")
+            object.__setattr__(
+                self, "contracts_root", self.project_root / ".skillsmith" / "contracts"
+            )
 
 
 def _glob_files(root: Path, pattern: str) -> list[Path]:
@@ -96,9 +98,7 @@ def eval_artifact_contains(args: dict, ctx: PredicateContext) -> PredicateResult
         if sections is not None:
             # Parse markdown headings
             headings = {
-                line.lstrip("#").strip()
-                for line in content.splitlines()
-                if line.startswith("#")
+                line.lstrip("#").strip() for line in content.splitlines() if line.startswith("#")
             }
             if not all(s in headings for s in sections):
                 return PredicateResult.NOT_MET
@@ -212,7 +212,10 @@ def eval_git_state(args: dict, ctx: PredicateContext) -> PredicateResult:
         try:
             br = subprocess.run(
                 ["git", "rev-parse", "--abbrev-ref", "HEAD"],
-                capture_output=True, text=True, timeout=5, cwd=ctx.project_root,
+                capture_output=True,
+                text=True,
+                timeout=5,
+                cwd=ctx.project_root,
             )
             if not re.search(branch_pattern, br.stdout.strip()):
                 return PredicateResult.NOT_MET
@@ -310,9 +313,7 @@ def evaluate_predicate(
 ) -> PredicateResult:
     """Evaluate a named deterministic predicate. Raises ValueError for unknown names."""
     if predicate_name not in PREDICATES:
-        raise ValueError(
-            f"Unknown predicate '{predicate_name}'. Available: {sorted(PREDICATES)}"
-        )
+        raise ValueError(f"Unknown predicate '{predicate_name}'. Available: {sorted(PREDICATES)}")
     try:
         return PREDICATES[predicate_name](args, ctx)
     except Exception:

@@ -61,9 +61,7 @@ def regenerate_windsurf(content: str, project_root: Path) -> None:
 
 def regenerate_copilot(content: str, project_root: Path) -> None:
     """Marker-block replacement in .github/copilot-instructions.md."""
-    update_block(
-        project_root / ".github" / "copilot-instructions.md", SKILLSMITH_MARKER, content
-    )
+    update_block(project_root / ".github" / "copilot-instructions.md", SKILLSMITH_MARKER, content)
 
 
 def regenerate_cline(content: str, project_root: Path) -> None:

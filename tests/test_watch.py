@@ -110,7 +110,14 @@ def test_regenerate_aider(tmp_path: Path):
 
 
 def test_all_regenerators_registered():
-    assert set(REGENERATORS.keys()) == {"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"}
+    assert set(REGENERATORS.keys()) == {
+        "cursor",
+        "windsurf",
+        "github-copilot",
+        "cline",
+        "gemini-cli",
+        "aider",
+    }
 
 
 # ---------------------------------------------------------------------------

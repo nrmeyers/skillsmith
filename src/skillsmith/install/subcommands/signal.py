@@ -80,6 +80,7 @@ def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
                 exit_gates = {}
                 if exit_gates_raw:
                     import contextlib
+
                     with contextlib.suppress(Exception):
                         exit_gates = _json.loads(exit_gates_raw)
                 signal_keywords = signal_keywords_raw or []
@@ -182,6 +183,7 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
     prompt_file = getattr(args, "prompt_file", None)
     if prompt_file and prompt_file != "/dev/null":
         import contextlib
+
         with contextlib.suppress(OSError):
             prompt_text = Path(prompt_file).read_text(encoding="utf-8", errors="replace")
 
@@ -191,7 +193,9 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
 
     skill = _load_workflow_skill_for_phase(current_phase)
     if skill is None:
-        print(json.dumps({"matched": False, "reason": f"no workflow skill for phase={current_phase}"}))
+        print(
+            json.dumps({"matched": False, "reason": f"no workflow skill for phase={current_phase}"})
+        )
         return 0
 
     gate_spec = skill.get("exit_gates") or {}
@@ -210,12 +214,14 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
     match = check_prefilter(signal_keywords, gate_spec, ctx)
 
     if match is None:
-        _write_telemetry({
-            "task": prompt_text or "",
-            "phase": current_phase,
-            "event_type": "phase_eval",
-            "pre_filter_matched": None,
-        })
+        _write_telemetry(
+            {
+                "task": prompt_text or "",
+                "phase": current_phase,
+                "event_type": "phase_eval",
+                "pre_filter_matched": None,
+            }
+        )
         print(json.dumps({"matched": False}))
         return 0
 
@@ -239,15 +245,17 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
         lm_client=lm_client,
     )
 
-    _write_telemetry({
-        "task": prompt_text or "",
-        "phase": current_phase,
-        "event_type": "phase_transition" if decision.should_transition else "phase_eval",
-        "pre_filter_matched": match.name,
-        "gates_met": [g.gate_name for g in decision.gates_met],
-        "gates_unmet": [g.gate_name for g in decision.gates_unmet],
-        "qwen_calls": decision.qwen_calls,
-    })
+    _write_telemetry(
+        {
+            "task": prompt_text or "",
+            "phase": current_phase,
+            "event_type": "phase_transition" if decision.should_transition else "phase_eval",
+            "pre_filter_matched": match.name,
+            "gates_met": [g.gate_name for g in decision.gates_met],
+            "gates_unmet": [g.gate_name for g in decision.gates_unmet],
+            "qwen_calls": decision.qwen_calls,
+        }
+    )
 
     if decision.should_transition and decision.to_phase:
         _write_phase_atomic(project_root, decision.to_phase)
@@ -255,16 +263,25 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
         prose = (next_skill or {}).get("raw_prose", "")
         if prose:
             print(f"[skillsmith-workflow]\n{prose}\n[/skillsmith-workflow]")
-        print(json.dumps({
-            "transition": True,
-            "from": current_phase,
-            "to": decision.to_phase,
-        }), file=sys.stderr)
+        print(
+            json.dumps(
+                {
+                    "transition": True,
+                    "from": current_phase,
+                    "to": decision.to_phase,
+                }
+            ),
+            file=sys.stderr,
+        )
     else:
-        print(json.dumps({
-            "transition": False,
-            "gates_unmet": [g.gate_name for g in decision.gates_unmet],
-        }))
+        print(
+            json.dumps(
+                {
+                    "transition": False,
+                    "gates_unmet": [g.gate_name for g in decision.gates_unmet],
+                }
+            )
+        )
 
     for advisory in decision.advisories:
         print(advisory)
@@ -308,7 +325,6 @@ def _evaluate_system(args: argparse.Namespace) -> int:
 
     import yaml as _yaml
 
-
     for skill_id, raw_prose, applies_when_raw in rows:
         if not applies_when_raw:
             continue
@@ -324,11 +340,13 @@ def _evaluate_system(args: argparse.Namespace) -> int:
         result, _ = evaluate_node(gate_spec, ctx, None, qwen_calls)
         if result == PredicateResult_.MET:
             print(f"[skillsmith-system:{skill_id}]\n{raw_prose}\n[/skillsmith-system]")
-            _write_telemetry({
-                "task": tool_name,
-                "phase": current_phase or "",
-                "event_type": "system_skill_applied",
-            })
+            _write_telemetry(
+                {
+                    "task": tool_name,
+                    "phase": current_phase or "",
+                    "event_type": "system_skill_applied",
+                }
+            )
 
     return 0
 
@@ -369,19 +387,28 @@ def _watch_contract(args: argparse.Namespace) -> int:
         st = install_state.load_state()
         port = st.get("port", 47950)
         subprocess.run(
-            ["skillsmith", "compose", "--contract", str(contract_path), "--inject",
-             "--port", str(port)],
+            [
+                "skillsmith",
+                "compose",
+                "--contract",
+                str(contract_path),
+                "--inject",
+                "--port",
+                str(port),
+            ],
             capture_output=False,
             timeout=30,
         )
     except Exception as exc:
         print(json.dumps({"warning": f"compose failed: {exc}"}), file=sys.stderr)
 
-    _write_telemetry({
-        "task": contract_path_str,
-        "phase": contract.phase if "contract" in dir() else "",
-        "event_type": "contract_retrieval",
-    })
+    _write_telemetry(
+        {
+            "task": contract_path_str,
+            "phase": contract.phase if "contract" in dir() else "",
+            "event_type": "contract_retrieval",
+        }
+    )
     return 0
 
 
@@ -436,14 +463,18 @@ def _code_indexer_from_contract(args: argparse.Namespace) -> int:
                 return None
 
         # Semantic search
-        q_semantic = urllib.parse.urlencode({"q": params.semantic_q, "repo": params.repo, "top_k": 5})
+        q_semantic = urllib.parse.urlencode(
+            {"q": params.semantic_q, "repo": params.repo, "top_k": 5}
+        )
         body = _fetch(f"{ci_url}/search/semantic?{q_semantic}")
         if body:
             results.append(f"[code-indexer:semantic]\n{body}\n[/code-indexer:semantic]")
 
         # Lexical search
         if params.lexical_q:
-            q_lexical = urllib.parse.urlencode({"q": params.lexical_q, "repo": params.repo, "top_k": 5})
+            q_lexical = urllib.parse.urlencode(
+                {"q": params.lexical_q, "repo": params.repo, "top_k": 5}
+            )
             body = _fetch(f"{ci_url}/search/lexical?{q_lexical}")
             if body:
                 results.append(f"[code-indexer:lexical]\n{body}\n[/code-indexer:lexical]")
@@ -451,11 +482,13 @@ def _code_indexer_from_contract(args: argparse.Namespace) -> int:
         if results:
             print("\n".join(results))
 
-        _write_telemetry({
-            "task": params.semantic_q,
-            "phase": contract.phase,
-            "event_type": "contract_retrieval",
-        })
+        _write_telemetry(
+            {
+                "task": params.semantic_q,
+                "phase": contract.phase,
+                "event_type": "contract_retrieval",
+            }
+        )
     except Exception as exc:
         print(json.dumps({"warning": f"code-indexer-from-contract: {exc}"}), file=sys.stderr)
 
@@ -468,10 +501,14 @@ def _code_indexer_from_contract(args: argparse.Namespace) -> int:
 
 
 def add_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
-    p = subparsers.add_parser("signal", help="Signal-layer: phase gate evaluation and system skill routing")
+    p = subparsers.add_parser(
+        "signal", help="Signal-layer: phase gate evaluation and system skill routing"
+    )
     sub = p.add_subparsers(dest="signal_cmd")
 
-    ep = sub.add_parser("evaluate-phase", help="Run pre-filter + gate evaluation for the active phase")
+    ep = sub.add_parser(
+        "evaluate-phase", help="Run pre-filter + gate evaluation for the active phase"
+    )
     ep.add_argument("--prompt-file", dest="prompt_file", default=None)
     ep.add_argument("--tool", default=None)
     ep.add_argument("--tool-path", dest="tool_path", default=None)
@@ -482,7 +519,9 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[
     wc = sub.add_parser("watch-contract", help="Validate contract and invoke compose")
     wc.add_argument("--path", required=True, help="Path to the contract file")
 
-    ci = sub.add_parser("code-indexer-from-contract", help="Query code-indexer using contract params")
+    ci = sub.add_parser(
+        "code-indexer-from-contract", help="Query code-indexer using contract params"
+    )
     ci.add_argument("--path", required=True, help="Path to the contract file")
 
     ck = sub.add_parser("check", help="Diagnostics: dump current signal state")
@@ -503,5 +542,8 @@ def _dispatch(args: argparse.Namespace) -> int:
         return _code_indexer_from_contract(args)
     if cmd == "check":
         return _check(args)
-    print("Usage: skillsmith signal {evaluate-phase,evaluate-system,watch-contract,check}", file=sys.stderr)
+    print(
+        "Usage: skillsmith signal {evaluate-phase,evaluate-system,watch-contract,check}",
+        file=sys.stderr,
+    )
     return 1

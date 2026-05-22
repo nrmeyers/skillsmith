@@ -14,7 +14,7 @@ from skillsmith.signals.predicates import PredicateContext
 
 @dataclass(frozen=True)
 class PreFilterMatch:
-    name: str   # "prompt_keyword" | "artifact_event" | "tool_use_event" | "manual"
+    name: str  # "prompt_keyword" | "artifact_event" | "tool_use_event" | "manual"
     detail: str
 
 
@@ -77,6 +77,7 @@ def check_prefilter(
             for gp in gate_paths:
                 try:
                     import fnmatch
+
                     if fnmatch.fnmatch(str(event_path), str(ctx.project_root / gp)):
                         return PreFilterMatch(
                             name="artifact_event",

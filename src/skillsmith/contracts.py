@@ -135,7 +135,9 @@ def parse_contract(path: Path) -> Contract:
 
     task_slug = data.get("task_slug")
     if not task_slug or not isinstance(task_slug, str):
-        raise ContractMalformed("Contract 'task_slug' field is required and must be a non-empty string")
+        raise ContractMalformed(
+            "Contract 'task_slug' field is required and must be a non-empty string"
+        )
 
     domain_tags_raw = data.get("domain_tags")
     if not domain_tags_raw or not isinstance(domain_tags_raw, list):
@@ -277,7 +279,10 @@ def code_indexer_query_params(contract: Contract, project_root: Path) -> CodeInd
     try:
         result = subprocess.run(
             ["git", "remote", "get-url", "origin"],
-            capture_output=True, text=True, timeout=5, cwd=project_root,
+            capture_output=True,
+            text=True,
+            timeout=5,
+            cwd=project_root,
         )
         url = result.stdout.strip()
         # github.com/owner/repo or git@github.com:owner/repo → owner__repo

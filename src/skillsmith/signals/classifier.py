@@ -27,15 +27,26 @@ _log = logging.getLogger(__name__)
 # Reference phrases per named intent. Extend as needed.
 _INTENT_REFERENCES: dict[str, list[str]] = {
     "completion": [
-        "done with spec", "ready to move on", "spec is complete",
-        "finished", "that looks good", "good to go",
+        "done with spec",
+        "ready to move on",
+        "spec is complete",
+        "finished",
+        "that looks good",
+        "good to go",
     ],
     "approval": [
-        "looks good", "approve", "ship it", "lgtm", "approved",
+        "looks good",
+        "approve",
+        "ship it",
+        "lgtm",
+        "approved",
     ],
     "redirection": [
-        "let's change direction", "scratch that", "new approach",
-        "start over", "different direction",
+        "let's change direction",
+        "scratch that",
+        "new approach",
+        "start over",
+        "different direction",
     ],
 }
 

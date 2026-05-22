@@ -90,7 +90,10 @@ def _init(args: argparse.Namespace) -> int:
     target = contracts_dir / f"{slug}.md"
 
     if target.exists() and not force:
-        print(f"  [error] Contract already exists: {target}. Use --force to overwrite.", file=sys.stderr)
+        print(
+            f"  [error] Contract already exists: {target}. Use --force to overwrite.",
+            file=sys.stderr,
+        )
         return 1
 
     # Try to load contract_template from active workflow skill
@@ -116,8 +119,7 @@ def _init(args: argparse.Namespace) -> int:
 
     now = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     content = (
-        template
-        .replace("{{phase}}", phase)
+        template.replace("{{phase}}", phase)
         .replace("{{task_slug}}", slug)
         .replace("{{created_at}}", now)
         .replace("{phase}", phase)
@@ -218,7 +220,9 @@ def add_parser(
     show_p.add_argument("path", help="Path to the contract markdown file.")
 
     # init
-    init_p = sub.add_parser("init", help="Scaffold a contract from the active workflow skill's template.")
+    init_p = sub.add_parser(
+        "init", help="Scaffold a contract from the active workflow skill's template."
+    )
     init_p.add_argument("--phase", required=True, help="Phase (e.g. build, spec, design).")
     init_p.add_argument("--slug", required=True, help="Task slug (kebab-case identifier).")
     init_p.add_argument("--force", action="store_true", help="Overwrite existing contract.")

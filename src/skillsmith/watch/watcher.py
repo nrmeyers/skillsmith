@@ -24,9 +24,9 @@ from watchdog.observers import Observer
 
 _log = logging.getLogger(__name__)
 
-TIER3_HARNESSES = frozenset({
-    "cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"
-})
+TIER3_HARNESSES = frozenset(
+    {"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"}
+)
 
 
 @dataclass
@@ -76,8 +76,15 @@ def _compose_from_contract(contract_path: Path) -> str:
         st = install_state.load_state()
         port = st.get("port", 47950)
         result = subprocess.run(
-            ["skillsmith", "compose", "--contract", str(contract_path), "--inject",
-             "--port", str(port)],
+            [
+                "skillsmith",
+                "compose",
+                "--contract",
+                str(contract_path),
+                "--inject",
+                "--port",
+                str(port),
+            ],
             capture_output=True,
             text=True,
             timeout=30,
@@ -196,7 +203,9 @@ def run_watcher(config: WatchConfig) -> None:
     observer = Observer()
     observer.schedule(handler, str(watch_path), recursive=True)
     observer.start()
-    _log.info("Watching %s for harness=%s profile=%s", watch_path, config.harness, config.profile_name)
+    _log.info(
+        "Watching %s for harness=%s profile=%s", watch_path, config.harness, config.profile_name
+    )
 
     stop_event = threading.Event()
 

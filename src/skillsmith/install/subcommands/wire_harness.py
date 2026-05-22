@@ -512,7 +512,9 @@ def wire_harness(
         files_written.extend(_wire_aider_conf(root))
 
     # For Tier 3 harnesses, write watcher config and print guidance
-    _tier3_harnesses = frozenset({"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"})
+    _tier3_harnesses = frozenset(
+        {"cursor", "windsurf", "github-copilot", "cline", "gemini-cli", "aider"}
+    )
     if harness in _tier3_harnesses:
         _wire_tier3_watcher_config(harness, root)
 
@@ -573,9 +575,7 @@ _HOOK_COMMAND_TEMPLATE = (
     "SKILLSMITH_HOOK_EVENT={event} SKILLSMITH_TOOL_NAME=$CLAUDE_TOOL_NAME "
     "SKILLSMITH_TOOL_PATH=$CLAUDE_TOOL_PATH bash {hook_path}"
 )
-_HOOK_COMMAND_UPS = (
-    "SKILLSMITH_HOOK_EVENT=UserPromptSubmit bash {hook_path}"
-)
+_HOOK_COMMAND_UPS = "SKILLSMITH_HOOK_EVENT=UserPromptSubmit bash {hook_path}"
 
 
 def _resolve_hook_path() -> str:
@@ -590,8 +590,12 @@ def _resolve_hook_path() -> str:
     import skillsmith
 
     candidates = [
-        Path(skillsmith.__file__).resolve().parent.parent.parent.parent / "tools" / "skillsmith-signal.sh",
-        Path(__file__).resolve().parent.parent.parent.parent.parent / "tools" / "skillsmith-signal.sh",
+        Path(skillsmith.__file__).resolve().parent.parent.parent.parent
+        / "tools"
+        / "skillsmith-signal.sh",
+        Path(__file__).resolve().parent.parent.parent.parent.parent
+        / "tools"
+        / "skillsmith-signal.sh",
     ]
     for src in candidates:
         if src.exists():
@@ -628,11 +632,13 @@ def _wire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
     ups_hooks = hooks.setdefault("UserPromptSubmit", [])
     # Remove any existing skillsmith entry before re-adding
     ups_hooks[:] = [h for h in ups_hooks if _SKILLSMITH_HOOKS_MARKER not in str(h)]
-    ups_hooks.append({
-        "matcher": "",
-        "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
-        "hooks": [{"type": "command", "command": ups_cmd}],
-    })
+    ups_hooks.append(
+        {
+            "matcher": "",
+            "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
+            "hooks": [{"type": "command", "command": ups_cmd}],
+        }
+    )
 
     # PostToolUse
     ptu_cmd = (
@@ -642,24 +648,27 @@ def _wire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
     )
     ptu_hooks = hooks.setdefault("PostToolUse", [])
     ptu_hooks[:] = [h for h in ptu_hooks if _SKILLSMITH_HOOKS_MARKER not in str(h)]
-    ptu_hooks.append({
-        "matcher": "Edit|Write|MultiEdit",
-        "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
-        "hooks": [{"type": "command", "command": ptu_cmd}],
-    })
+    ptu_hooks.append(
+        {
+            "matcher": "Edit|Write|MultiEdit",
+            "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
+            "hooks": [{"type": "command", "command": ptu_cmd}],
+        }
+    )
 
     # PreToolUse
     pretool_cmd = (
-        f"SKILLSMITH_HOOK_EVENT=PreToolUse "
-        f"SKILLSMITH_TOOL_NAME=$TOOL_NAME bash {hook_path}"
+        f"SKILLSMITH_HOOK_EVENT=PreToolUse SKILLSMITH_TOOL_NAME=$TOOL_NAME bash {hook_path}"
     )
     pretool_hooks = hooks.setdefault("PreToolUse", [])
     pretool_hooks[:] = [h for h in pretool_hooks if _SKILLSMITH_HOOKS_MARKER not in str(h)]
-    pretool_hooks.append({
-        "matcher": ".*",
-        "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
-        "hooks": [{"type": "command", "command": pretool_cmd}],
-    })
+    pretool_hooks.append(
+        {
+            "matcher": ".*",
+            "_skillsmith": _SKILLSMITH_HOOKS_MARKER,
+            "hooks": [{"type": "command", "command": pretool_cmd}],
+        }
+    )
 
     serialized = json.dumps(config, indent=2) + "\n"
     install_state._atomic_write(settings_path, serialized)  # pyright: ignore[reportPrivateUsage]

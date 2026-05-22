@@ -190,13 +190,20 @@ def test_hook_routing_ups_calls_evaluate_phase(tmp_path: Path):
     """SKILLSMITH_HOOK_EVENT=UserPromptSubmit routes to evaluate-phase."""
     _write_phase(tmp_path, "build")
 
-    with patch("skillsmith.install.subcommands.signal._evaluate_phase", return_value=0) as mock_ep, \
-         patch("skillsmith.install.subcommands.signal._load_workflow_skill_for_phase", return_value=None):
+    with (
+        patch("skillsmith.install.subcommands.signal._evaluate_phase", return_value=0) as mock_ep,
+        patch(
+            "skillsmith.install.subcommands.signal._load_workflow_skill_for_phase",
+            return_value=None,
+        ),
+    ):
         import argparse
 
         from skillsmith.install.subcommands.signal import _dispatch
 
-        args = argparse.Namespace(signal_cmd="evaluate-phase", prompt_file=None, tool=None, tool_path=None)
+        args = argparse.Namespace(
+            signal_cmd="evaluate-phase", prompt_file=None, tool=None, tool_path=None
+        )
         rc = _dispatch(args)
 
     assert rc == 0

@@ -77,6 +77,7 @@ def test_retrieval_uses_contract_tags_as_bm25(tmp_path: Path, monkeypatch: pytes
 
     source, lm, vector_store = _make_mock_retrieval_env()
     bm25_calls: list[str] = []
+
     def capture_bm25(query: str, **kwargs: Any):
         bm25_calls.append(query)
         return []
@@ -84,7 +85,9 @@ def test_retrieval_uses_contract_tags_as_bm25(tmp_path: Path, monkeypatch: pytes
     vector_store.search_bm25.side_effect = capture_bm25
 
     result = retrieve_domain_candidates(
-        source, lm, vector_store,
+        source,
+        lm,
+        vector_store,
         task="add auth middleware",
         phase="build",
         domain_tags=None,
@@ -112,7 +115,9 @@ def test_retrieval_falls_back_to_rules_when_no_contract():
     vector_store.search_bm25.side_effect = capture_bm25
 
     result = retrieve_domain_candidates(
-        source, lm, vector_store,
+        source,
+        lm,
+        vector_store,
         task="add auth middleware to NestJS",
         phase="build",
         domain_tags=None,
@@ -138,7 +143,9 @@ def test_retrieval_union_when_env_var_set(monkeypatch: pytest.MonkeyPatch):
     vector_store.search_bm25.side_effect = capture_bm25
 
     result = retrieve_domain_candidates(
-        source, lm, vector_store,
+        source,
+        lm,
+        vector_store,
         task="add auth middleware",
         phase="build",
         domain_tags=None,
