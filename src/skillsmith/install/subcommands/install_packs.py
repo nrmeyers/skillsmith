@@ -335,11 +335,12 @@ def _prompt_for_packs(
     Mirrors the setup wizard's pack picker (``simple_setup._prompt_for_packs``)
     so re-running install-packs feels identical to first-time setup. Accepts
     pack names, tier names (case-insensitive display label or internal key),
-    numeric indices, or ``all`` / ``defaults`` / blank for always-on only.
+    or ``all`` / ``defaults`` / blank for always-on only.
 
     Packs that were recorded in a prior install are annotated ``[installed]``.
-    Selecting them again is a no-op (ingest skips duplicates via exit 4),
-    but the marker prevents the user from guessing.
+    Selecting them again is a no-op: ``install_local_pack`` reports an
+    ``already_installed`` action when every skill in the pack is already
+    in the corpus. The marker just spares the user from guessing.
     """
     if not available:
         return []
@@ -392,8 +393,7 @@ def _prompt_for_packs(
         )
         print(f"    {', '.join(visible_tiers)}", file=sys.stderr)
     print(
-        "\n  Enter pack/tier names or numbers (comma-separated), 'all', "
-        "or blank for always-on only.",
+        "\n  Enter pack or tier names (comma-separated), 'all', or blank for always-on only.",
         file=sys.stderr,
     )
 

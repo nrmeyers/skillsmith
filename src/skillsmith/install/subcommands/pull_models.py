@@ -77,7 +77,7 @@ def _ollama_daemon_running(timeout: float = 1.0) -> bool:
         return False
 
 
-def _ensure_ollama_running(quiet: bool = False) -> tuple[bool, str | None]:
+def _ensure_ollama_running() -> tuple[bool, str | None]:
     """Probe the Ollama daemon; spawn ``ollama serve`` if down.
 
     Returns ``(ok, error)``. ``ok`` is True when the daemon is reachable
@@ -86,7 +86,10 @@ def _ensure_ollama_running(quiet: bool = False) -> tuple[bool, str | None]:
     not on PATH, or the daemon didn't come up within the deadline.
 
     Mirrors ``start_embed_server._start_ollama`` so behavior is
-    consistent across the install pipeline.
+    consistent across the install pipeline. The status line on spawn
+    is always printed (a single line per install run) — pull_models'
+    ``quiet`` mode applies to the structured JSON output, not transient
+    progress notes.
     """
     if _ollama_daemon_running():
         return True, None
@@ -98,8 +101,7 @@ def _ensure_ollama_running(quiet: bool = False) -> tuple[bool, str | None]:
             "https://ollama.com/download and re-run setup."
         )
 
-    if not quiet:
-        print("  ollama daemon not running; starting it now ...", file=sys.stderr)
+    print("  ollama daemon not running; starting it now ...", file=sys.stderr)
 
     # Spawn `ollama serve` detached so it survives this process. ollama is
     # already-running-tolerant — a second `serve` just exits.
@@ -107,7 +109,7 @@ def _ensure_ollama_running(quiet: bool = False) -> tuple[bool, str | None]:
     log_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         with log_path.open("ab") as log_fh:
-            subprocess.Popen(  # noqa: S603 — binary path is from shutil.which
+            proc = subprocess.Popen(  # noqa: S603 — binary path is from shutil.which
                 [binary, "serve"],
                 stdout=log_fh,
                 stderr=log_fh,
@@ -115,6 +117,16 @@ def _ensure_ollama_running(quiet: bool = False) -> tuple[bool, str | None]:
             )
     except OSError as exc:
         return False, f"failed to spawn `ollama serve`: {exc}"
+
+    # Record the spawned PID so `uninstall` can stop *this* ollama process
+    # (instead of `pkill -f` killing any ollama the user has running for
+    # other apps). Best-effort: a state-write failure must not block install.
+    try:
+        _st = install_state.load_state()
+        _st["spawned_ollama_pid"] = proc.pid
+        install_state.save_state(_st)
+    except Exception:  # noqa: BLE001
+        pass
 
     # Wait for the daemon to come up. 15s is generous for a local
     # spawn (ollama typically binds in under a second).

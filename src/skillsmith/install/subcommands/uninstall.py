@@ -236,36 +236,45 @@ def _remove_pulled_models(st: dict[str, Any]) -> list[dict[str, Any]]:
     return actions
 
 
-def _stop_ollama_daemon() -> dict[str, Any]:
-    """Best-effort stop of a manually-started ``ollama serve`` process.
+def _stop_ollama_daemon(st: dict[str, Any]) -> dict[str, Any]:
+    """Stop the specific ``ollama serve`` process that pull-models spawned.
 
-    Native systemd ollama units are handled by ``_stop_native_service``.
-    This catches the case where pull-models auto-spawned ``ollama serve``
-    on first install. ``pkill`` is preferred because we don't track the
-    PID; failures are recorded but not fatal.
+    Only acts on a PID recorded in ``state["spawned_ollama_pid"]``. Native
+    systemd ollama units are handled by ``_stop_native_service``. This
+    deliberately does **not** ``pkill -f "ollama serve"`` — that would
+    terminate any ollama the user runs for other apps, which is rude.
+    If we never recorded a PID (no auto-spawn happened on this install)
+    the call is a no-op.
     """
-    pkill = shutil.which("pkill")
-    if not pkill:
-        return {"action": "skipped_no_pkill"}
+    import os as _os
+    import signal as _signal
+
+    pid_raw = st.get("spawned_ollama_pid")
+    if not isinstance(pid_raw, int) or pid_raw <= 0:
+        return {"action": "skipped_no_spawned_pid"}
+
+    # Verify the PID is still an ollama process before signalling. PIDs are
+    # recycled by the kernel; if /proc/<pid> now belongs to someone else,
+    # we MUST NOT kill it. /proc is Linux-only; on macOS we fall through
+    # to the kill attempt and trust the user's session ownership.
     try:
-        result = subprocess.run(  # noqa: S603 — pkill from shutil.which
-            [pkill, "-f", "ollama serve"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
-    except (subprocess.TimeoutExpired, OSError) as exc:
-        return {"action": "pkill_error", "error": str(exc)}
-    # pkill exits 1 when nothing matched — that's a no-op, not a failure.
-    if result.returncode in (0, 1):
-        return {
-            "action": "ollama_daemon_stopped" if result.returncode == 0 else "no_ollama_running",
-        }
-    return {
-        "action": "pkill_unexpected_exit",
-        "exit_code": result.returncode,
-        "stderr": result.stderr.strip(),
-    }
+        with open(f"/proc/{pid_raw}/cmdline", "rb") as f:
+            cmdline = f.read()
+        if b"ollama" not in cmdline:
+            return {"action": "skipped_pid_recycled", "pid": pid_raw}
+    except FileNotFoundError:
+        return {"action": "already_stopped", "pid": pid_raw}
+    except OSError:
+        # /proc not available (e.g. macOS) — proceed to kill attempt.
+        pass
+
+    try:
+        _os.kill(pid_raw, _signal.SIGTERM)
+    except ProcessLookupError:
+        return {"action": "already_stopped", "pid": pid_raw}
+    except OSError as exc:
+        return {"action": "kill_failed", "pid": pid_raw, "error": str(exc)}
+    return {"action": "ollama_daemon_stopped", "pid": pid_raw}
 
 
 def _extract_sentinel_content(text: str, begin: str, end: str) -> str | None:
@@ -431,10 +440,10 @@ def uninstall(
     # is the cwd-derived `root` (or the known per-tool user config dirs).
     # An entry whose recorded `repo_root` doesn't match cwd is skipped at
     # this invocation; the user can `cd` into that repo to clean it up.
-    # When remove_wiring=False the entire loop is skipped — used by
-    # "Keep data, just unwire" presets where the caller wants only data
-    # untouched but still expects sentinels gone, OR by future composers
-    # that want to leave sentinels alone.
+    # When remove_wiring=False this loop (and the MCP/aider cleanup
+    # blocks below) is skipped entirely — sentinels and MCP entries
+    # stay in place. Used by Custom uninstall presets where the user
+    # answered "no" to "remove harness wiring".
     home = Path.home()
     allowed_user_prefixes = (
         home / ".claude",
@@ -768,7 +777,7 @@ def uninstall(
     # one even when no native unit was installed). Native ollama units
     # have already been handled inside _stop_native_service above.
     if stop_services:
-        daemon_actions.append(_stop_ollama_daemon())
+        daemon_actions.append(_stop_ollama_daemon(st))
 
     # 6c. Remove pulled models from runner caches. Independent of
     # stop_services — you may want models gone but services left running
@@ -874,11 +883,14 @@ def add_parser(
 def _run(args: argparse.Namespace) -> int:
     """Translate CLI args + (optionally) interactive prompts into uninstall kwargs.
 
-    Priority:
-      1. ``--yes`` (no prompts; use legacy flag mapping for back-compat).
-      2. ``--preset`` (skip menu, apply that preset's mapping).
-      3. Non-TTY (no stdin): same as ``--yes`` — refuse to wedge on input.
-      4. Interactive: show preset menu, drill into custom if chosen.
+    Priority (most specific wins):
+      1. ``--preset X`` — apply that preset's mapping (skips menu and ignores
+         ``--yes``'s legacy mapping; explicit preset is the strongest intent).
+      2. ``--yes`` (no preset) — skip prompts, use legacy flag mapping for
+         back-compat with scripted/CI invocations.
+      3. Non-TTY (no stdin, no preset, no --yes) — same as ``--yes`` to
+         avoid wedging on missing input.
+      4. Interactive TTY — show preset menu, drill into custom if chosen.
     """
     is_tty = sys.stdin.isatty()
     use_prompt = not (args.yes or args.preset or not is_tty)

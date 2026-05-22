@@ -751,3 +751,52 @@ class TestPresetMapping:
         assert captured["remove_user_state"] is True
         assert captured["remove_env"] is True
         assert captured["remove_wiring"] is True
+
+
+class TestStopOllamaDaemon:
+    """``_stop_ollama_daemon`` must only kill the PID we spawned — never
+    a stray ollama the user runs for other apps."""
+
+    def test_no_spawned_pid_is_noop(self) -> None:
+        from skillsmith.install.subcommands.uninstall import _stop_ollama_daemon
+
+        # State without ``spawned_ollama_pid`` (typical: user installed
+        # ollama themselves and started it manually, we never spawned).
+        result = _stop_ollama_daemon({})
+        assert result["action"] == "skipped_no_spawned_pid"
+
+    def test_invalid_pid_is_noop(self) -> None:
+        from skillsmith.install.subcommands.uninstall import _stop_ollama_daemon
+
+        # Defensive: garbage type in state must not crash.
+        result = _stop_ollama_daemon({"spawned_ollama_pid": "not-an-int"})
+        assert result["action"] == "skipped_no_spawned_pid"
+
+    def test_dead_pid_reports_already_stopped(self) -> None:
+        from unittest.mock import mock_open, patch
+
+        from skillsmith.install.subcommands.uninstall import _stop_ollama_daemon
+
+        # /proc/<pid>/cmdline exists but doesn't mention ollama → PID was recycled.
+        with patch("builtins.open", mock_open(read_data=b"some-other-process\x00")):
+            result = _stop_ollama_daemon({"spawned_ollama_pid": 99999})
+        assert result["action"] == "skipped_pid_recycled"
+
+    def test_alive_ollama_pid_gets_sigterm(self) -> None:
+        from unittest.mock import mock_open, patch
+
+        from skillsmith.install.subcommands.uninstall import _stop_ollama_daemon
+
+        sent: dict[str, object] = {}
+
+        def fake_kill(pid: int, sig: int) -> None:
+            sent["pid"] = pid
+            sent["sig"] = sig
+
+        with (
+            patch("builtins.open", mock_open(read_data=b"/usr/bin/ollama\x00serve\x00")),
+            patch("os.kill", side_effect=fake_kill),
+        ):
+            result = _stop_ollama_daemon({"spawned_ollama_pid": 12345})
+        assert result["action"] == "ollama_daemon_stopped"
+        assert sent["pid"] == 12345
