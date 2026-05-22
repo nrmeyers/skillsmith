@@ -824,8 +824,6 @@ def test_setup_explicit_runner_ollama_is_preserved():
     """B3: Explicit --runner ollama is preserved through argparse -> _run_from_args bridging."""
     import argparse
 
-    from skillsmith.install.subcommands.simple_setup import _run_from_args  # type: ignore[attr-defined]
-
     captured: list[Any] = []
 
     import unittest.mock as mock
