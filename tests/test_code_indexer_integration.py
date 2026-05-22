@@ -100,12 +100,14 @@ def test_query_params_falls_back_to_dir_name(tmp_path: Path):
 
 def test_state_json_records_code_indexer_presence(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     from skillsmith.install import state as install_state
-    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
+    from skillsmith.install.subcommands.wire_harness import (
+        _probe_code_indexer,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with patch("urllib.request.urlopen") as mock_urlopen:
         mock_resp = MagicMock()
         mock_resp.status = 200
-        mock_resp.__enter__ = lambda s: s
+        mock_resp.__enter__ = lambda s: s  # pyright: ignore[reportUnknownLambdaType]
         mock_resp.__exit__ = MagicMock(return_value=False)
         mock_urlopen.return_value = mock_resp
 
@@ -119,7 +121,9 @@ def test_state_json_records_code_indexer_presence(tmp_path: Path, monkeypatch: p
 
 def test_state_json_records_unreachable(tmp_path: Path):
     from skillsmith.install import state as install_state
-    from skillsmith.install.subcommands.wire_harness import _probe_code_indexer
+    from skillsmith.install.subcommands.wire_harness import (
+        _probe_code_indexer,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with patch("urllib.request.urlopen", side_effect=OSError("refused")):
         _probe_code_indexer(tmp_path)
@@ -153,7 +157,7 @@ def test_hook_skips_code_indexer_when_unreachable(tmp_path: Path, monkeypatch: p
         args = argparse.Namespace(path=str(contract_path))
         sys.stdout = captured
         try:
-            rc = sig._code_indexer_from_contract(args)
+            rc = sig._code_indexer_from_contract(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
 

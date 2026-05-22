@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -31,8 +32,8 @@ NOT_MET = PredicateResult.NOT_MET
 UNKNOWN = PredicateResult.UNKNOWN
 
 
-def _ctx(tmp_path: Path, **kwargs) -> PredicateContext:
-    defaults = dict(project_root=tmp_path, current_phase="build")
+def _ctx(tmp_path: Path, **kwargs: Any) -> PredicateContext:
+    defaults: dict[str, Any] = dict(project_root=tmp_path, current_phase="build")
     defaults.update(kwargs)
     return PredicateContext(**defaults)
 
@@ -228,10 +229,10 @@ def test_git_state_caching(tmp_path: Path):
     call_count = [0]
     orig = subprocess.run
 
-    def patched_run(*a, **kw):
+    def patched_run(*a: Any, **kw: Any) -> Any:
         if "git" in str(a[0]):
             call_count[0] += 1
-        return orig(*a, **kw)
+        return orig(*a, **kw)  # pyright: ignore[reportUnknownVariableType]
 
     with patch("skillsmith.signals.predicates.subprocess.run", side_effect=patched_run):
         eval_git_state({"has_staged": False}, ctx)

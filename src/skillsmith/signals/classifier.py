@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import logging
 import math
-from typing import TYPE_CHECKING
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from skillsmith.signals.predicates import PredicateContext, PredicateResult
 
@@ -106,7 +107,7 @@ def _topic_similarity(
 
 
 def eval_user_intent_matches(
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient,
     model: str,
@@ -120,7 +121,7 @@ def eval_user_intent_matches(
 
 
 def eval_agent_intent_matches(
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient,
     model: str,
@@ -134,7 +135,7 @@ def eval_agent_intent_matches(
 
 
 def eval_artifact_completeness(
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient,
     model: str,
@@ -145,7 +146,7 @@ def eval_artifact_completeness(
 
 
 def eval_prompt_topic_matches(
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient,
     model: str,
@@ -157,7 +158,13 @@ def eval_prompt_topic_matches(
     return _topic_similarity(text, topics, lm_client, model)
 
 
-SEMANTIC_PREDICATES = {
+SEMANTIC_PREDICATES: dict[
+    str,
+    Callable[
+        [dict[str, Any], PredicateContext, OpenAICompatClient, str],
+        PredicateResult,
+    ],
+] = {
     "user_intent_matches": eval_user_intent_matches,
     "agent_intent_matches": eval_agent_intent_matches,
     "artifact_completeness": eval_artifact_completeness,

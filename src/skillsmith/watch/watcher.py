@@ -15,6 +15,7 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, cast
 
 from watchdog.events import (
     FileSystemEvent,
@@ -58,7 +59,9 @@ def _load_watch_config(config_path: Path) -> WatchConfig | None:
 def _load_workflow_skill_prose(phase: str, profile_name: str) -> str:
     """Load raw_prose for the workflow skill matching the given phase."""
     try:
-        from skillsmith.install.subcommands.signal import _load_workflow_skill_for_phase
+        from skillsmith.install.subcommands.signal import (
+            _load_workflow_skill_for_phase,  # pyright: ignore[reportPrivateUsage]
+        )
 
         skill = _load_workflow_skill_for_phase(phase)
         if skill:
@@ -142,8 +145,14 @@ class _SkillsmithHandler(FileSystemEventHandler):
             try:
                 import yaml
 
-                data = yaml.safe_load(phase_file.read_text()) or {}
-                phase = data.get("phase") if isinstance(data, dict) else str(data).strip()
+                raw_data: Any = yaml.safe_load(phase_file.read_text()) or {}
+                phase: str | None = None
+                if isinstance(raw_data, dict):
+                    data: dict[str, Any] = cast(dict[str, Any], raw_data)
+                    phase_val = data.get("phase")
+                    phase = str(phase_val) if phase_val else None
+                else:
+                    phase = str(raw_data).strip() or None
                 if phase:
                     prose = _load_workflow_skill_prose(phase, self._config.profile_name)
                     if prose:

@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from skillsmith.signals.predicates import PredicateContext
 
@@ -22,12 +22,14 @@ def _extract_gate_paths(gate_spec: Any) -> list[str]:
     """Walk gate_spec recursively and collect all `path` glob values."""
     paths: list[str] = []
     if isinstance(gate_spec, dict):
-        if "path" in gate_spec:
-            paths.append(gate_spec["path"])
-        for v in gate_spec.values():
+        gate_d: dict[str, Any] = cast(dict[str, Any], gate_spec)
+        if "path" in gate_d:
+            paths.append(str(gate_d["path"]))
+        for v in gate_d.values():
             paths.extend(_extract_gate_paths(v))
     elif isinstance(gate_spec, list):
-        for item in gate_spec:
+        gate_l: list[Any] = cast(list[Any], gate_spec)
+        for item in gate_l:
             paths.extend(_extract_gate_paths(item))
     return paths
 
@@ -36,13 +38,15 @@ def _extract_gate_tools(gate_spec: Any) -> list[str]:
     """Walk gate_spec recursively and collect all `tools` list values."""
     tools: list[str] = []
     if isinstance(gate_spec, dict):
-        if "tools" in gate_spec and isinstance(gate_spec["tools"], list):
-            tools.extend(gate_spec["tools"])
-        for k, v in gate_spec.items():
+        gate_d: dict[str, Any] = cast(dict[str, Any], gate_spec)
+        if "tools" in gate_d and isinstance(gate_d["tools"], list):
+            tools.extend(cast(list[str], gate_d["tools"]))
+        for k, v in gate_d.items():
             if k != "tools":
                 tools.extend(_extract_gate_tools(v))
     elif isinstance(gate_spec, list):
-        for item in gate_spec:
+        gate_l: list[Any] = cast(list[Any], gate_spec)
+        for item in gate_l:
             tools.extend(_extract_gate_tools(item))
     return tools
 

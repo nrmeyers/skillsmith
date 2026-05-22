@@ -101,8 +101,8 @@ class CompositionTrace:
     # Signal-layer fields
     event_type: str = "compose"  # "compose" | "phase_eval" | "phase_transition" | "system_skill_applied" | "contract_retrieval"
     pre_filter_matched: str | None = None
-    gates_met: list[str] = field(default_factory=list)
-    gates_unmet: list[str] = field(default_factory=list)
+    gates_met: list[str] = field(default_factory=lambda: list[str]())
+    gates_unmet: list[str] = field(default_factory=lambda: list[str]())
     qwen_calls: int = 0
 
 

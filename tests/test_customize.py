@@ -50,7 +50,9 @@ def _make_skill_yaml(
 
 
 def test_validate_rejects_domain_skill():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="domain")
     errors = _validate_skill_data(data, "some-domain-skill")
@@ -58,7 +60,9 @@ def test_validate_rejects_domain_skill():
 
 
 def test_validate_rejects_short_prose():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="system", raw_prose="short")
     errors = _validate_skill_data(data, "myskill")
@@ -66,7 +70,9 @@ def test_validate_rejects_short_prose():
 
 
 def test_validate_workflow_missing_exit_gates():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="workflow")
     del data["exit_gates"]
@@ -75,7 +81,9 @@ def test_validate_workflow_missing_exit_gates():
 
 
 def test_validate_workflow_missing_applies_to_phases():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="workflow")
     del data["applies_to_phases"]
@@ -84,7 +92,9 @@ def test_validate_workflow_missing_applies_to_phases():
 
 
 def test_validate_system_missing_applies_when():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="system")
     del data["applies_when"]
@@ -93,7 +103,9 @@ def test_validate_system_missing_applies_when():
 
 
 def test_validate_valid_system_skill():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="system")
     errors = _validate_skill_data(data, "sys-skill")
@@ -101,7 +113,9 @@ def test_validate_valid_system_skill():
 
 
 def test_validate_valid_workflow_skill():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     data = _make_skill_yaml(skill_class="workflow")
     errors = _validate_skill_data(data, "wf-skill")
@@ -114,7 +128,10 @@ def test_validate_valid_workflow_skill():
 
 
 def test_customize_update_ingests_into_profile(profiles_tmp: Path, tmp_path: Path):
-    from skillsmith.install.subcommands.customize import _ingest_skill, _skill_in_store
+    from skillsmith.install.subcommands.customize import (
+        _ingest_skill,  # pyright: ignore[reportPrivateUsage]
+        _skill_in_store,  # pyright: ignore[reportPrivateUsage]
+    )
     from skillsmith.profiles import init_profile
 
     init_profile("testprofile")
@@ -127,9 +144,9 @@ def test_customize_update_ingests_into_profile(profiles_tmp: Path, tmp_path: Pat
 
 def test_customize_update_reverts_to_inherited(profiles_tmp: Path, tmp_path: Path):
     from skillsmith.install.subcommands.customize import (
-        _delete_from_store,
-        _ingest_skill,
-        _skill_in_store,
+        _delete_from_store,  # pyright: ignore[reportPrivateUsage]
+        _ingest_skill,  # pyright: ignore[reportPrivateUsage]
+        _skill_in_store,  # pyright: ignore[reportPrivateUsage]
     )
     from skillsmith.profiles import init_profile
 
@@ -153,7 +170,9 @@ def test_customize_validate_rejects_domain(
     """validate subcommand returns error for domain-class skill."""
     import argparse
 
-    from skillsmith.install.subcommands.customize import _validate_skill
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill,  # pyright: ignore[reportPrivateUsage]
+    )
 
     skill_file = tmp_path / "domain-skill.yaml"
     data = {
@@ -169,7 +188,7 @@ def test_customize_validate_rejects_domain(
     monkeypatch.setattr(
         cmod,
         "_resolve_skill_layers",
-        lambda name, profile_name, **kw: {
+        lambda name, profile_name, **kw: {  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
             "project": None,
             "profile": None,
             "default": skill_file,
@@ -178,7 +197,7 @@ def test_customize_validate_rejects_domain(
             "skill_class": "domain",
         },
     )
-    monkeypatch.setattr(cmod, "_active_layer", lambda layers: ("default", skill_file))
+    monkeypatch.setattr(cmod, "_active_layer", lambda layers: ("default", skill_file))  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
 
     args = argparse.Namespace(name="domain-skill", profile=None, project=False)
     rc = _validate_skill(args)
@@ -196,7 +215,9 @@ def test_customize_list_has_layer_field(profiles_tmp: Path):
     import json
     import sys
 
-    from skillsmith.install.subcommands.customize import _list_skills
+    from skillsmith.install.subcommands.customize import (
+        _list_skills,  # pyright: ignore[reportPrivateUsage]
+    )
 
     args = argparse.Namespace(profile=None, human=False)
     captured = io.StringIO()

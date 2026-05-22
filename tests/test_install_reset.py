@@ -36,7 +36,7 @@ def test_reset_requires_confirmation(profiles_tmp: Path, monkeypatch: pytest.Mon
 
     init_profile("testprofile")
     monkeypatch.setattr("sys.stdin.isatty", lambda: True)
-    monkeypatch.setattr("builtins.input", lambda _: "no")
+    monkeypatch.setattr("builtins.input", lambda _: "no")  # pyright: ignore[reportUnknownLambdaType, reportUnknownArgumentType]
 
     result = reset(profile="testprofile", yes=False)
     assert result.get("cancelled")

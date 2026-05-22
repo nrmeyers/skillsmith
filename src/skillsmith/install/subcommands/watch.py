@@ -118,6 +118,7 @@ def _stop(args: argparse.Namespace) -> int:
     if not _is_running(pid):
         print(f"No running watcher for profile={profile}")
         return 0
+    assert pid is not None  # _is_running returned True only when pid is not None
     try:
         os.kill(pid, signal.SIGTERM)
         print(f"Sent SIGTERM to watcher pid={pid}")
@@ -150,21 +151,23 @@ def _status(args: argparse.Namespace) -> int:
     return 0
 
 
-def add_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
-    p = subparsers.add_parser(
+def add_parser(
+    subparsers: argparse._SubParsersAction[argparse.ArgumentParser],  # pyright: ignore[reportPrivateUsage]
+) -> None:
+    p: argparse.ArgumentParser = subparsers.add_parser(
         "watch",
         help="Tier 3 file-watching sidecar — regenerates harness rules files on phase/contract changes",
     )
-    sub = p.add_subparsers(dest="watch_cmd")
+    sub: argparse._SubParsersAction[argparse.ArgumentParser] = p.add_subparsers(dest="watch_cmd")  # pyright: ignore[reportPrivateUsage]
 
-    start = sub.add_parser("start", help="Start the watcher (foreground)")
+    start: argparse.ArgumentParser = sub.add_parser("start", help="Start the watcher (foreground)")
     start.add_argument("--harness", default=None, help="Tier 3 harness name")
     start.add_argument("--profile", default=None, help="Profile name (default: default)")
 
-    stop = sub.add_parser("stop", help="Stop the running watcher")
+    stop: argparse.ArgumentParser = sub.add_parser("stop", help="Stop the running watcher")
     stop.add_argument("--profile", default=None)
 
-    status = sub.add_parser("status", help="Report watcher state")
+    status: argparse.ArgumentParser = sub.add_parser("status", help="Report watcher state")
     status.add_argument("--profile", default=None)
 
     p.set_defaults(func=_dispatch)

@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 from pathlib import Path
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -72,7 +73,7 @@ def test_evaluate_phase_no_prefilter_match_exit_0(tmp_path: Path, monkeypatch: p
         captured = io.StringIO()
         sys.stdout = captured
         try:
-            rc = sig._evaluate_phase(args)
+            rc = sig._evaluate_phase(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
 
@@ -104,7 +105,7 @@ def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
         "exit_gates": {"artifact_exists": {"path": "spec.md"}},
         "signal_keywords": ["done", "ready"],
     }
-    next_skill = {
+    next_skill: dict[str, Any] = {
         "skill_id": "sdd-design",
         "raw_prose": "DESIGN WORKFLOW PROSE",
         "applies_to_phases": ["design"],
@@ -115,7 +116,7 @@ def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
     prompt_file = tmp_path / "prompt.txt"
     prompt_file.write_text("done, ready to move on")
 
-    def mock_load(phase):
+    def mock_load(phase: str) -> dict[str, Any]:
         return skill if phase == "spec" else next_skill
 
     import io
@@ -134,7 +135,7 @@ def test_evaluate_phase_transition_writes_workflow_skill_to_stdout(
         sys.stdout = captured_stdout
         sys.stderr = io.StringIO()
         try:
-            rc = sig._evaluate_phase(args)
+            rc = sig._evaluate_phase(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
@@ -178,7 +179,7 @@ def test_evaluate_system_emits_matching_skill_bodies(
             {"all_of": [{"tool_use_about_to_fire": {"tools": ["git commit"]}}]}
         )
         mock_con = MagicMock()
-        mock_con.__enter__ = lambda s: s
+        mock_con.__enter__ = lambda s: s  # pyright: ignore[reportUnknownLambdaType]
         mock_con.__exit__ = MagicMock(return_value=False)
         mock_con.execute.return_value.fetchall.return_value = [
             ("commit-safety", "COMMIT SAFETY PROSE", applies_when)
@@ -196,7 +197,7 @@ def test_evaluate_system_emits_matching_skill_bodies(
             args = argparse.Namespace(tool="git commit")
             sys.stdout = captured
             try:
-                rc = sig._evaluate_system(args)
+                rc = sig._evaluate_system(args)  # pyright: ignore[reportPrivateUsage]
             finally:
                 sys.stdout = sys.__stdout__
 
@@ -220,7 +221,7 @@ def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.Monk
 
     contract_path = tmp_path / ".skillsmith" / "contracts" / "build" / "task.md"
     contract_path.parent.mkdir(parents=True, exist_ok=True)
-    fm = {
+    fm: dict[str, Any] = {
         "phase": "build",
         "task_slug": "test-task",
         "domain_tags": ["NestJS"],
@@ -239,7 +240,7 @@ def test_watch_contract_invokes_compose(tmp_path: Path, monkeypatch: pytest.Monk
     ):
         mock_run.return_value = MagicMock(returncode=0)
         args = argparse.Namespace(path=str(contract_path))
-        rc = sig._watch_contract(args)
+        rc = sig._watch_contract(args)  # pyright: ignore[reportPrivateUsage]
 
     assert rc == 0
     mock_run.assert_called_once()
@@ -280,7 +281,7 @@ def test_evaluate_phase_emits_advisory_to_stdout(tmp_path: Path, monkeypatch: py
         },
         "signal_keywords": ["done"],
     }
-    next_skill = {
+    next_skill: dict[str, Any] = {
         "skill_id": "sdd-design",
         "raw_prose": "DESIGN PROSE",
         "applies_to_phases": ["design"],
@@ -291,7 +292,7 @@ def test_evaluate_phase_emits_advisory_to_stdout(tmp_path: Path, monkeypatch: py
     prompt_file = tmp_path / "prompt.txt"
     prompt_file.write_text("done")
 
-    def mock_load(phase):
+    def mock_load(phase: str) -> dict[str, Any]:
         return skill if phase == "spec" else next_skill
 
     import io
@@ -310,7 +311,7 @@ def test_evaluate_phase_emits_advisory_to_stdout(tmp_path: Path, monkeypatch: py
         sys.stdout = captured_stdout
         sys.stderr = io.StringIO()
         try:
-            rc = sig._evaluate_phase(args)
+            rc = sig._evaluate_phase(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
@@ -362,7 +363,7 @@ def test_evaluate_phase_lm_client_constructed_from_embed_url(
         sys.stdout = io.StringIO()
         sys.stderr = io.StringIO()
         try:
-            sig._evaluate_phase(args)
+            sig._evaluate_phase(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
@@ -390,7 +391,7 @@ def test_check_returns_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
         args = argparse.Namespace(json_out=True)
         sys.stdout = captured
         try:
-            rc = sig._check(args)
+            rc = sig._check(args)  # pyright: ignore[reportPrivateUsage]
         finally:
             sys.stdout = sys.__stdout__
 

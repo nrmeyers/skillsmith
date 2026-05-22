@@ -15,7 +15,7 @@ import yaml
 
 
 def _write_contract(path: Path, phase: str = "build", domain_tags: list[str] | None = None) -> Path:
-    fm = {
+    fm: dict[str, Any] = {
         "phase": phase,
         "task_slug": "test-task",
         "domain_tags": domain_tags or ["NestJS", "JWT"],
@@ -78,7 +78,7 @@ def test_retrieval_uses_contract_tags_as_bm25(tmp_path: Path, monkeypatch: pytes
     source, lm, vector_store = _make_mock_retrieval_env()
     bm25_calls: list[str] = []
 
-    def capture_bm25(query: str, **kwargs: Any):
+    def capture_bm25(query: str, **kwargs: Any) -> list[Any]:
         bm25_calls.append(query)
         return []
 
@@ -108,7 +108,7 @@ def test_retrieval_falls_back_to_rules_when_no_contract():
     source, lm, vector_store = _make_mock_retrieval_env()
     bm25_calls: list[str] = []
 
-    def capture_bm25(query: str, **kwargs: Any):
+    def capture_bm25(query: str, **kwargs: Any) -> list[Any]:
         bm25_calls.append(query)
         return []
 
@@ -136,7 +136,7 @@ def test_retrieval_union_when_env_var_set(monkeypatch: pytest.MonkeyPatch):
     source, lm, vector_store = _make_mock_retrieval_env()
     bm25_calls: list[str] = []
 
-    def capture_bm25(query: str, **kwargs: Any):
+    def capture_bm25(query: str, **kwargs: Any) -> list[Any]:
         bm25_calls.append(query)
         return []
 
@@ -166,9 +166,11 @@ def test_retrieval_union_when_env_var_set(monkeypatch: pytest.MonkeyPatch):
 
 
 def test_validate_workflow_requires_contract_template():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
-    data = {
+    data: dict[str, Any] = {
         "skill_id": "wf",
         "skill_class": "workflow",
         "raw_prose": "A" * 120,
@@ -181,9 +183,11 @@ def test_validate_workflow_requires_contract_template():
 
 
 def test_workflow_schema_accepts_phase2_minimal_gates():
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
-    data = {
+    data: dict[str, Any] = {
         "skill_id": "wf",
         "skill_class": "workflow",
         "raw_prose": "A" * 120,
@@ -200,12 +204,14 @@ def test_sdd_workflow_skills_pass_validation():
     import yaml as _yaml
 
     import skillsmith
-    from skillsmith.install.subcommands.customize import _validate_skill_data
+    from skillsmith.install.subcommands.customize import (
+        _validate_skill_data,  # pyright: ignore[reportPrivateUsage]
+    )
 
     packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
     failures: list[str] = []
     for f in sorted(packs_root.glob("sdd-*.yaml")):
-        data = _yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+        data: dict[str, Any] = _yaml.safe_load(f.read_text(encoding="utf-8")) or {}
         if data.get("skill_class") == "workflow":
             errors = _validate_skill_data(data, f.stem)
             if errors:

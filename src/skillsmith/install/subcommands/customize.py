@@ -25,9 +25,12 @@ import sys
 import tempfile
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 import yaml
+
+if TYPE_CHECKING:
+    from skillsmith.profiles import Profile
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -72,8 +75,8 @@ def _find_default_skill(name: str) -> Path | None:
 
 
 def _load_yaml(path: Path) -> dict[str, Any]:
-    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    return data  # type: ignore[return-value]
+    data: dict[str, Any] = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    return data
 
 
 def _project_skills_dir(cwd: Path | None = None) -> Path:
@@ -84,7 +87,7 @@ def _resolve_skill_layers(
     name: str,
     profile_name: str | None,
     cwd: Path | None = None,
-) -> dict[str, Path | None]:
+) -> dict[str, Any]:
     """Return paths at each layer for a given skill name.
 
     Returns dict with keys 'project', 'profile', 'default' — values are
@@ -213,12 +216,12 @@ def _ingest_skill(profile_name: str, data: dict[str, Any]) -> None:
     """Upsert a skill into the profile's DuckDB."""
     conn = _open_profile_store(profile_name)
     try:
-        skill_id = data.get("skill_id") or data.get("canonical_name", "unknown")
-        canonical_name = data.get("canonical_name") or str(skill_id)
-        skill_class = data.get("skill_class", "")
-        raw_prose = data.get("raw_prose", "")
-        domain_tags = data.get("domain_tags") or []
-        applies_to_phases = data.get("applies_to_phases") or []
+        skill_id: str = str(data.get("skill_id") or data.get("canonical_name", "unknown"))
+        canonical_name: str = str(data.get("canonical_name") or skill_id)
+        skill_class: str = str(data.get("skill_class", ""))
+        raw_prose: str = str(data.get("raw_prose", ""))
+        domain_tags: list[Any] = data.get("domain_tags") or []
+        applies_to_phases: list[Any] = data.get("applies_to_phases") or []
         applies_when = json.dumps(data["applies_when"]) if data.get("applies_when") else None
         exit_gates = json.dumps(data["exit_gates"]) if data.get("exit_gates") else None
         updated_at = int(time.time() * 1000)
@@ -341,8 +344,8 @@ def _edit_skill(args: argparse.Namespace) -> int:
     profile_name = getattr(args, "profile", None)
 
     layers = _resolve_skill_layers(name, profile_name)
-    profile = layers["active_profile"]
-    skill_class = layers["skill_class"]
+    profile: Profile = cast("Profile", layers["active_profile"])
+    skill_class: str | None = layers["skill_class"]
 
     if not skill_class:
         print(f"  [error] Skill '{name}' not found in default packs.", file=sys.stderr)
@@ -432,7 +435,7 @@ def _update_skill(args: argparse.Namespace) -> int:
 
     name: str = args.name
     layers = _resolve_skill_layers(name, profile_name)
-    profile = layers["active_profile"]
+    profile: Profile = cast("Profile", layers["active_profile"])
 
     # Validate first
     layer_name, path = _active_layer(layers)
@@ -592,8 +595,8 @@ def _reset_skill(args: argparse.Namespace) -> int:
     yes = getattr(args, "yes", False)
 
     layers = _resolve_skill_layers(name, profile_name)
-    profile = layers["active_profile"]
-    skill_class = layers["skill_class"]
+    profile: Profile = cast("Profile", layers["active_profile"])
+    skill_class: str | None = layers["skill_class"]
 
     if use_project:
         target = _project_skills_dir() / (skill_class or "system") / f"{name}.yaml"

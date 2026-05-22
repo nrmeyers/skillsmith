@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 from unittest.mock import patch
 
 import pytest
@@ -54,19 +55,25 @@ def test_tier3_interactive_code_path(tmp_path: Path):
     # Simulate: non_interactive=False, user answers 'n'
     prompt_calls: list[str] = []
 
-    def mock_prompt(label: str, *args, **kwargs):
+    def mock_prompt(label: str, *args: Any, **kwargs: Any) -> str:
         prompt_calls.append(label)
         return "n"
 
     # The Tier 3 check in run_setup calls _prompt_context
     # We verify the check function exists and is correct by calling it directly
+    rc = -1
     with (
         patch.object(ss, "_prompt_context", side_effect=mock_prompt),
         patch.object(ss, "_print", return_value=None),
     ):
         # Simulate what run_setup does for Tier 3 non-interactive=False
         if harness in _tier3:
-            ans = ss._prompt_context("  Continue with Tier 3? [y/n]", default="n")
+            ans = cast(
+                str,
+                ss._prompt_context(  # pyright: ignore[reportPrivateUsage,reportCallIssue]
+                    "  Continue with Tier 3? [y/n]", default="n"
+                ),
+            )
             if (ans or "n").strip().lower() != "y":
                 rc = 0  # cancelled
 
@@ -83,7 +90,9 @@ def test_tier3_wire_writes_watcher_config_via_watch_dir(tmp_path: Path):
     """_wire_tier3_watcher_config writes watch config to ~/.skillsmith/watch/."""
     import yaml
 
-    from skillsmith.install.subcommands.wire_harness import _wire_tier3_watcher_config
+    from skillsmith.install.subcommands.wire_harness import (
+        _wire_tier3_watcher_config,  # pyright: ignore[reportPrivateUsage]
+    )
 
     watch_dir = tmp_path / ".skillsmith" / "watch"
 

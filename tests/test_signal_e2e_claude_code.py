@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 from unittest.mock import patch
 
 import pytest
@@ -29,7 +30,7 @@ def _write_skill(root: Path, phase: str, signal_keywords: list[str] | None = Non
 
     packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
     for f in packs_root.glob("sdd-*.yaml"):
-        data = yaml.safe_load(f.read_text()) or {}
+        data: dict[str, Any] = yaml.safe_load(f.read_text()) or {}
         if phase in (data.get("applies_to_phases") or []):
             return  # already exists
 
@@ -85,7 +86,7 @@ def test_user_prompt_submit_no_match(tmp_path: Path, monkeypatch: pytest.MonkeyP
     prompt_file = tmp_path / "prompt.txt"
     prompt_file.write_text("Show me the current file structure.")
 
-    rc, stdout, stderr = _simulate_hook_event(
+    rc, stdout, _stderr = _simulate_hook_event(
         "UserPromptSubmit",
         prompt_file=str(prompt_file),
         cwd=tmp_path,
@@ -117,7 +118,7 @@ def test_user_prompt_submit_transition(tmp_path: Path, monkeypatch: pytest.Monke
     prompt_file = tmp_path / "prompt.txt"
     prompt_file.write_text("done with spec, ready to move to design")
 
-    rc, stdout, stderr = _simulate_hook_event(
+    rc, _stdout, _stderr = _simulate_hook_event(
         "UserPromptSubmit",
         prompt_file=str(prompt_file),
         cwd=tmp_path,
@@ -140,7 +141,7 @@ def test_post_tool_use_contract_write(tmp_path: Path):
     contract_dir.mkdir(parents=True)
     contract_path = contract_dir / "task.md"
 
-    fm = {
+    fm: dict[str, Any] = {
         "phase": "build",
         "task_slug": "test-task",
         "domain_tags": ["NestJS"],
@@ -152,7 +153,7 @@ def test_post_tool_use_contract_write(tmp_path: Path):
 
     # The watch-contract path calls skillsmith compose — mock subprocess.run to prevent
     # actual HTTP calls while verifying the event routing works
-    rc, stdout, stderr = _simulate_hook_event(
+    rc, _stdout, _stderr = _simulate_hook_event(
         "PostToolUse",
         tool_name="Write",
         tool_path=str(contract_path),
@@ -171,7 +172,7 @@ def test_pre_tool_use_no_system_skills(tmp_path: Path):
     """PreToolUse for a tool with no installed system skills exits 0 with no output."""
     _write_phase(tmp_path, "build")
 
-    rc, stdout, stderr = _simulate_hook_event(
+    rc, stdout, _stderr = _simulate_hook_event(
         "PreToolUse",
         tool_name="Read",
         cwd=tmp_path,
@@ -199,7 +200,9 @@ def test_hook_routing_ups_calls_evaluate_phase(tmp_path: Path):
     ):
         import argparse
 
-        from skillsmith.install.subcommands.signal import _dispatch
+        from skillsmith.install.subcommands.signal import (
+            _dispatch,  # pyright: ignore[reportPrivateUsage]
+        )
 
         args = argparse.Namespace(
             signal_cmd="evaluate-phase", prompt_file=None, tool=None, tool_path=None
@@ -214,7 +217,9 @@ def test_hook_routing_pretool_calls_evaluate_system(tmp_path: Path):
     """signal_cmd=evaluate-system routes to _evaluate_system."""
     import argparse
 
-    from skillsmith.install.subcommands.signal import _dispatch
+    from skillsmith.install.subcommands.signal import (
+        _dispatch,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with patch("skillsmith.install.subcommands.signal._evaluate_system", return_value=0) as mock_es:
         args = argparse.Namespace(signal_cmd="evaluate-system", tool="Bash")

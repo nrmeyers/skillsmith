@@ -9,8 +9,8 @@ import pytest
 
 from skillsmith.signals.classifier import (
     SEMANTIC_PREDICATES,
-    _cosine,
-    _intent_similarity,
+    _cosine,  # pyright: ignore[reportPrivateUsage]
+    _intent_similarity,  # pyright: ignore[reportPrivateUsage]
     eval_artifact_completeness,
     eval_prompt_topic_matches,
     eval_user_intent_matches,
@@ -39,11 +39,11 @@ def _mock_client(vecs: list[list[float]]) -> MagicMock:
 
 def test_cosine_identical_vectors():
     v = [1.0, 0.0, 0.0]
-    assert _cosine(v, v) == pytest.approx(1.0)
+    assert _cosine(v, v) == pytest.approx(1.0)  # pyright: ignore[reportUnknownMemberType]
 
 
 def test_cosine_orthogonal():
-    assert _cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)
+    assert _cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)  # pyright: ignore[reportUnknownMemberType]
 
 
 def test_cosine_zero_vector():

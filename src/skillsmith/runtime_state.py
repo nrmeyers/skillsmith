@@ -243,15 +243,19 @@ def load_profile_runtime_cache(profile_name: str) -> RuntimeCache:
 
     skills_by_id: dict[str, ActiveSkill] = {}
     for row in rows:
-        skill_id, skill_class, canonical_name, raw_prose = row
+        skill_id, skill_class, canonical_name, _raw_prose = row
         # ActiveSkill requires active_version_id — use skill_id as a stand-in.
-        skills_by_id[skill_id] = ActiveSkill(  # type: ignore[call-arg]
+        skills_by_id[str(skill_id)] = ActiveSkill(
             skill_id=str(skill_id),
             canonical_name=str(canonical_name),
             category="",
             skill_class=str(skill_class),  # type: ignore[arg-type]
+            domain_tags=[],
+            always_apply=False,
+            phase_scope=None,
+            category_scope=None,
             active_version_id=str(skill_id),
-            latest_version_number=1,
+            tier=None,
         )
 
     cache = RuntimeCache(

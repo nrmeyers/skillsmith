@@ -114,7 +114,7 @@ def test_nested_aggregates(tmp_path: Path):
         ]
     }
     qwen_calls: list[int] = [0]
-    result, evals = evaluate_node(spec, ctx, None, qwen_calls)
+    result, _evals = evaluate_node(spec, ctx, None, qwen_calls)
     assert result == MET
 
 

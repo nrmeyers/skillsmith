@@ -34,12 +34,16 @@ def _read_phase(project_root: Path) -> str | None:
     if not phase_file.exists():
         return None
     try:
+        from typing import cast as _cast
+
         import yaml as _yaml
 
-        data = _yaml.safe_load(phase_file.read_text(encoding="utf-8"))
-        if isinstance(data, dict):
-            return data.get("phase")
-        return str(data).strip() or None
+        raw = _yaml.safe_load(phase_file.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            data: dict[str, Any] = _cast(dict[str, Any], raw)
+            val = data.get("phase")
+            return str(val).strip() if val else None
+        return str(raw).strip() or None
     except Exception:
         return None
 
@@ -57,10 +61,10 @@ def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
     try:
         import duckdb
 
-        from skillsmith.profiles import detect_profile, domain_datastore_path
+        from skillsmith.profiles import detect_profile, profile_datastore_path
 
         profile = detect_profile(cwd=Path.cwd())
-        db_path = domain_datastore_path(profile.name if profile else "default")
+        db_path = profile_datastore_path(profile.name if profile else "default")
         if not db_path.exists():
             return None
         with duckdb.connect(str(db_path), read_only=True) as con:
@@ -75,15 +79,15 @@ def _load_workflow_skill_for_phase(phase: str) -> dict[str, Any] | None:
 
         for r in row:
             skill_id, raw_prose, applies_to_phases, exit_gates_raw, signal_keywords_raw = r
-            applies = applies_to_phases or []
+            applies: list[str] = list(applies_to_phases or [])
             if phase in applies:
-                exit_gates = {}
+                exit_gates: dict[str, Any] = {}
                 if exit_gates_raw:
                     import contextlib
 
                     with contextlib.suppress(Exception):
                         exit_gates = _json.loads(exit_gates_raw)
-                signal_keywords = signal_keywords_raw or []
+                signal_keywords: list[str] = list(signal_keywords_raw or [])
                 return {
                     "skill_id": skill_id,
                     "raw_prose": raw_prose,
@@ -105,7 +109,7 @@ def _load_workflow_skill_from_packs(phase: str) -> dict[str, Any] | None:
 
         packs_root = Path(skillsmith.__file__).resolve().parent / "_packs" / "sdd"
         for f in packs_root.glob("sdd-*.yaml"):
-            data = _yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+            data: dict[str, Any] = _yaml.safe_load(f.read_text(encoding="utf-8")) or {}
             if data.get("skill_class") == "workflow" and phase in (
                 data.get("applies_to_phases") or []
             ):
@@ -145,11 +149,10 @@ def _write_telemetry(record: dict[str, Any]) -> None:
         import time
         import uuid
 
-        from skillsmith.profiles import detect_profile, domain_datastore_path
+        from skillsmith.profiles import domain_datastore_path
         from skillsmith.storage.vector_store import CompositionTrace, append_trace
 
-        profile = detect_profile(cwd=Path.cwd())
-        db_path = domain_datastore_path(profile.name if profile else "default")
+        db_path = domain_datastore_path()
         if not db_path.exists():
             return
         trace = CompositionTrace(
@@ -198,8 +201,8 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
         )
         return 0
 
-    gate_spec = skill.get("exit_gates") or {}
-    signal_keywords = skill.get("signal_keywords") or []
+    gate_spec: dict[str, Any] = skill.get("exit_gates") or {}
+    signal_keywords: list[str] = list(skill.get("signal_keywords") or [])
 
     ctx = _build_predicate_context(
         project_root,
@@ -308,10 +311,10 @@ def _evaluate_system(args: argparse.Namespace) -> int:
     try:
         import duckdb
 
-        from skillsmith.profiles import detect_profile, domain_datastore_path
+        from skillsmith.profiles import detect_profile, profile_datastore_path
 
         profile = detect_profile(cwd=Path.cwd())
-        db_path = domain_datastore_path(profile.name if profile else "default")
+        db_path = profile_datastore_path(profile.name if profile else "default")
         if not db_path.exists():
             return 0
 
@@ -329,7 +332,7 @@ def _evaluate_system(args: argparse.Namespace) -> int:
         if not applies_when_raw:
             continue
         try:
-            gate_spec = _yaml.safe_load(applies_when_raw) or {}
+            gate_spec: dict[str, Any] = _yaml.safe_load(applies_when_raw) or {}
         except Exception:
             continue
 
@@ -500,31 +503,39 @@ def _code_indexer_from_contract(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
-def add_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
-    p = subparsers.add_parser(
+def add_parser(
+    subparsers: argparse._SubParsersAction[argparse.ArgumentParser],  # pyright: ignore[reportPrivateUsage]
+) -> None:
+    p: argparse.ArgumentParser = subparsers.add_parser(
         "signal", help="Signal-layer: phase gate evaluation and system skill routing"
     )
-    sub = p.add_subparsers(dest="signal_cmd")
+    sub: argparse._SubParsersAction[argparse.ArgumentParser] = p.add_subparsers(dest="signal_cmd")  # pyright: ignore[reportPrivateUsage]
 
-    ep = sub.add_parser(
+    ep: argparse.ArgumentParser = sub.add_parser(
         "evaluate-phase", help="Run pre-filter + gate evaluation for the active phase"
     )
     ep.add_argument("--prompt-file", dest="prompt_file", default=None)
     ep.add_argument("--tool", default=None)
     ep.add_argument("--tool-path", dest="tool_path", default=None)
 
-    es = sub.add_parser("evaluate-system", help="Emit system skill prose for matching applies_when")
+    es: argparse.ArgumentParser = sub.add_parser(
+        "evaluate-system", help="Emit system skill prose for matching applies_when"
+    )
     es.add_argument("--tool", default="", help="Tool name being used (for PreToolUse hook)")
 
-    wc = sub.add_parser("watch-contract", help="Validate contract and invoke compose")
+    wc: argparse.ArgumentParser = sub.add_parser(
+        "watch-contract", help="Validate contract and invoke compose"
+    )
     wc.add_argument("--path", required=True, help="Path to the contract file")
 
-    ci = sub.add_parser(
+    ci: argparse.ArgumentParser = sub.add_parser(
         "code-indexer-from-contract", help="Query code-indexer using contract params"
     )
     ci.add_argument("--path", required=True, help="Path to the contract file")
 
-    ck = sub.add_parser("check", help="Diagnostics: dump current signal state")
+    ck: argparse.ArgumentParser = sub.add_parser(
+        "check", help="Diagnostics: dump current signal state"
+    )
     ck.add_argument("--json", dest="json_out", action="store_true", default=True)
 
     p.set_defaults(func=_dispatch)

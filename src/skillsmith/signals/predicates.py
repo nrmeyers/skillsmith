@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 
 class PredicateResult(Enum):
@@ -27,10 +27,12 @@ class PredicateContext:
     current_phase: str | None = None
     recent_prompt_text: str | None = None
     recent_tool_use: dict[str, Any] | None = None  # {tool, path, args}
-    file_events_since: list[Path] = field(default_factory=list)
+    file_events_since: list[Path] = field(default_factory=lambda: cast(list[Path], []))
     contracts_root: Path | None = None  # .skillsmith/contracts/
     # mutable cache for git state (use dict so we can mutate from frozen dataclass)
-    _git_cache: dict[str, str | None] = field(default_factory=dict)
+    _git_cache: dict[str, str | None] = field(
+        default_factory=lambda: cast(dict[str, str | None], {})
+    )
 
     def __post_init__(self) -> None:
         if self.contracts_root is None:
@@ -62,7 +64,7 @@ def _read_file(path: Path) -> str | None:
         return None
 
 
-def eval_artifact_exists(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_artifact_exists(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     pattern = args.get("path", "")
     if not pattern:
         return PredicateResult.UNKNOWN
@@ -70,7 +72,7 @@ def eval_artifact_exists(args: dict, ctx: PredicateContext) -> PredicateResult:
     return PredicateResult.MET if files else PredicateResult.NOT_MET
 
 
-def eval_artifact_absent(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_artifact_absent(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     result = eval_artifact_exists(args, ctx)
     if result == PredicateResult.MET:
         return PredicateResult.NOT_MET
@@ -79,7 +81,7 @@ def eval_artifact_absent(args: dict, ctx: PredicateContext) -> PredicateResult:
     return PredicateResult.UNKNOWN
 
 
-def eval_artifact_contains(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_artifact_contains(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     pattern = args.get("path", "")
     if not pattern:
         return PredicateResult.UNKNOWN
@@ -113,7 +115,7 @@ def eval_artifact_contains(args: dict, ctx: PredicateContext) -> PredicateResult
     return PredicateResult.MET
 
 
-def eval_artifact_size_min(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_artifact_size_min(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     pattern = args.get("path", "")
     min_bytes = args.get("bytes", 0)
     if not pattern:
@@ -128,7 +130,7 @@ def eval_artifact_size_min(args: dict, ctx: PredicateContext) -> PredicateResult
         return PredicateResult.UNKNOWN
 
 
-def eval_artifact_newer_than(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_artifact_newer_than(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     pattern = args.get("path", "")
     since_pattern = args.get("since", "")
     if not pattern or not since_pattern:
@@ -145,14 +147,14 @@ def eval_artifact_newer_than(args: dict, ctx: PredicateContext) -> PredicateResu
         return PredicateResult.UNKNOWN
 
 
-def eval_phase_in(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_phase_in(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     if ctx.current_phase is None:
         return PredicateResult.UNKNOWN
     phases = args.get("phases", [])
     return PredicateResult.MET if ctx.current_phase in phases else PredicateResult.NOT_MET
 
 
-def eval_phase_not_in(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_phase_not_in(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     result = eval_phase_in(args, ctx)
     if result == PredicateResult.MET:
         return PredicateResult.NOT_MET
@@ -161,7 +163,7 @@ def eval_phase_not_in(args: dict, ctx: PredicateContext) -> PredicateResult:
     return PredicateResult.UNKNOWN
 
 
-def eval_tool_use_about_to_fire(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_tool_use_about_to_fire(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     if ctx.recent_tool_use is None:
         return PredicateResult.UNKNOWN
     tools = args.get("tools", [])
@@ -169,7 +171,7 @@ def eval_tool_use_about_to_fire(args: dict, ctx: PredicateContext) -> PredicateR
     return PredicateResult.MET if any(t in tool_name for t in tools) else PredicateResult.NOT_MET
 
 
-def eval_tool_use_just_completed(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_tool_use_just_completed(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     return eval_tool_use_about_to_fire(args, ctx)
 
 
@@ -191,7 +193,7 @@ def _get_git_state(ctx: PredicateContext) -> str | None:
     return cache["output"]  # type: ignore[return-value]
 
 
-def eval_git_state(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_git_state(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     output = _get_git_state(ctx)
     if output is None:
         return PredicateResult.UNKNOWN
@@ -225,7 +227,7 @@ def eval_git_state(args: dict, ctx: PredicateContext) -> PredicateResult:
     return PredicateResult.MET
 
 
-def eval_contract_exists(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_contract_exists(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     phase = args.get("phase", ctx.current_phase)
     count_min = args.get("count_min", 1)
     if phase is None or ctx.contracts_root is None:
@@ -240,7 +242,7 @@ def eval_contract_exists(args: dict, ctx: PredicateContext) -> PredicateResult:
         return PredicateResult.UNKNOWN
 
 
-def eval_contract_has_tags(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_contract_has_tags(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     import yaml as _yaml
 
     phase = args.get("phase", ctx.current_phase)
@@ -262,10 +264,10 @@ def eval_contract_has_tags(args: dict, ctx: PredicateContext) -> PredicateResult
             if end == -1:
                 continue
             try:
-                fm = _yaml.safe_load(content[3:end]) or {}
+                fm: dict[str, Any] = _yaml.safe_load(content[3:end]) or {}
             except Exception:
                 continue
-            tags = fm.get("domain_tags", [])
+            tags: list[Any] = fm.get("domain_tags") or []
             if any(t in tags for t in any_of_tags):
                 return PredicateResult.MET
     except OSError:
@@ -273,7 +275,7 @@ def eval_contract_has_tags(args: dict, ctx: PredicateContext) -> PredicateResult
     return PredicateResult.NOT_MET
 
 
-def eval_file_type_active(args: dict, ctx: PredicateContext) -> PredicateResult:
+def eval_file_type_active(args: dict[str, Any], ctx: PredicateContext) -> PredicateResult:
     extensions = args.get("extensions", [])
     if not ctx.file_events_since and ctx.recent_tool_use is None:
         return PredicateResult.UNKNOWN
@@ -289,7 +291,7 @@ def eval_file_type_active(args: dict, ctx: PredicateContext) -> PredicateResult:
     return PredicateResult.NOT_MET
 
 
-PREDICATES: dict[str, Callable[[dict, PredicateContext], PredicateResult]] = {
+PREDICATES: dict[str, Callable[[dict[str, Any], PredicateContext], PredicateResult]] = {
     "artifact_exists": eval_artifact_exists,
     "artifact_absent": eval_artifact_absent,
     "artifact_contains": eval_artifact_contains,
@@ -308,7 +310,7 @@ PREDICATES: dict[str, Callable[[dict, PredicateContext], PredicateResult]] = {
 
 def evaluate_predicate(
     predicate_name: str,
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
 ) -> PredicateResult:
     """Evaluate a named deterministic predicate. Raises ValueError for unknown names."""

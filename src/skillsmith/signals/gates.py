@@ -6,12 +6,14 @@ SDD phase graph (linear): spec → design → build → qa → ship
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from skillsmith.signals.predicates import (
     PREDICATES,
     PredicateContext,
     PredicateResult,
+    _glob_files,  # pyright: ignore[reportPrivateUsage]
+    _read_file,  # pyright: ignore[reportPrivateUsage]
     evaluate_predicate,
 )
 
@@ -44,18 +46,16 @@ class PhaseTransitionDecision:
     gates_met: list[GateEvaluation]
     gates_unmet: list[GateEvaluation]
     qwen_calls: int
-    advisories: list[str] = field(default_factory=list)
+    advisories: list[str] = field(default_factory=lambda: list[str]())
 
 
-def _build_completeness_advisory(args: dict, ctx: PredicateContext) -> str | None:
+def _build_completeness_advisory(args: dict[str, Any], ctx: PredicateContext) -> str | None:
     """Build an advisory string for artifact_completeness (soft advisory, never hard gate)."""
-    path_pattern = args.get("path", "")
-    criteria_text = args.get("criteria", "")
+    path_pattern: str = args.get("path", "")
+    criteria_text: str = args.get("criteria", "")
     if not path_pattern or not criteria_text:
         return None
     try:
-        from skillsmith.signals.predicates import _glob_files, _read_file
-
         files = _glob_files(ctx.project_root, path_pattern)
         if not files:
             return None
@@ -69,7 +69,7 @@ def _build_completeness_advisory(args: dict, ctx: PredicateContext) -> str | Non
         return None
 
 
-def _is_composite(spec: dict) -> bool:
+def _is_composite(spec: dict[str, Any]) -> bool:
     return any(k in spec for k in ("all_of", "any_of", "not"))
 
 
@@ -81,7 +81,7 @@ def _is_semantic(predicate_name: str) -> bool:
 
 def _evaluate_single(
     predicate_name: str,
-    args: dict,
+    args: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient | None,
     qwen_calls: list[int],
@@ -118,9 +118,11 @@ def evaluate_node(
     if not isinstance(spec, dict):
         return PredicateResult.UNKNOWN, []
 
+    spec_d: dict[str, Any] = cast(dict[str, Any], spec)
+
     # Composite operators
-    if "all_of" in spec:
-        children = spec["all_of"]
+    if "all_of" in spec_d:
+        children: list[Any] = cast(list[Any], spec_d["all_of"])
         results: list[PredicateResult] = []
         evals: list[GateEvaluation] = []
         for child in children:
@@ -135,8 +137,8 @@ def evaluate_node(
             return PredicateResult.UNKNOWN, evals
         return PredicateResult.MET, evals
 
-    if "any_of" in spec:
-        children = spec["any_of"]
+    if "any_of" in spec_d:
+        children = cast(list[Any], spec_d["any_of"])
         results = []
         evals = []
         for child in children:
@@ -149,8 +151,8 @@ def evaluate_node(
             return PredicateResult.UNKNOWN, evals
         return PredicateResult.NOT_MET, evals
 
-    if "not" in spec:
-        child = spec["not"]
+    if "not" in spec_d:
+        child: Any = spec_d["not"]
         r, evals = evaluate_node(child, ctx, lm_client, qwen_calls, depth + 1)
         if r == PredicateResult.MET:
             return PredicateResult.NOT_MET, evals
@@ -159,12 +161,13 @@ def evaluate_node(
         return PredicateResult.UNKNOWN, evals
 
     # Leaf predicate: {predicate_name: args_dict}
-    keys = [k for k in spec if k not in ("all_of", "any_of", "not")]
+    keys: list[str] = [k for k in spec_d if k not in ("all_of", "any_of", "not")]
     if not keys:
         return PredicateResult.UNKNOWN, []
 
-    predicate_name = keys[0]
-    args = spec[predicate_name] if isinstance(spec[predicate_name], dict) else {}
+    predicate_name: str = keys[0]
+    raw_args = spec_d[predicate_name]
+    args: dict[str, Any] = cast(dict[str, Any], raw_args) if isinstance(raw_args, dict) else {}
 
     advisory: str | None = None
     if predicate_name == "artifact_completeness":
@@ -184,7 +187,7 @@ def evaluate_node(
 
 
 def evaluate_gates(
-    gate_spec: dict,
+    gate_spec: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient | None = None,
 ) -> list[GateEvaluation]:
@@ -222,7 +225,7 @@ def aggregate(operator: str, children: list[PredicateResult]) -> PredicateResult
 
 def decide_transition(
     current_phase: str,
-    gate_spec: dict,
+    gate_spec: dict[str, Any],
     ctx: PredicateContext,
     lm_client: OpenAICompatClient | None = None,
     next_phase_hint: str | None = None,
@@ -233,7 +236,7 @@ def decide_transition(
 
     gates_met = [e for e in all_evals if e.result == PredicateResult.MET]
     gates_unmet = [e for e in all_evals if e.result != PredicateResult.MET]
-    advisories = [e.advisory for e in all_evals if e.advisory]
+    advisories: list[str] = [e.advisory for e in all_evals if e.advisory is not None]
 
     should_transition = result == PredicateResult.MET
     to_phase = next_phase_hint or _PHASE_GRAPH.get(current_phase)

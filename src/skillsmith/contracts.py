@@ -35,7 +35,7 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml
 
@@ -104,14 +104,15 @@ def _split_frontmatter(text: str) -> tuple[dict[str, Any], str]:
     body = rest[end_match.end() :].lstrip("\n")
 
     try:
-        data = yaml.safe_load(fm_text) or {}
+        raw: Any = yaml.safe_load(fm_text) or {}
     except yaml.YAMLError as exc:
         raise ContractMalformed(f"Contract frontmatter YAML is invalid: {exc}") from exc
 
-    if not isinstance(data, dict):
+    if not isinstance(raw, dict):
         raise ContractMalformed("Contract frontmatter must be a YAML mapping")
 
-    return data, body  # type: ignore[return-value]
+    data: dict[str, Any] = cast(dict[str, Any], raw)
+    return data, body
 
 
 # ---------------------------------------------------------------------------
@@ -144,20 +145,20 @@ def parse_contract(path: Path) -> Contract:
         raise ContractMalformed(
             "Contract 'domain_tags' field is required and must be a non-empty list"
         )
-    domain_tags = [str(t) for t in domain_tags_raw]
+    domain_tags = [str(t) for t in cast(list[Any], domain_tags_raw)]
     if not domain_tags:
         raise ContractMalformed("Contract 'domain_tags' must be non-empty")
 
     # Optional scope
-    scope_raw = data.get("scope") or {}
+    scope_raw: dict[str, Any] = data.get("scope") or {}
     scope = ContractScope(
-        touches=[str(g) for g in (scope_raw.get("touches") or [])],
-        avoids=[str(g) for g in (scope_raw.get("avoids") or [])],
+        touches=[str(g) for g in cast(list[Any], scope_raw.get("touches") or [])],
+        avoids=[str(g) for g in cast(list[Any], scope_raw.get("avoids") or [])],
     )
 
-    success_criteria = [str(c) for c in (data.get("success_criteria") or [])]
+    success_criteria = [str(c) for c in cast(list[Any], data.get("success_criteria") or [])]
 
-    related_raw = data.get("related_contracts") or []
+    related_raw: list[Any] = data.get("related_contracts") or []
     related_contracts: list[Path] = []
     for r in related_raw:
         rp = Path(str(r))
@@ -209,8 +210,9 @@ def validate_contract(contract: Contract, project_root: Path) -> list[str]:
     phase_file = project_root / ".skillsmith" / "phase"
     if phase_file.exists():
         try:
-            phase_data = yaml.safe_load(phase_file.read_text(encoding="utf-8")) or {}
-            if isinstance(phase_data, dict):
+            raw_phase: Any = yaml.safe_load(phase_file.read_text(encoding="utf-8")) or {}
+            if isinstance(raw_phase, dict):
+                phase_data: dict[str, Any] = cast(dict[str, Any], raw_phase)
                 active_phase = str(phase_data.get("phase", "")).strip()
             else:
                 active_phase = ""

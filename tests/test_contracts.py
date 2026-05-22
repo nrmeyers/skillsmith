@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -18,14 +19,14 @@ def _write_contract(
     phase: str = "build",
     task_slug: str = "test-task",
     domain_tags: list[str] | None = None,
-    scope: dict | None = None,
+    scope: dict[str, Any] | None = None,
     success_criteria: list[str] | None = None,
     related_contracts: list[str] | None = None,
     created_at: str | None = None,
     body: str = "Test task description.\n",
-    extra_fields: dict | None = None,
+    extra_fields: dict[str, Any] | None = None,
 ) -> Path:
-    fm: dict = {
+    fm: dict[str, Any] = {
         "phase": phase,
         "task_slug": task_slug,
         "domain_tags": domain_tags or ["NestJS", "JWT"],

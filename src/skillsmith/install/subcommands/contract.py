@@ -158,8 +158,8 @@ def _load_contract_template(phase: str) -> str | None:
             conn.close()
 
         for row in rows:
-            phases_raw, raw_prose = row
-            phases = phases_raw or []
+            phases_raw, _raw_prose = row
+            phases: list[Any] = phases_raw or []
             if phase in phases:
                 # Extract contract_template from raw_prose YAML (if stored as YAML)
                 return None  # Phase 1 profile store doesn't include contract_template yet
@@ -181,15 +181,15 @@ def _load_template_from_packs(phase: str) -> str | None:
             if yaml_file.name == "pack.yaml":
                 continue
             try:
-                data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
+                data: dict[str, Any] = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             except Exception:
                 continue
             if data.get("skill_class") != "workflow":
                 continue
-            applies = data.get("applies_to_phases") or []
+            applies: list[Any] = data.get("applies_to_phases") or []
             if phase not in applies:
                 continue
-            template = data.get("contract_template")
+            template: Any = data.get("contract_template")
             if template:
                 return str(template)
     except Exception:

@@ -718,7 +718,6 @@ def _wire_tier3_watcher_config(harness: str, root: Path) -> None:
 def _probe_code_indexer(root: Path) -> None:
     """Probe code-indexer health and persist reachability to state.json. Soft-fail."""
     import time
-    import urllib.error
     import urllib.request
 
     from skillsmith.config import get_settings

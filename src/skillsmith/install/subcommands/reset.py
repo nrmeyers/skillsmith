@@ -22,7 +22,6 @@ from typing import Any
 def _reingest_profile_defaults(profile_name: str) -> list[str]:
     """Re-ingest shipped default system+workflow skills into a profile's datastore."""
     import skillsmith
-    from skillsmith.profiles import profile_datastore_path
 
     packs_root = Path(skillsmith.__file__).resolve().parent / "_packs"
     ingested: list[str] = []
@@ -33,34 +32,25 @@ def _reingest_profile_defaults(profile_name: str) -> list[str]:
     try:
         import yaml
 
+        from skillsmith.install.subcommands.customize import (
+            _ingest_skill,  # pyright: ignore[reportPrivateUsage]
+        )
+
         for yaml_file in sorted(packs_root.rglob("*.yaml")):
             if yaml_file.name == "pack.yaml":
                 continue
             try:
-                data = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
+                data: dict[str, Any] = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             except Exception:
                 continue
-            skill_class = data.get("skill_class", "")
+            skill_class: str = str(data.get("skill_class", ""))
             if skill_class not in ("system", "workflow"):
                 continue
 
             # Ingest into the profile datastore
-            ds_path = profile_datastore_path(profile_name)
             try:
-                from skillsmith.storage.vector_store import open_or_create
-
-                with open_or_create(str(ds_path)) as store:
-                    # Minimal upsert — insert or replace skill row.
-                    skill_id = data.get("skill_id") or yaml_file.stem
-                    raw_prose = data.get("raw_prose", "")
-                    store.execute(
-                        """
-                        INSERT OR REPLACE INTO skills
-                        (skill_id, skill_class, raw_prose)
-                        VALUES (?, ?, ?)
-                        """,
-                        [skill_id, skill_class, raw_prose],
-                    )
+                skill_id: str = str(data.get("skill_id") or yaml_file.stem)
+                _ingest_skill(profile_name, data)
                 ingested.append(skill_id)
             except Exception:
                 continue
@@ -112,7 +102,7 @@ def _reset_profile(
         try:
             from skillsmith.install.subcommands import seed_corpus
 
-            seed_result = seed_corpus.seed(duck_path=domain_path)
+            seed_result: dict[str, Any] = seed_corpus.check_corpus()
             result["domain_reset"] = seed_result
         except Exception as exc:
             result["domain_reset"] = {"error": str(exc)}

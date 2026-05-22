@@ -127,7 +127,10 @@ def test_all_regenerators_registered():
 
 def test_phase_change_triggers_regenerate(tmp_path: Path):
     """Writing .skillsmith/phase triggers the regenerator."""
-    from skillsmith.watch.watcher import WatchConfig, _SkillsmithHandler
+    from skillsmith.watch.watcher import (
+        WatchConfig,
+        _SkillsmithHandler,  # pyright: ignore[reportPrivateUsage]
+    )
 
     regen_calls: list[tuple[str, Path]] = []
 
@@ -151,7 +154,7 @@ def test_phase_change_triggers_regenerate(tmp_path: Path):
         mock_load.return_value = {"skill_id": "sdd-build", "raw_prose": "BUILD PROSE"}
 
         # Simulate the file event
-        handler._schedule("modified", str(phase_file))
+        handler._schedule("modified", str(phase_file))  # pyright: ignore[reportPrivateUsage]
         time.sleep(0.2)  # wait for debounce
 
     assert len(regen_calls) == 1
@@ -160,7 +163,10 @@ def test_phase_change_triggers_regenerate(tmp_path: Path):
 
 def test_contract_write_triggers_compose(tmp_path: Path):
     """Writing a contract triggers compose and regeneration."""
-    from skillsmith.watch.watcher import WatchConfig, _SkillsmithHandler
+    from skillsmith.watch.watcher import (
+        WatchConfig,
+        _SkillsmithHandler,  # pyright: ignore[reportPrivateUsage]
+    )
 
     regen_calls: list[str] = []
 
@@ -180,7 +186,7 @@ def test_contract_write_triggers_compose(tmp_path: Path):
     contract_path.write_text("---\nphase: build\ntask_slug: t\ndomain_tags: [A]\n---\n\nbody\n")
 
     with patch("skillsmith.watch.watcher._compose_from_contract", return_value="COMPOSED CONTENT"):
-        handler._schedule("created", str(contract_path))
+        handler._schedule("created", str(contract_path))  # pyright: ignore[reportPrivateUsage]
         time.sleep(0.2)
 
     assert len(regen_calls) == 1
@@ -189,7 +195,10 @@ def test_contract_write_triggers_compose(tmp_path: Path):
 
 def test_debounce_coalesces_burst_writes(tmp_path: Path):
     """10 rapid writes → 1 regeneration call."""
-    from skillsmith.watch.watcher import WatchConfig, _SkillsmithHandler
+    from skillsmith.watch.watcher import (
+        WatchConfig,
+        _SkillsmithHandler,  # pyright: ignore[reportPrivateUsage]
+    )
 
     regen_calls: list[int] = []
 
@@ -210,7 +219,7 @@ def test_debounce_coalesces_burst_writes(tmp_path: Path):
 
     with patch("skillsmith.watch.watcher._load_workflow_skill_prose", return_value="prose"):
         for _ in range(10):
-            handler._schedule("modified", str(phase_file))
+            handler._schedule("modified", str(phase_file))  # pyright: ignore[reportPrivateUsage]
 
         time.sleep(0.5)  # wait for debounce to fire once
 
@@ -228,7 +237,7 @@ def test_watch_status_reports_not_running(tmp_path: Path, monkeypatch: pytest.Mo
     import json
     import sys
 
-    from skillsmith.install.subcommands.watch import _status
+    from skillsmith.install.subcommands.watch import _status  # pyright: ignore[reportPrivateUsage]
 
     monkeypatch.setattr("skillsmith.install.subcommands.watch._watch_dir", lambda: tmp_path)
 
