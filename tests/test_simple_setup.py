@@ -851,18 +851,20 @@ def test_setup_explicit_runner_ollama_is_preserved():
 
 def test_hw_labels_cover_all_valid_targets():
     """B4: Hardware label map covers all valid targets."""
-    from skillsmith.install.subcommands.simple_setup import _HW_LABELS
+    from skillsmith.install.subcommands.simple_setup import _HW_LABELS  # type: ignore[attr-defined]
 
     assert set(_HW_LABELS) == {"cpu", "nvidia", "radeon", "apple-silicon"}
     assert _HW_LABELS["cpu"] == "CPU (RAM-only)"
     assert "Apple Silicon" in _HW_LABELS["apple-silicon"]
 
 
-def test_prompt_numbered_returns_default_on_non_tty(monkeypatch):
+def test_prompt_numbered_returns_default_on_non_tty(
+    monkeypatch: Any,
+) -> None:
     """N1-N4: Numbered-menu helper returns default on non-TTY."""
     import sys
 
-    from skillsmith.install.subcommands.simple_setup import _prompt_numbered
+    from skillsmith.install.subcommands.simple_setup import _prompt_numbered  # type: ignore[attr-defined]
 
     monkeypatch.setattr(sys.stdin, "isatty", lambda: False)
     options = [("a", "Alpha"), ("b", "Beta"), ("c", "Gamma")]
