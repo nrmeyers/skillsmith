@@ -821,32 +821,28 @@ def test_setup_argparse_accepts_lm_studio_runner():
 
 
 def test_setup_explicit_runner_ollama_is_preserved():
-    """B3: Explicit --runner ollama is preserved, not treated as unset."""
-    from skillsmith.install.subcommands.simple_setup import SetupConfig
-
+    """B3: Explicit --runner ollama is preserved through argparse -> _run_from_args bridging."""
     import argparse
 
-    ns = argparse.Namespace(
-        runner="ollama",
-        model=None,
-        port=None,
-        mode=None,
-        packs=None,
-        harness=None,
-        hardware=None,
-        non_interactive=True,
-    )
-    cfg = SetupConfig(
-        runner=ns.runner,
-        model=ns.model or "",
-        port=ns.port or 47950,
-        mode=ns.mode or "persistent",
-        packs=ns.packs or "",
-        harness=ns.harness or "manual",
-        hardware_target=getattr(ns, "hardware", None) or "",
-        non_interactive=ns.non_interactive,
-    )
-    assert cfg.runner == "ollama"
+    from skillsmith.install.subcommands.simple_setup import _run_from_args  # type: ignore[attr-defined]
+
+    captured: list[Any] = []
+
+    import unittest.mock as mock
+
+    with mock.patch(
+        "skillsmith.install.subcommands.simple_setup.run_setup",
+        side_effect=lambda cfg: captured.append(cfg) or 0,
+    ):
+        root = argparse.ArgumentParser()
+        sub = root.add_subparsers()
+        from skillsmith.install.subcommands.simple_setup import add_parser  # type: ignore[attr-defined]
+
+        add_parser(sub)
+        args = root.parse_args(["setup", "--runner", "ollama", "--non-interactive"])
+        args.func(args)
+
+    assert captured[0].runner == "ollama"
 
 
 def test_hw_labels_cover_all_valid_targets():

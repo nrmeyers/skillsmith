@@ -60,7 +60,7 @@ class SetupConfig:
     """User-facing configuration gathered during the interactive wizard."""
 
     runner: str | None = None
-    model: str = "qwen3-embedding:0.6b"
+    model: str = ""
     port: int = 47950
     mode: str = "persistent"  # "persistent" or "manual"
     packs: str = ""  # comma-separated, empty = always-on only
@@ -574,7 +574,7 @@ def run_setup(cfg: SetupConfig) -> int:
     # 4. Port
     if not cfg.non_interactive:
         port_str = _prompt_context(
-            "  Service port [default: 47950]",
+            "  Service port",
             "  Port the skillsmith FastAPI service will listen on (default: 47950)",
             default=47950,
         )
@@ -607,10 +607,10 @@ def run_setup(cfg: SetupConfig) -> int:
             h = "continue-closed"
         cfg.harness = h
 
-    if cfg.harness != "manual" and cfg.harness not in VALID_HARNESSES:
+    if cfg.harness not in VALID_HARNESSES:
         _print(
             f"  [red]Invalid harness: {cfg.harness}. "
-            f"Choices: {', '.join(sorted(VALID_HARNESSES))}, manual[/red]"
+            f"Choices: {', '.join(sorted(VALID_HARNESSES))}[/red]"
         )
         return 1
     _print(f"  Harness: {cfg.harness}")
