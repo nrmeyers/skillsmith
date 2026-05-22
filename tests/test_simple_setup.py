@@ -827,8 +827,14 @@ def test_setup_explicit_runner_ollama_is_preserved():
     import argparse
 
     ns = argparse.Namespace(
-        runner="ollama", model=None, port=None, mode=None, packs=None,
-        harness=None, hardware=None, non_interactive=True,
+        runner="ollama",
+        model=None,
+        port=None,
+        mode=None,
+        packs=None,
+        harness=None,
+        hardware=None,
+        non_interactive=True,
     )
     cfg = SetupConfig(
         runner=ns.runner,
