@@ -515,6 +515,9 @@ def wire_harness(
     if harness == "claude-code":
         files_written.extend(_wire_claude_code_hooks(root))
 
+    # Probe for code-indexer and persist result to state.json
+    _probe_code_indexer(root)
+
     return _build_result(harness, reg["vector"], files_written, root)
 
 
@@ -664,6 +667,38 @@ def _wire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:
             "content_sha256": _sha256(serialized),
         }
     ]
+
+
+def _probe_code_indexer(root: Path) -> None:
+    """Probe code-indexer health and persist reachability to state.json. Soft-fail."""
+    import time
+    import urllib.error
+    import urllib.request
+
+    from skillsmith.config import get_settings
+
+    ci_url = get_settings().code_indexer_url
+    reachable = False
+    try:
+        req = urllib.request.urlopen(f"{ci_url}/health", timeout=2)
+        reachable = req.status == 200
+    except Exception:
+        pass
+
+    st = install_state.load_state(root)
+    st["code_indexer"] = {
+        "reachable": reachable,
+        "url": ci_url,
+        "last_health_at": int(time.time()),
+    }
+    install_state.save_state(st, root)
+
+    if not reachable:
+        print(
+            f"[info] code-indexer not detected on {ci_url}. Workflow skills will still\n"
+            "       instruct usage; install code-indexer to enable automatic code-pattern surfacing.",
+            file=sys.stderr,
+        )
 
 
 def _unwire_claude_code_hooks(root: Path) -> list[dict[str, Any]]:

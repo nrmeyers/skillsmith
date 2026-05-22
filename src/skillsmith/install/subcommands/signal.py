@@ -385,6 +385,62 @@ def _check(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# code-indexer-from-contract
+# ---------------------------------------------------------------------------
+
+
+def _code_indexer_from_contract(args: argparse.Namespace) -> int:
+    contract_path_str = getattr(args, "path", "") or ""
+    if not contract_path_str:
+        return 0
+
+    try:
+        from skillsmith.contracts import parse_contract, code_indexer_query_params
+        from skillsmith.config import get_settings
+        import urllib.request
+        import urllib.parse
+
+        contract = parse_contract(Path(contract_path_str))
+        params = code_indexer_query_params(contract, Path.cwd())
+        ci_url = get_settings().code_indexer_url
+
+        results: list[str] = []
+
+        def _fetch(url: str) -> str | None:
+            try:
+                with urllib.request.urlopen(url, timeout=5) as resp:
+                    return resp.read().decode("utf-8", errors="replace")
+            except Exception:
+                return None
+
+        # Semantic search
+        q_semantic = urllib.parse.urlencode({"q": params.semantic_q, "repo": params.repo, "top_k": 5})
+        body = _fetch(f"{ci_url}/search/semantic?{q_semantic}")
+        if body:
+            results.append(f"[code-indexer:semantic]\n{body}\n[/code-indexer:semantic]")
+
+        # Lexical search
+        if params.lexical_q:
+            q_lexical = urllib.parse.urlencode({"q": params.lexical_q, "repo": params.repo, "top_k": 5})
+            body = _fetch(f"{ci_url}/search/lexical?{q_lexical}")
+            if body:
+                results.append(f"[code-indexer:lexical]\n{body}\n[/code-indexer:lexical]")
+
+        if results:
+            print("\n".join(results))
+
+        _write_telemetry({
+            "task": params.semantic_q,
+            "phase": contract.phase,
+            "event_type": "contract_retrieval",
+        })
+    except Exception as exc:
+        print(json.dumps({"warning": f"code-indexer-from-contract: {exc}"}), file=sys.stderr)
+
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # Argparse wiring
 # ---------------------------------------------------------------------------
 
@@ -404,6 +460,9 @@ def add_parser(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[
     wc = sub.add_parser("watch-contract", help="Validate contract and invoke compose")
     wc.add_argument("--path", required=True, help="Path to the contract file")
 
+    ci = sub.add_parser("code-indexer-from-contract", help="Query code-indexer using contract params")
+    ci.add_argument("--path", required=True, help="Path to the contract file")
+
     ck = sub.add_parser("check", help="Diagnostics: dump current signal state")
     ck.add_argument("--json", dest="json_out", action="store_true", default=True)
 
@@ -418,6 +477,8 @@ def _dispatch(args: argparse.Namespace) -> int:
         return _evaluate_system(args)
     if cmd == "watch-contract":
         return _watch_contract(args)
+    if cmd == "code-indexer-from-contract":
+        return _code_indexer_from_contract(args)
     if cmd == "check":
         return _check(args)
     print("Usage: skillsmith signal {evaluate-phase,evaluate-system,watch-contract,check}", file=sys.stderr)

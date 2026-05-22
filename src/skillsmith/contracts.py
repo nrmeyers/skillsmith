@@ -255,6 +255,55 @@ def list_contracts_for_phase(project_root: Path, phase: str) -> list[Path]:
     return sorted(files, key=lambda f: f.stat().st_mtime, reverse=True)
 
 
+@dataclass(frozen=True)
+class CodeIndexerQuery:
+    """Parameters for a code-indexer search derived from a contract."""
+
+    repo: str
+    semantic_q: str
+    lexical_q: str | None
+    path_globs: list[str]
+
+
+def code_indexer_query_params(contract: "Contract", project_root: Path) -> CodeIndexerQuery:
+    """Build code-indexer query parameters from a contract.
+
+    Derives the repo slug from `git remote get-url origin` (GitHub owner__repo form).
+    Falls back to the project directory name when git remote is unavailable.
+    """
+    import re
+    import subprocess
+
+    # Derive repo slug
+    repo = project_root.name
+    try:
+        result = subprocess.run(
+            ["git", "remote", "get-url", "origin"],
+            capture_output=True, text=True, timeout=5, cwd=project_root,
+        )
+        url = result.stdout.strip()
+        # github.com/owner/repo or git@github.com:owner/repo → owner__repo
+        m = re.search(r"[:/]([^/]+)/([^/]+?)(?:\.git)?$", url)
+        if m:
+            repo = f"{m.group(1)}__{m.group(2)}"
+    except Exception:
+        pass
+
+    body = (contract.body or "").strip()
+    first_line = body.split("\n")[0].lstrip("# ").strip() if body else ""
+    semantic_q = first_line or contract.task_slug
+
+    lexical_q = " ".join(contract.domain_tags) if contract.domain_tags else None
+    path_globs = list(contract.scope.touches) if contract.scope and contract.scope.touches else []
+
+    return CodeIndexerQuery(
+        repo=repo,
+        semantic_q=semantic_q,
+        lexical_q=lexical_q,
+        path_globs=path_globs,
+    )
+
+
 def latest_contract(project_root: Path, phase: str | None = None) -> Path | None:
     """Most recently modified contract (optionally filtered by phase)."""
     if phase:

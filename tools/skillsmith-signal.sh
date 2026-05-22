@@ -24,6 +24,11 @@ case "$EVENT" in
         if [[ "$TOOL" =~ ^(Edit|Write|MultiEdit)$ ]] \
            && [[ "$PATH_ARG" == *".skillsmith/contracts/"* ]]; then
             skillsmith signal watch-contract --path "$PATH_ARG" 2>/dev/null || true
+            # Optional: also query code-indexer if reachable
+            CI_URL="${SKILLSMITH_CODE_INDEXER_URL:-http://127.0.0.1:8003}"
+            if curl -sf --max-time 1 "${CI_URL}/health" >/dev/null 2>&1; then
+                skillsmith signal code-indexer-from-contract --path "$PATH_ARG" 2>/dev/null || true
+            fi
         fi
         ;;
     PreToolUse)
