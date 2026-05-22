@@ -74,10 +74,35 @@ class ComposeRequest(BaseModel):
         default=None,
         description="Caller-supplied correlation id. Logged alongside the server-generated composition_id.",
     )
+    # Contract integration (Phase 2)
+    contract_path: str | None = Field(
+        default=None,
+        description="Absolute path to a contract markdown file. If provided, loads domain_tags from it.",
+    )
+    contract_tags: list[str] | None = Field(
+        default=None,
+        description="Explicit contract tags (bypasses contract_path loading; useful for tests).",
+    )
 
     def resolved_k(self) -> int:
         """Server-side resolution: caller's k if provided, else phase default."""
         return self.k if self.k is not None else DEFAULT_K_BY_PHASE[self.phase]
+
+    @property
+    def resolved_contract_tags(self) -> list[str] | None:
+        """Return contract domain_tags if available, else None."""
+        if self.contract_tags is not None:
+            return self.contract_tags
+        if self.contract_path is not None:
+            from pathlib import Path
+
+            from skillsmith.contracts import parse_contract
+
+            try:
+                return parse_contract(Path(self.contract_path)).domain_tags
+            except Exception:
+                return None
+        return None
 
 
 class LatencyBreakdown(BaseModel):

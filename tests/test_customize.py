@@ -37,6 +37,7 @@ def _make_skill_yaml(
     if skill_class == "workflow":
         data["applies_to_phases"] = ["build"]
         data["exit_gates"] = {"tests_pass": "all tests green"}
+        data["contract_template"] = "---\nphase: build\n---\n\nbody\n"
     if skill_class == "system":
         data["applies_when"] = {"always": True}
     if extra:

@@ -95,6 +95,9 @@ class CompositionTrace:
     response_size_chars: int | None = None
     prompt_version: str | None = None
     workflow_skill_ids: list[str] = field(default_factory=lambda: [])
+    contract_path: str | None = None
+    contract_tags: list[str] = field(default_factory=lambda: [])
+    bm25_source: str = "rule-extracted"  # "rule-extracted" | "contract" | "union"
 
 
 # ---------------------------------------------------------------------------

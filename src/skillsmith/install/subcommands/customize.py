@@ -182,6 +182,8 @@ def _validate_skill_data(data: dict[str, Any], name: str) -> list[str]:
             errors.append("workflow skill must have 'applies_to_phases' (non-empty list)")
         if not data.get("exit_gates"):
             errors.append("workflow skill must have 'exit_gates' (non-empty object)")
+        if not data.get("contract_template"):
+            errors.append("workflow skill must have 'contract_template' (non-empty string)")
 
     if skill_class == "system":
         if not data.get("applies_when"):

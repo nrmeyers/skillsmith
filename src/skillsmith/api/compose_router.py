@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import PlainTextResponse
+from pydantic import BaseModel
 
 from skillsmith.api.compose_models import (
     ComposedResult,
@@ -53,3 +56,51 @@ async def compose_text(
 ) -> PlainTextResponse:
     result = await orchestrator.compose(req)
     return PlainTextResponse(content=result.output)
+
+
+class FromContractRequest(BaseModel):
+    contract_path: str
+
+
+@router.post(
+    "/compose/from-contract",
+    response_model=ComposedResult | EmptyResult,
+    responses={
+        400: {"model": ErrorResponse, "description": "Contract malformed or invalid"},
+        503: {"model": ErrorResponse, "description": "Retrieval or assembly stage failure"},
+    },
+    summary="Compose using a contract file",
+    description=(
+        "Reads phase and domain_tags from a contract file, uses the contract body "
+        "as the task description, and runs the standard compose pipeline."
+    ),
+)
+async def compose_from_contract(
+    req: FromContractRequest,
+    orchestrator: ComposeOrchestrator = Depends(get_orchestrator),
+) -> ComposedResult | EmptyResult:
+    from skillsmith.contracts import ContractMalformed, parse_contract, validate_contract
+
+    path = Path(req.contract_path)
+    try:
+        contract = parse_contract(path)
+    except ContractMalformed as exc:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "contract_malformed", "issues": [str(exc)]},
+        ) from exc
+
+    issues = validate_contract(contract, path.parent.parent.parent)
+    if issues:
+        raise HTTPException(
+            status_code=400,
+            detail={"error": "contract_invalid", "issues": issues},
+        )
+
+    compose_req = ComposeRequest(
+        task=contract.body or contract.task_slug,
+        phase=contract.phase,  # type: ignore[arg-type]
+        contract_tags=contract.domain_tags,
+        contract_path=req.contract_path,
+    )
+    return await orchestrator.compose(compose_req)

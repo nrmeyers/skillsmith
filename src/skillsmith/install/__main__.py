@@ -19,6 +19,8 @@ import argparse
 import sys
 
 from skillsmith.install.subcommands import (
+    compose,
+    contract,
     customize,
     detect,
     doctor,
@@ -66,6 +68,8 @@ _SUBCOMMANDS = [
     profile,
     customize,
     reset,
+    contract,
+    compose,
     wire,
     unwire,
     serve,
