@@ -441,7 +441,8 @@ def get_pending_pack_selection(data: dict[str, Any]) -> list[str] | None:
     if raw is None:
         return None
     if isinstance(raw, list):
-        return [str(p) for p in raw if isinstance(p, str)]
+        items: list[Any] = raw  # type: ignore[assignment] — runtime-validated above
+        return [str(p) for p in items if isinstance(p, str)]
     return None
 
 

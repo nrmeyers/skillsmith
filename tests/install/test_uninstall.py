@@ -1,3 +1,4 @@
+# pyright: reportPrivateUsage=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportUnknownMemberType=false
 """Unit tests for the ``uninstall`` subcommand."""
 
 from __future__ import annotations
@@ -515,9 +516,7 @@ class TestGranularControls:
     """Each new kwarg (remove_wiring, remove_models, stop_services) should
     independently turn its slice of teardown on/off."""
 
-    def test_remove_wiring_false_skips_sentinel_removal(
-        self, repo_root: Path
-    ) -> None:
+    def test_remove_wiring_false_skips_sentinel_removal(self, repo_root: Path) -> None:
         """When the caller asks to keep wiring, CLAUDE.md sentinel block
         must survive uninstall."""
         from unittest.mock import patch
@@ -536,9 +535,7 @@ class TestGranularControls:
         assert claude_md.exists()
         assert "BEGIN skillsmith install" in claude_md.read_text()
 
-    def test_remove_wiring_true_still_works_as_before(
-        self, repo_root: Path
-    ) -> None:
+    def test_remove_wiring_true_still_works_as_before(self, repo_root: Path) -> None:
         """Default behavior (remove_wiring=True) is unchanged: sentinels gone."""
         from unittest.mock import patch
 
@@ -590,9 +587,7 @@ class TestGranularControls:
 
         _setup_installed(repo_root)
         with (
-            patch(
-                "skillsmith.install.subcommands.uninstall._remove_pulled_models"
-            ) as mock_helper,
+            patch("skillsmith.install.subcommands.uninstall._remove_pulled_models") as mock_helper,
             patch(
                 "skillsmith.install.subcommands.uninstall._remove_uv_tool",
                 return_value={},
@@ -608,12 +603,8 @@ class TestGranularControls:
 
         _setup_installed(repo_root)
         with (
-            patch(
-                "skillsmith.install.subcommands.uninstall._stop_ollama_daemon"
-            ) as mock_daemon,
-            patch(
-                "skillsmith.install.subcommands.uninstall._stop_native_service"
-            ) as mock_native,
+            patch("skillsmith.install.subcommands.uninstall._stop_ollama_daemon") as mock_daemon,
+            patch("skillsmith.install.subcommands.uninstall._stop_native_service") as mock_native,
             patch(
                 "skillsmith.install.subcommands.uninstall._remove_uv_tool",
                 return_value={},
@@ -635,9 +626,7 @@ class TestUnwireUnchanged:
 
         from skillsmith.install.subcommands.unwire import _run
 
-        with patch(
-            "skillsmith.install.subcommands.unwire.uninstall"
-        ) as mock_uninstall:
+        with patch("skillsmith.install.subcommands.unwire.uninstall") as mock_uninstall:
             mock_uninstall.return_value = {
                 "schema_version": 1,
                 "files_modified": [],

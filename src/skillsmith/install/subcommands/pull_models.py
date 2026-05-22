@@ -73,7 +73,7 @@ def _ollama_daemon_running(timeout: float = 1.0) -> bool:
     try:
         with _socket.create_connection((_OLLAMA_HOST, _OLLAMA_PORT), timeout=timeout):
             return True
-    except (OSError, _socket.timeout):
+    except (OSError, TimeoutError):
         return False
 
 
@@ -832,9 +832,9 @@ def _run(args: argparse.Namespace) -> int:
     # (simple_setup) can render a "skipping" line instead of a
     # generic "Done". This mirrors EXIT_NOOP semantics used elsewhere
     # in the install pipeline (seed_corpus, etc.).
-    pulled = result.get("auto_pulled") or []
-    skipped = result.get("skipped_already_present") or []
-    manual = result.get("manual_steps_required") or []
+    pulled: list[Any] = result.get("auto_pulled") or []
+    skipped: list[Any] = result.get("skipped_already_present") or []
+    manual: list[Any] = result.get("manual_steps_required") or []
     if not pulled and not manual and skipped:
         return 4
     return 0

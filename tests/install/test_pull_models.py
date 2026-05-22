@@ -1,3 +1,4 @@
+# pyright: reportPrivateUsage=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownLambdaType=false
 """Unit tests for the ``pull-models`` subcommand.
 
 Maps to test-plan.md § Model pulling.
@@ -348,12 +349,8 @@ class TestOllamaDaemonAutoStart:
                 "skillsmith.install.subcommands.pull_models.shutil.which",
                 return_value="/usr/bin/ollama",
             ),
-            patch(
-                "skillsmith.install.subcommands.pull_models.subprocess.Popen"
-            ) as mock_popen,
-            patch(
-                "skillsmith.install.subcommands.pull_models.subprocess.run"
-            ) as mock_run,
+            patch("skillsmith.install.subcommands.pull_models.subprocess.Popen") as mock_popen,
+            patch("skillsmith.install.subcommands.pull_models.subprocess.run") as mock_run,
         ):
             mock_run.return_value = MagicMock(returncode=0, stderr="")
             result = _auto_pull("ollama", "qwen3-embedding:0.6b")
@@ -377,12 +374,8 @@ class TestOllamaDaemonAutoStart:
                 "skillsmith.install.subcommands.pull_models.shutil.which",
                 return_value="/usr/bin/ollama",
             ),
-            patch(
-                "skillsmith.install.subcommands.pull_models.subprocess.Popen"
-            ) as mock_popen,
-            patch(
-                "skillsmith.install.subcommands.pull_models.subprocess.run"
-            ) as mock_run,
+            patch("skillsmith.install.subcommands.pull_models.subprocess.Popen") as mock_popen,
+            patch("skillsmith.install.subcommands.pull_models.subprocess.run") as mock_run,
         ):
             mock_run.return_value = MagicMock(returncode=0, stderr="")
             result = _auto_pull("ollama", "qwen3-embedding:0.6b")

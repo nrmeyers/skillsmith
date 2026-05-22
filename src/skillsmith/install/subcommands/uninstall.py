@@ -110,15 +110,11 @@ def _prompt_uninstall_custom() -> dict[str, bool]:
         "remove_models": _prompt_yes_no(
             "Remove pulled models (ollama models, llama-server GGUF cache)?"
         ),
-        "remove_datastore": _prompt_yes_no(
-            "Remove skills datastore (corpus DB)?"
-        ),
+        "remove_datastore": _prompt_yes_no("Remove skills datastore (corpus DB)?"),
         "remove_wiring": _prompt_yes_no(
             "Remove harness wiring (CLAUDE.md, .cursorrules, MCP entries, etc.)?"
         ),
-        "remove_env_state": _prompt_yes_no(
-            "Remove .env and install-state directory?"
-        ),
+        "remove_env_state": _prompt_yes_no("Remove .env and install-state directory?"),
     }
 
 
@@ -136,7 +132,7 @@ def _remove_pulled_models(st: dict[str, Any]) -> list[dict[str, Any]]:
     are warnings, not errors — the goal is best-effort cleanup.
     """
     actions: list[dict[str, Any]] = []
-    pulled = st.get("models_pulled") or []
+    pulled: list[Any] = st.get("models_pulled") or []
     if not pulled:
         return actions
 
@@ -172,9 +168,7 @@ def _remove_pulled_models(st: dict[str, Any]) -> list[dict[str, Any]]:
                     timeout=30,
                 )
                 if result.returncode == 0:
-                    actions.append(
-                        {"runner": runner, "model": model, "action": "ollama_removed"}
-                    )
+                    actions.append({"runner": runner, "model": model, "action": "ollama_removed"})
                 else:
                     actions.append(
                         {
@@ -465,9 +459,13 @@ def uninstall(
     )
     root_resolved = root.resolve()
     # Iterate over harness entries only when wiring removal is enabled.
-    # Using a conditional iterable keeps the loop body unchanged and
-    # makes the gate easy to audit.
-    for entry in (st.get("harness_files_written", []) if remove_wiring else []):
+    # Typed binding preserves `entry: dict[str, Any]` for pyright across
+    # the loop body — using an inline conditional iterable degrades the
+    # inferred type to Unknown.
+    harness_entries: list[dict[str, Any]] = (
+        st.get("harness_files_written", []) if remove_wiring else []
+    )
+    for entry in harness_entries:
         raw_path = entry.get("path")
         if not isinstance(raw_path, str) or not raw_path:
             warnings.append(f"Skipping harness entry with non-string path: {entry!r}")

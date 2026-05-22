@@ -1,3 +1,4 @@
+# pyright: reportPrivateUsage=false, reportUnknownVariableType=false, reportUnknownArgumentType=false, reportUnknownMemberType=false
 """Unit tests for the ``install-packs`` subcommand.
 
 Focus: the state-file handoff that prevents the setup wizard and
@@ -61,9 +62,7 @@ class TestPendingSelectionLoader:
         install_state.save_state(st, repo_root)
         assert _load_pending_pack_selection() == ["lang/python"]
 
-    def test_load_returns_empty_list_when_explicit_no_extras(
-        self, repo_root: Path
-    ) -> None:
+    def test_load_returns_empty_list_when_explicit_no_extras(self, repo_root: Path) -> None:
         st = install_state.load_state(repo_root)
         install_state.set_pending_pack_selection(st, [])
         install_state.save_state(st, repo_root)
@@ -104,7 +103,7 @@ class TestSelectPacksPriority:
         install_state.set_pending_pack_selection(st, ["lang/python"])
         install_state.save_state(st, repo_root)
 
-        selected, unknown, consumed = _select_packs(
+        selected, _unknown, consumed = _select_packs(
             available, packs_flag="tool/git", interactive=False
         )
         assert "tool/git" in selected
@@ -122,9 +121,7 @@ class TestSelectPacksPriority:
 
         # `interactive=True` would normally trigger the prompt; pending
         # state must short-circuit that path.
-        selected, unknown, consumed = _select_packs(
-            available, packs_flag=None, interactive=True
-        )
+        selected, _unknown, consumed = _select_packs(available, packs_flag=None, interactive=True)
         assert "lang/python" in selected
         # Always-on packs are always merged in regardless of source.
         assert "core/foundation" in selected
@@ -137,9 +134,7 @@ class TestSelectPacksPriority:
         install_state.set_pending_pack_selection(st, [])
         install_state.save_state(st, repo_root)
 
-        selected, unknown, consumed = _select_packs(
-            available, packs_flag=None, interactive=True
-        )
+        selected, _unknown, consumed = _select_packs(available, packs_flag=None, interactive=True)
         # Only the always-on pack — the user said "no extras".
         assert selected == ["core/foundation"]
         assert consumed is True
@@ -148,9 +143,7 @@ class TestSelectPacksPriority:
         self, repo_root: Path, available: dict[str, dict[str, object]]
     ) -> None:
         # Non-TTY path with nothing in state: just always-on packs.
-        selected, unknown, consumed = _select_packs(
-            available, packs_flag=None, interactive=False
-        )
+        selected, _unknown, consumed = _select_packs(available, packs_flag=None, interactive=False)
         assert selected == ["core/foundation"]
         assert consumed is False
 
@@ -161,13 +154,9 @@ class TestSelectPacksPriority:
         # (e.g., it was removed between setup and ingest), the unknown
         # is reported but the rest still installs.
         st = install_state.load_state(repo_root)
-        install_state.set_pending_pack_selection(
-            st, ["lang/python", "gone/missing"]
-        )
+        install_state.set_pending_pack_selection(st, ["lang/python", "gone/missing"])
         install_state.save_state(st, repo_root)
-        selected, unknown, consumed = _select_packs(
-            available, packs_flag=None, interactive=False
-        )
+        selected, unknown, consumed = _select_packs(available, packs_flag=None, interactive=False)
         assert "lang/python" in selected
         assert "gone/missing" in unknown
         assert consumed is True
