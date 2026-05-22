@@ -264,7 +264,7 @@ artifact or prompt text + returns one of three labels.
 |---|---|---|
 | `user_intent_matches` | `intent: <name>`, `recent_prompts: <int>` | User's recent prompts indicate a named intent (e.g. `"completion"`, `"approval"`, `"redirection"`) |
 | `agent_intent_matches` | `intent: <name>` | Last agent response indicates a named intent |
-| `artifact_completeness` | `path: <glob>`, `criteria: <prose>` | Artifact meets a prose-described completeness bar (e.g. "all acceptance criteria are testable and unambiguous") |
+| `artifact_completeness` | `path: <glob>`, `criteria: <prose>` | Advisory only. Emits a completeness eval request into the agent's next turn context. Does not block gate evaluation (returns UNKNOWN). Do not use as the sole exit criterion — it never returns MET. |
 | `prompt_topic_matches` | `topics: [...]` | Recent prompt is on-topic for any listed topic (fallback if no contract is present) |
 
 #### Composition operators

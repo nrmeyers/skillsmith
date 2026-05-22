@@ -248,6 +248,9 @@ def _evaluate_phase(args: argparse.Namespace) -> int:
             "gates_unmet": [g.gate_name for g in decision.gates_unmet],
         }))
 
+    for advisory in decision.advisories:
+        print(advisory)
+
     return 0
 
 

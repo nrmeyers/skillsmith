@@ -33,6 +33,7 @@ class GateEvaluation:
     gate_name: str
     result: PredicateResult
     detail: str = ""
+    advisory: str | None = None
 
 
 @dataclass(frozen=True)
@@ -43,6 +44,29 @@ class PhaseTransitionDecision:
     gates_met: list[GateEvaluation]
     gates_unmet: list[GateEvaluation]
     qwen_calls: int
+    advisories: list[str] = field(default_factory=list)
+
+
+def _build_completeness_advisory(args: dict, ctx: PredicateContext) -> str | None:
+    """Build an advisory string for artifact_completeness (soft advisory, never hard gate)."""
+    path_pattern = args.get("path", "")
+    criteria_text = args.get("criteria", "")
+    if not path_pattern or not criteria_text:
+        return None
+    try:
+        from skillsmith.signals.predicates import _glob_files, _read_file
+
+        files = _glob_files(ctx.project_root, path_pattern)
+        if not files:
+            return None
+        content = _read_file(files[0]) or ""
+        return (
+            f"[skillsmith-eval] Soft completeness check — does this artifact meet the bar?\n"
+            f"Criteria: {criteria_text}\n\n"
+            f"{content[:3000]}"
+        )
+    except Exception:
+        return None
 
 
 def _is_composite(spec: dict) -> bool:
@@ -71,7 +95,7 @@ def _evaluate_single(
             return PredicateResult.UNKNOWN
         from skillsmith.config import get_settings
 
-        model = get_settings().runtime_classifier_model
+        model = get_settings().runtime_embedding_model
         qwen_calls[0] += 1
         return SEMANTIC_PREDICATES[predicate_name](args, ctx, lm_client, model)
     raise ValueError(
@@ -138,6 +162,11 @@ def evaluate_node(
 
     predicate_name = keys[0]
     args = spec[predicate_name] if isinstance(spec[predicate_name], dict) else {}
+
+    advisory: str | None = None
+    if predicate_name == "artifact_completeness":
+        advisory = _build_completeness_advisory(args, ctx)
+
     try:
         result = _evaluate_single(predicate_name, args, ctx, lm_client, qwen_calls)
     except ValueError:
@@ -146,6 +175,7 @@ def evaluate_node(
         gate_name=predicate_name,
         result=result,
         detail=str(args),
+        advisory=advisory,
     )
     return result, [eval_record]
 
@@ -200,6 +230,7 @@ def decide_transition(
 
     gates_met = [e for e in all_evals if e.result == PredicateResult.MET]
     gates_unmet = [e for e in all_evals if e.result != PredicateResult.MET]
+    advisories = [e.advisory for e in all_evals if e.advisory]
 
     should_transition = result == PredicateResult.MET
     to_phase = next_phase_hint or _PHASE_GRAPH.get(current_phase)
@@ -211,4 +242,5 @@ def decide_transition(
         gates_met=gates_met,
         gates_unmet=gates_unmet,
         qwen_calls=qwen_calls[0],
+        advisories=advisories,
     )

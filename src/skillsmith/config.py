@@ -81,9 +81,6 @@ class Settings(BaseSettings):
     # When set, overrides auto-detection (useful for tests).
     forced_profile: str | None = None
 
-    # Classifier model for semantic predicates (Qwen small chat model).
-    runtime_classifier_base_url: str = "http://localhost:11436"
-    runtime_classifier_model: str = "qwen3-1.7b-instruct"
     code_indexer_url: str = "http://127.0.0.1:8003"
 
     def active_datastore_path(self, cwd: Path | None = None) -> Path:

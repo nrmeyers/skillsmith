@@ -1,6 +1,6 @@
 # Phase 6: Classifier Elimination
 
-**Prerequisites:** Phases 1–5 complete.
+**Prerequisites:** Phase 3 complete (introduces `classifier.py` and the config fields being removed). Phases 4 and 5 are independent.
 
 **Context:** Phase 3 introduced `src/skillsmith/signals/classifier.py` and a
 `runtime_classifier_model` config field (`qwen3-1.7b-instruct`) backed by a

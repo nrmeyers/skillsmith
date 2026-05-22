@@ -184,3 +184,55 @@ def test_evaluate_gates_returns_list(tmp_path: Path):
     evals = evaluate_gates({"artifact_exists": {"path": "f.md"}}, ctx)
     assert isinstance(evals, list)
     assert evals[0].result == MET
+
+
+# ---------------------------------------------------------------------------
+# artifact_completeness advisory (Phase 6)
+# ---------------------------------------------------------------------------
+
+
+def test_artifact_completeness_gate_returns_unknown(tmp_path: Path):
+    """artifact_completeness never blocks a transition — always UNKNOWN."""
+    (tmp_path / "spec.md").write_text("# Spec\n\nsome content\n")
+    ctx = _ctx(tmp_path)
+    gate_spec = {"artifact_completeness": {"path": "spec.md", "criteria": "all ACs testable"}}
+    _, evals = evaluate_node(gate_spec, ctx, None, [0])
+    assert evals[0].result == UNKNOWN
+
+
+def test_artifact_completeness_advisory_populated(tmp_path: Path):
+    """Advisory text is built when artifact exists."""
+    (tmp_path / "spec.md").write_text("# Spec\n\nsome content\n")
+    ctx = _ctx(tmp_path)
+    gate_spec = {"artifact_completeness": {"path": "spec.md", "criteria": "all ACs testable"}}
+    _, evals = evaluate_node(gate_spec, ctx, None, [0])
+    assert evals[0].advisory is not None
+    assert "skillsmith-eval" in evals[0].advisory
+    assert "all ACs testable" in evals[0].advisory
+
+
+def test_artifact_completeness_advisory_omitted_when_no_file(tmp_path: Path):
+    """Advisory is None when the artifact doesn't exist."""
+    ctx = _ctx(tmp_path)
+    gate_spec = {"artifact_completeness": {"path": "missing.md", "criteria": "x"}}
+    _, evals = evaluate_node(gate_spec, ctx, None, [0])
+    assert evals[0].advisory is None
+
+
+def test_decide_transition_collects_advisories(tmp_path: Path):
+    """decide_transition surfaces advisories in PhaseTransitionDecision."""
+    (tmp_path / "spec.md").write_text("# content")
+    ctx = _ctx(tmp_path)
+    gate_spec = {"artifact_completeness": {"path": "spec.md", "criteria": "complete"}}
+    decision = decide_transition("build", gate_spec, ctx)
+    assert len(decision.advisories) == 1
+    assert "skillsmith-eval" in decision.advisories[0]
+
+
+def test_non_completeness_gate_has_no_advisory(tmp_path: Path):
+    """Regular predicates produce no advisory."""
+    (tmp_path / "f.md").write_text("hi")
+    ctx = _ctx(tmp_path)
+    gate_spec = {"artifact_exists": {"path": "f.md"}}
+    _, evals = evaluate_node(gate_spec, ctx, None, [0])
+    assert evals[0].advisory is None

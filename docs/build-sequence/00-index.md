@@ -1,8 +1,8 @@
 # Skillsmith Build Sequence — Index
 
-**Status:** Ready for execution
+**Status:** Phases 1–5 complete. Phase 6 in progress.
 **Audience:** LLM coding agent (or human) implementing the architecture defined in the spec set
-**Date:** 2026-05-21
+**Date:** 2026-05-22
 
 This is the master index for the build sequence that implements the
 profile/contract/signal architecture across five phases. Each phase has
@@ -76,7 +76,7 @@ Phase 5: Tier 3 Hardening         ←── needs Phase 3 (hooks); independent o
 Phases 4 and 5 can be parallelized after Phase 3 completes.
 
 ```
-Phase 6: Classifier Elimination      ←── can run after Phase 3; independent of 4 and 5
+Phase 6: Classifier Elimination      ←── needs Phase 3 only; independent of 4 and 5
    replace chat-model classifier with embed cosine similarity
    demote artifact_completeness to soft advisory
    remove runtime_classifier_model config + port 11436
@@ -179,7 +179,6 @@ executing if significant time has passed.
 
 ## What to do next
 
-Open `docs/build-sequence/01-foundation.md` and execute it end to end.
-Then 02, 03; 04 and 05 can be parallel. Phase 6 can be queued after Phase 3
-completes — it is a follow-up change to the classifier approach and does not
-block 04 or 05.
+Phases 1–5 are complete and committed on `build-sequence-phases`.
+Open `docs/build-sequence/06-classifier-elimination.md` and execute it.
+Phases 4 and 5 are done so Phase 6 has no remaining blockers.
