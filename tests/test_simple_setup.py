@@ -830,7 +830,7 @@ def test_setup_explicit_runner_ollama_is_preserved():
 
     with mock.patch(
         "skillsmith.install.subcommands.simple_setup.run_setup",
-        side_effect=lambda cfg: captured.append(cfg) or 0,
+        side_effect=lambda cfg: captured.append(cfg) or 0,  # type: ignore[misc]
     ):
         root = argparse.ArgumentParser()
         sub = root.add_subparsers()
