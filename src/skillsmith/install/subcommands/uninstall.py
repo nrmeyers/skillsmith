@@ -809,6 +809,79 @@ def uninstall(
     }
 
 
+def _print_uninstall_summary(result: dict[str, Any]) -> None:
+    """Print a human-readable summary of the uninstall result to stderr.
+
+    Replaces the raw JSON output with a clean, user-friendly summary.
+    """
+    import sys as _sys
+
+    print("", file=_sys.stderr)
+    print("  Uninstall complete.", file=_sys.stderr)
+    print("", file=_sys.stderr)
+
+    # Files modified
+    modified = result.get("files_modified", [])
+    if modified:
+        print("  Files modified:", file=_sys.stderr)
+        for entry in modified:
+            path = entry.get("path", "?")
+            action = entry.get("action", "?")
+            print(f"    - {path} ({action})", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+    # Files/dirs removed
+    removed = result.get("files_removed", [])
+    if removed:
+        print("  Removed:", file=_sys.stderr)
+        for entry in removed:
+            path = entry.get("path", "?")
+            print(f"    - {path}", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+    # Models removed
+    models = result.get("models_removed", [])
+    if models:
+        print("  Models removed:", file=_sys.stderr)
+        for entry in models:
+            runner = entry.get("runner", "?")
+            model = entry.get("model", "?")
+            print(f"    - {runner}: {model}", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+    # Data preserved
+    kept = result.get("data_kept", [])
+    if kept:
+        print("  Data preserved:", file=_sys.stderr)
+        for entry in kept:
+            path = entry.get("path", "?")
+            print(f"    - {path}", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+    # uv tool
+    uv = result.get("uv_tool", {})
+    if uv.get("action") == "uv_tool_uninstalled":
+        print("  uv tool: uninstalled", file=_sys.stderr)
+        print("", file=_sys.stderr)
+    elif uv.get("action") == "uv_tool_skipped":
+        reason = uv.get("reason", "")
+        print(f"  uv tool: skipped ({reason})", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+    # Warnings
+    warnings = result.get("warnings", [])
+    if warnings:
+        print("  Warnings:", file=_sys.stderr)
+        for w in warnings:
+            print(f"    ! {w}", file=_sys.stderr)
+        print("", file=_sys.stderr)
+
+
+def _print_uninstall_json(result: dict[str, Any]) -> None:
+    """Print the raw JSON result (for --json flag)."""
+    print(json.dumps(result, indent=2))
+
+
 # ---------------------------------------------------------------------------
 # Subcommand interface
 # ---------------------------------------------------------------------------
@@ -820,6 +893,12 @@ def add_parser(
     p: argparse.ArgumentParser = subparsers.add_parser(
         "uninstall",
         help="Remove harness wiring, .env, and state files.",
+    )
+    p.add_argument(
+        "--json",
+        action="store_true",
+        default=False,
+        help="Output raw JSON result (default: human-readable summary).",
     )
     p.add_argument(
         "--remove-data",
@@ -953,5 +1032,8 @@ def _run(args: argparse.Namespace) -> int:
         )
 
     result = uninstall(**kwargs)
-    print(json.dumps(result, indent=2))
+    if args.json:
+        _print_uninstall_json(result)
+    else:
+        _print_uninstall_summary(result)
     return 0

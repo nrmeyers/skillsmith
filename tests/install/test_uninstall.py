@@ -639,7 +639,7 @@ class TestUnwireUnchanged:
             }
             from argparse import Namespace
 
-            _run(Namespace(force=False))
+            _run(Namespace(force=False, json=False))
         kwargs = mock_uninstall.call_args.kwargs
         assert kwargs["stop_services"] is False
         assert kwargs["remove_models"] is False
@@ -679,6 +679,7 @@ class TestPresetMapping:
             all_repos=True,
             yes=False,
             preset=preset,
+            json=False,
             **extra,
         )
         with patch(
@@ -735,6 +736,7 @@ class TestPresetMapping:
             all_repos=True,
             yes=True,
             preset=None,
+            json=False,
         )
         with (
             patch(
