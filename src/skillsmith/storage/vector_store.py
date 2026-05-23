@@ -438,7 +438,8 @@ class VectorStore:
                 self._conn.execute("CHECKPOINT;")
 
         # All retries exhausted — raise the last transient error.
-        raise last_exc  # type: ignore[misc]
+        assert last_exc is not None
+        raise last_exc
 
     def count_embeddings(self) -> int:
         row = self._conn.execute("SELECT COUNT(*) FROM fragment_embeddings").fetchone()

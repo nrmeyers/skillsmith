@@ -460,3 +460,114 @@ def test_reembed_restart_on_error(tmp_path: Path) -> None:
         assert code == EXIT_OK
         # But service is still restarted
         mock_restart.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# macOS launchctl PID parsing
+# ---------------------------------------------------------------------------
+
+
+def test_is_service_running_macos_with_pid() -> None:
+    """_is_service_running returns True when launchctl list shows a real PID."""
+    from skillsmith.reembed.cli import _is_service_running  # pyright: ignore[reportPrivateUsage]
+
+    mock_result = MagicMock()
+    mock_result.returncode = 0
+    mock_result.stdout = "12345\t0\tai.skillsmith\n"
+
+    with (
+        patch("platform.system", return_value="Darwin"),
+        patch("shutil.which", return_value="/bin/launchctl"),
+        patch("pathlib.Path.exists", return_value=True),
+        patch("subprocess.run", return_value=mock_result),
+    ):
+        assert _is_service_running() is True
+
+
+def test_is_service_running_macos_not_running() -> None:
+    """_is_service_running returns False when launchctl list shows PID='-'."""
+    from skillsmith.reembed.cli import _is_service_running  # pyright: ignore[reportPrivateUsage]
+
+    mock_result = MagicMock()
+    mock_result.returncode = 0
+    mock_result.stdout = "-\t0\tai.skillsmith\n"
+
+    with (
+        patch("platform.system", return_value="Darwin"),
+        patch("shutil.which", return_value="/bin/launchctl"),
+        patch("pathlib.Path.exists", return_value=True),
+        patch("subprocess.run", return_value=mock_result),
+    ):
+        assert _is_service_running() is False
+
+
+# ---------------------------------------------------------------------------
+# Dry-run with service running
+# ---------------------------------------------------------------------------
+
+
+def test_reembed_dry_run_stops_service(tmp_path: Path) -> None:
+    """--dry-run still stops the service to avoid DB lock conflicts."""
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+        patch("skillsmith.reembed.cli._is_service_running", return_value=True),
+        patch("skillsmith.reembed.cli._stop_service", return_value=True) as mock_stop,
+        patch("skillsmith.reembed.cli._restart_service") as mock_restart,
+    ):
+        mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
+        mock_settings.return_value.runtime_embedding_model = "test-model"
+
+        mock_store = MagicMock()
+        mock_store_cls.return_value.__enter__ = MagicMock(return_value=mock_store)
+        mock_store_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_store.execute.return_value = []
+
+        mock_vs = MagicMock()
+        mock_vs_cls.return_value.__enter__ = MagicMock(return_value=mock_vs)
+        mock_vs_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_vs.count_embeddings.return_value = 100
+        mock_vs.fragment_ids_present.return_value = set()
+
+        code = reembed_main(["--dry-run"])
+
+        assert code == EXIT_OK
+        mock_stop.assert_called_once()
+        mock_restart.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# FTS rebuild warning includes remediation hint
+# ---------------------------------------------------------------------------
+
+
+def test_fts_rebuild_warning_includes_hint(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    """FTS rebuild failure warning includes actionable remediation hint."""
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+        patch("skillsmith.reembed.cli._is_service_running", return_value=False),
+    ):
+        mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
+        mock_settings.return_value.runtime_embedding_model = "test-model"
+
+        mock_store = MagicMock()
+        mock_store_cls.return_value.__enter__ = MagicMock(return_value=mock_store)
+        mock_store_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_store.execute.return_value = []
+
+        mock_vs = MagicMock()
+        mock_vs_cls.return_value.__enter__ = MagicMock(return_value=mock_vs)
+        mock_vs_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_vs.count_embeddings.return_value = 100
+        mock_vs.fragment_ids_present.return_value = set()
+        mock_vs.rebuild_fts_index.side_effect = Exception("stopwords has been deleted")
+
+        with caplog.at_level(logging.WARNING):
+            code = reembed_main(["--rebuild-fts"])
+
+        assert code == EXIT_OK
+        assert "BM25 leg degraded" in caplog.text
+        assert "re-run" in caplog.text or "rebuild-fts" in caplog.text

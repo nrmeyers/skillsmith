@@ -115,8 +115,16 @@ def _is_service_running() -> bool:
                     text=True,
                     timeout=5,
                 )
-                # launchctl list returns 0 with output when the job exists
-                return result.returncode == 0 and "ai.skillsmith" in result.stdout
+                # launchctl list returns 0 when the job exists (loaded or running).
+                # Output is tab-separated: PID \t exitcode \t label
+                # PID column is '-' when the job is loaded but not currently running.
+                if result.returncode != 0 or "ai.skillsmith" not in result.stdout:
+                    return False
+                for line in result.stdout.strip().splitlines():
+                    parts = line.split()
+                    if parts and parts[-1] == "ai.skillsmith" and parts[0] != "-":
+                        return True
+                return False
             except (OSError, subprocess.TimeoutExpired):
                 pass
     return False
@@ -190,14 +198,25 @@ def _restart_service() -> None:
         plist = _launchd_plist_path()
         if plist.exists():
             try:
+                # Use non-persistent load (no -w) so we don't override user
+                # enablement/disabled state. Prefer modern kickstart when available.
                 subprocess.run(
-                    ["launchctl", "load", "-w", str(plist)],
+                    ["launchctl", "kickstart", "gui/", "ai.skillsmith"],
                     check=True,
                     timeout=15,
                 )
                 logger.info("restarted launchd service: ai.skillsmith")
-            except (OSError, subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
-                logger.warning("failed to restart launchd service: %s", exc)
+            except (OSError, subprocess.TimeoutExpired, subprocess.CalledProcessError):
+                # Fallback: launchctl load without -w (older macOS)
+                try:
+                    subprocess.run(
+                        ["launchctl", "load", str(plist)],
+                        check=True,
+                        timeout=15,
+                    )
+                    logger.info("restarted launchd service: ai.skillsmith")
+                except (OSError, subprocess.TimeoutExpired, subprocess.CalledProcessError) as exc:
+                    logger.warning("failed to restart launchd service: %s", exc)
 
 
 # ---------------------------------------------------------------------------
@@ -459,21 +478,22 @@ def main(argv: list[str] | None = None) -> int:
 
     # Pre-flight: stop the background service if running — it holds database locks
     # (LadybugDB/Kuzu + DuckDB) that conflict with our exclusive access.
+    # Even in dry-run mode we must stop the service, otherwise opening the DBs
+    # will fail with the same lock errors we're trying to avoid.
     service_was_running = False
     service_was_stopped = False
-    if not args.dry_run:
-        if _is_service_running():
-            service_was_running = True
-            service_was_stopped = _stop_service()
-            if service_was_stopped:
-                logger.info("stopped skillsmith service to release database locks")
-            else:
-                logger.warning(
-                    "skillsmith service appears active but could not be stopped via "
-                    "service manager — reembed may fail with lock errors"
-                )
+    if _is_service_running():
+        service_was_running = True
+        service_was_stopped = _stop_service()
+        if service_was_stopped:
+            logger.info("stopped skillsmith service to release database locks")
         else:
-            logger.debug("skillsmith service is not running")
+            logger.warning(
+                "skillsmith service appears active but could not be stopped via "
+                "service manager — reembed may fail with lock errors"
+            )
+    else:
+        logger.debug("skillsmith service is not running")
 
     def _maybe_restart() -> None:
         """Restart the service if we stopped it and --no-restart is not set."""
@@ -556,7 +576,9 @@ def main(argv: list[str] | None = None) -> int:
                     vs.rebuild_fts_index()
                 except Exception as exc:  # noqa: BLE001 — FTS rebuild is best-effort
                     logger.warning(
-                        "FTS index rebuild failed (BM25 leg degraded): %s.",
+                        "FTS index rebuild failed (BM25 leg degraded): %s. "
+                        "If the background service was holding the DB, stop it and re-run "
+                        "with `skillsmith reembed --rebuild-fts`.",
                         exc,
                     )
             return EXIT_OK if stats.failed == 0 else EXIT_LLM
