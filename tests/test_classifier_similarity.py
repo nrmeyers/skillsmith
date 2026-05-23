@@ -10,8 +10,10 @@ from unittest.mock import MagicMock
 import pytest
 
 from skillsmith.signals.classifier import (
-    SEMANTIC_PREDICATES,
+    _INTENT_REFERENCES,  # pyright: ignore[reportPrivateUsage]
+    _MAX_INPUT_CHARS,  # pyright: ignore[reportPrivateUsage]
     _SIMILARITY_THRESHOLD,  # pyright: ignore[reportPrivateUsage]
+    SEMANTIC_PREDICATES,
     _cosine,  # pyright: ignore[reportPrivateUsage]
     _intent_similarity,  # pyright: ignore[reportPrivateUsage]
     _topic_similarity,  # pyright: ignore[reportPrivateUsage]
@@ -71,7 +73,6 @@ def test_intent_similarity_references_are_raw(tmp_path: Path) -> None:
 
     call_args = client.embed.call_args
     texts: list[str] = call_args.kwargs.get("texts", [])
-    from skillsmith.signals.classifier import _INTENT_REFERENCES  # noqa: PLC2701  # pyright: ignore[reportPrivateUsage]
 
     expected_refs = _INTENT_REFERENCES["completion"]
     actual_refs = texts[1:]
@@ -80,8 +81,6 @@ def test_intent_similarity_references_are_raw(tmp_path: Path) -> None:
 
 def test_intent_similarity_truncation(tmp_path: Path) -> None:
     """Long input should be truncated before embedding."""
-    from skillsmith.signals.classifier import _MAX_INPUT_CHARS  # noqa: PLC2701  # pyright: ignore[reportPrivateUsage]
-
     query = [1.0, 0.0]
     refs = [[0.99, 0.14]]
     client = _mock_client([query] + refs)
