@@ -37,11 +37,11 @@ def _mock_client(vecs: list[list[float]]) -> MagicMock:
 
 def test_cosine_identical_vectors() -> None:
     v = [1.0, 0.0, 0.0]
-    assert _cosine(v, v) == pytest.approx(1.0)
+    assert _cosine(v, v) == pytest.approx(1.0)  # pyright: ignore[reportUnknownMemberType]
 
 
 def test_cosine_orthogonal() -> None:
-    assert _cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)
+    assert _cosine([1.0, 0.0], [0.0, 1.0]) == pytest.approx(0.0)  # pyright: ignore[reportUnknownMemberType]
 
 
 def test_cosine_zero_vector() -> None:
