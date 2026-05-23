@@ -52,6 +52,7 @@ def test_cosine_zero_vector() -> None:
 # Phase 7: classifier query format
 # ---------------------------------------------------------------------------
 
+
 def test_intent_similarity_query_is_raw_text(tmp_path: Path) -> None:
     """Query passed to embed should be the raw text (no Qwen prefix)."""
     query = [1.0, 0.0]

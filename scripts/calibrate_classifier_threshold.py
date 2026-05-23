@@ -124,7 +124,9 @@ def compute_metrics(
         scores = all_scores[idx]
         if ex["intent"] == "none":
             # Negative example: should NOT have any intent return MET
-            any_met = any(scores[intent] >= threshold for intent in ["completion", "approval", "redirection"])
+            any_met = any(
+                scores[intent] >= threshold for intent in ["completion", "approval", "redirection"]
+            )
             if any_met:
                 fp += 1  # False positive: fired when it shouldn't
             else:
@@ -184,7 +186,9 @@ def print_confusion_matrix(metrics: dict[str, Any], threshold: float) -> None:
 
 def main() -> None:
     # Load fixture
-    fixture_path = Path(__file__).parent.parent / "tests" / "fixtures" / "classifier_calibration.jsonl"
+    fixture_path = (
+        Path(__file__).parent.parent / "tests" / "fixtures" / "classifier_calibration.jsonl"
+    )
     if not fixture_path.exists():
         print(f"ERROR: Fixture not found at {fixture_path}", file=sys.stderr)
         sys.exit(1)
@@ -242,7 +246,9 @@ def main() -> None:
 
     if best_threshold is None:
         print("\nERROR: No threshold satisfies false_met_rate <= 0.05", file=sys.stderr)
-        print("Consider expanding reference phrases or revising task descriptions.", file=sys.stderr)
+        print(
+            "Consider expanding reference phrases or revising task descriptions.", file=sys.stderr
+        )
         sys.exit(1)
 
     print(f"\nRecommended threshold: {best_threshold:.2f}")
