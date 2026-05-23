@@ -327,7 +327,7 @@ def test_calibration_fixture_valid() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.requires_embed_server
+@pytest.mark.skip(reason="requires live embed server with specific model loaded")
 def test_classifier_regression_against_live_server() -> None:
     """Regression test: F1 >= 0.85, false_met_rate <= 0.05 at committed threshold."""
     from skillsmith.config import get_settings
