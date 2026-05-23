@@ -542,7 +542,9 @@ def test_reembed_dry_run_stops_service(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_fts_rebuild_warning_includes_hint(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def test_fts_rebuild_warning_includes_hint(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """FTS rebuild failure warning includes actionable remediation hint."""
     with (
         patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
