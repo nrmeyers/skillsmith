@@ -854,7 +854,10 @@ def _print_uninstall_summary(result: dict[str, Any]) -> None:
     if kept:
         print("  Data preserved:", file=_sys.stderr)
         for entry in kept:
-            path = entry.get("path", "?")
+            if isinstance(entry, dict):
+                path = entry.get("path", "?")
+            else:
+                path = str(entry)
             print(f"    - {path}", file=_sys.stderr)
         print("", file=_sys.stderr)
 
