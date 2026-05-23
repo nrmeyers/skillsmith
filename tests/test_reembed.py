@@ -205,7 +205,9 @@ def test_rebuild_fts_no_retry_on_non_transient_error(tmp_path: Path) -> None:
 
 def test_detect_service_manager_linux() -> None:
     """_detect_service_manager returns 'systemd' on Linux with systemctl."""
-    from skillsmith.reembed.cli import _detect_service_manager  # pyright: ignore[reportPrivateUsage]
+    from skillsmith.reembed.cli import (
+        _detect_service_manager,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with (
         patch("platform.system", return_value="Linux"),
@@ -216,7 +218,9 @@ def test_detect_service_manager_linux() -> None:
 
 def test_detect_service_manager_macos() -> None:
     """_detect_service_manager returns 'launchd' on macOS with launchctl."""
-    from skillsmith.reembed.cli import _detect_service_manager  # pyright: ignore[reportPrivateUsage]
+    from skillsmith.reembed.cli import (
+        _detect_service_manager,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with (
         patch("platform.system", return_value="Darwin"),
@@ -227,7 +231,9 @@ def test_detect_service_manager_macos() -> None:
 
 def test_detect_service_manager_none() -> None:
     """_detect_service_manager returns None when no service manager found."""
-    from skillsmith.reembed.cli import _detect_service_manager  # pyright: ignore[reportPrivateUsage]
+    from skillsmith.reembed.cli import (
+        _detect_service_manager,  # pyright: ignore[reportPrivateUsage]
+    )
 
     with (
         patch("platform.system", return_value="Linux"),

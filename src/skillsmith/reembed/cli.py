@@ -66,12 +66,10 @@ _TRANSIENT_ERRORS = (LMTimeout, LMUnavailable)
 
 def _detect_service_manager() -> str | None:
     """Return 'systemd', 'launchd', or None."""
-    if platform.system().lower() == "linux":
-        if shutil.which("systemctl") is not None:
-            return "systemd"
-    if platform.system().lower() == "darwin":
-        if shutil.which("launchctl") is not None:
-            return "launchd"
+    if platform.system().lower() == "linux" and shutil.which("systemctl") is not None:
+        return "systemd"
+    if platform.system().lower() == "darwin" and shutil.which("launchctl") is not None:
+        return "launchd"
     return None
 
 
