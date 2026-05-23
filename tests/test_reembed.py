@@ -10,10 +10,11 @@ import pytest
 
 from skillsmith.reembed.cli import (
     EXIT_OK,
+)
+from skillsmith.reembed.cli import (
     main as reembed_main,
 )
 from skillsmith.storage.vector_store import VectorStore
-
 
 # ---------------------------------------------------------------------------
 # --rebuild-fts flag
