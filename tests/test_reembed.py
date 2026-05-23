@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import logging
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -11,7 +10,6 @@ import pytest
 
 from skillsmith.reembed.cli import (
     EXIT_OK,
-    ReembedStats,
     main as reembed_main,
 )
 from skillsmith.storage.vector_store import VectorStore
@@ -52,8 +50,7 @@ def test_rebuild_fts_runs_when_zero_fragments(tmp_path: Path, caplog: pytest.Log
     # Mock the LadybugStore and vector_store so we can control discovery
     with patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
          patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls, \
-         patch("skillsmith.reembed.cli.get_settings") as mock_settings, \
-         patch("skillsmith.reembed.cli.Path") as mock_path:
+         patch("skillsmith.reembed.cli.get_settings") as mock_settings:
 
         mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
         mock_settings.return_value.runtime_embedding_model = "test-model"
