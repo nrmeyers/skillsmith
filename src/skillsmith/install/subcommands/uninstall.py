@@ -31,7 +31,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from skillsmith.install import state as install_state
 from skillsmith.install.subcommands.wire_harness import SENTINEL_BEGIN, SENTINEL_END
@@ -841,12 +841,32 @@ def _print_uninstall_summary(result: dict[str, Any]) -> None:
 
     # Models removed
     models = result.get("models_removed", [])
-    if models:
+    removed_model_actions = {"ollama_removed", "gguf_removed"}
+    removed_models = [entry for entry in models if entry.get("action") in removed_model_actions]
+    other_model_actions = [
+        entry for entry in models if entry.get("action") not in removed_model_actions
+    ]
+    if removed_models:
         print("  Models removed:", file=_sys.stderr)
-        for entry in models:
+        for entry in removed_models:
             runner = entry.get("runner", "?")
             model = entry.get("model", "?")
             print(f"    - {runner}: {model}", file=_sys.stderr)
+        print("", file=_sys.stderr)
+    if other_model_actions:
+        print("  Model cleanup:", file=_sys.stderr)
+        for entry in other_model_actions:
+            action = entry.get("action", "?")
+            runner = entry.get("runner")
+            model = entry.get("model")
+            target = f"{runner}: {model}" if runner and model else entry.get("entry")
+            detail = f"{action}"
+            if target:
+                detail += f" ({target})"
+            hint = entry.get("hint") or entry.get("error")
+            if hint:
+                detail += f" - {hint}"
+            print(f"    - {detail}", file=_sys.stderr)
         print("", file=_sys.stderr)
 
     # Data preserved
@@ -854,7 +874,12 @@ def _print_uninstall_summary(result: dict[str, Any]) -> None:
     if kept:
         print("  Data preserved:", file=_sys.stderr)
         for entry in kept:
-            path = entry.get("path", "?")
+            if isinstance(entry, dict):
+                entry_dict = cast(dict[str, Any], entry)
+                raw_path = entry_dict.get("path")
+                path = raw_path if isinstance(raw_path, str) else "?"
+            else:
+                path = str(entry)
             print(f"    - {path}", file=_sys.stderr)
         print("", file=_sys.stderr)
 
