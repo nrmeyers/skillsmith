@@ -89,12 +89,18 @@ def _is_service_running() -> bool:
         try:
             result = subprocess.run(
                 [
-                    "systemctl", "--user", "is-active", "skillsmith.service",
+                    "systemctl",
+                    "--user",
+                    "is-active",
+                    "skillsmith.service",
                 ],
                 capture_output=True,
                 text=True,
                 timeout=5,
-                env={**os.environ, "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus"},
+                env={
+                    **os.environ,
+                    "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus",
+                },
             )
             return result.stdout.strip() == "active"
         except (OSError, subprocess.TimeoutExpired):
@@ -122,7 +128,10 @@ def _stop_service() -> bool:
     if sm == "systemd":
         try:
             logger.info("stopping systemd service: skillsmith.service")
-            env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus"}
+            env = {
+                **os.environ,
+                "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus",
+            }
             subprocess.run(
                 ["systemctl", "--user", "stop", "skillsmith.service"],
                 check=True,
@@ -164,7 +173,10 @@ def _restart_service() -> None:
     sm = _detect_service_manager()
     if sm == "systemd":
         try:
-            env = {**os.environ, "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus"}
+            env = {
+                **os.environ,
+                "DBUS_SESSION_BUS_ADDRESS": f"unix:path=/run/user/{os.getuid()}/bus",
+            }
             subprocess.run(
                 ["systemctl", "--user", "start", "skillsmith.service"],
                 check=True,
