@@ -842,9 +842,7 @@ def _print_uninstall_summary(result: dict[str, Any]) -> None:
     # Models removed
     models = result.get("models_removed", [])
     removed_model_actions = {"ollama_removed", "gguf_removed"}
-    removed_models = [
-        entry for entry in models if entry.get("action") in removed_model_actions
-    ]
+    removed_models = [entry for entry in models if entry.get("action") in removed_model_actions]
     other_model_actions = [
         entry for entry in models if entry.get("action") not in removed_model_actions
     ]

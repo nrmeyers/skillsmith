@@ -758,9 +758,7 @@ class TestPresetMapping:
 class TestRunOutput:
     """``_run`` should print the expected stream for summary vs JSON mode."""
 
-    def test_human_summary_writes_to_stderr(
-        self, capsys: pytest.CaptureFixture[str]
-    ) -> None:
+    def test_human_summary_writes_to_stderr(self, capsys: pytest.CaptureFixture[str]) -> None:
         from argparse import Namespace
         from unittest.mock import patch
 
