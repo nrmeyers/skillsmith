@@ -47,12 +47,11 @@ def test_cosine_zero_vector() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Phase 7: Qwen instruct prefix
+# Phase 7: classifier query format
 # ---------------------------------------------------------------------------
 
-
-def test_intent_similarity_applies_prefix_to_query(tmp_path: Path) -> None:
-    """Query passed to embed should start with 'Instruct: ' and contain '\\nQuery:'."""
+def test_intent_similarity_query_is_raw_text(tmp_path: Path) -> None:
+    """Query passed to embed should be the raw text (no Qwen prefix)."""
     query = [1.0, 0.0]
     refs = [[0.99, 0.14], [0.0, 1.0]]
     client = _mock_client([query] + refs)
@@ -60,9 +59,7 @@ def test_intent_similarity_applies_prefix_to_query(tmp_path: Path) -> None:
 
     call_args = client.embed.call_args
     texts: list[str] = call_args.kwargs.get("texts", [])
-    assert texts[0].startswith("Instruct: ")
-    assert "\nQuery:" in texts[0]
-    assert "done" in texts[0]
+    assert texts[0] == "done"
 
 
 def test_intent_similarity_references_are_raw(tmp_path: Path) -> None:
@@ -74,7 +71,6 @@ def test_intent_similarity_references_are_raw(tmp_path: Path) -> None:
 
     call_args = client.embed.call_args
     texts: list[str] = call_args.kwargs.get("texts", [])
-    # References are the rest of the texts list
     from skillsmith.signals.classifier import _INTENT_REFERENCES  # noqa: PLC2701  # pyright: ignore[reportPrivateUsage]
 
     expected_refs = _INTENT_REFERENCES["completion"]
@@ -82,8 +78,8 @@ def test_intent_similarity_references_are_raw(tmp_path: Path) -> None:
     assert actual_refs == expected_refs
 
 
-def test_intent_similarity_truncation_precedes_prefix(tmp_path: Path) -> None:
-    """Long input should be truncated before prefix is added."""
+def test_intent_similarity_truncation(tmp_path: Path) -> None:
+    """Long input should be truncated before embedding."""
     from skillsmith.signals.classifier import _MAX_INPUT_CHARS  # noqa: PLC2701  # pyright: ignore[reportPrivateUsage]
 
     query = [1.0, 0.0]
@@ -94,13 +90,11 @@ def test_intent_similarity_truncation_precedes_prefix(tmp_path: Path) -> None:
 
     call_args = client.embed.call_args
     texts: list[str] = call_args.kwargs.get("texts", [])
-    # The query text portion (after 'Instruct: ...\nQuery:') should be truncated
-    query_text = texts[0].split("\nQuery:")[1]
-    assert len(query_text) == _MAX_INPUT_CHARS
+    assert len(texts[0]) == _MAX_INPUT_CHARS
 
 
-def test_topic_similarity_applies_prefix_to_query(tmp_path: Path) -> None:
-    """Topic mode should also prefix the query."""
+def test_topic_similarity_query_is_raw_text(tmp_path: Path) -> None:
+    """Topic mode should also use raw text (no Qwen prefix)."""
     query = [1.0, 0.0]
     topics = [[0.99, 0.14]]
     client = _mock_client([query] + topics)
@@ -108,21 +102,7 @@ def test_topic_similarity_applies_prefix_to_query(tmp_path: Path) -> None:
 
     call_args = client.embed.call_args
     texts: list[str] = call_args.kwargs.get("texts", [])
-    assert texts[0].startswith("Instruct: ")
-    assert "\nQuery:" in texts[0]
-    assert "auth question" in texts[0]
-    assert "authentication" in texts[0]
-
-
-def test_topic_similarity_topics_are_raw(tmp_path: Path) -> None:
-    """Topic phrases should be passed raw (no prefix)."""
-    query = [1.0, 0.0]
-    topics = [[0.99, 0.14]]
-    client = _mock_client([query] + topics)
-    _topic_similarity("auth question", ["authentication"], client, "embed-model", threshold=0.75)
-
-    call_args = client.embed.call_args
-    texts: list[str] = call_args.kwargs.get("texts", [])
+    assert texts[0] == "auth question"
     assert texts[1] == "authentication"
 
 

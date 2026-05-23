@@ -128,7 +128,7 @@ def _intent_similarity(
     if task is None:
         _log.debug("no task description for intent %r — returning UNKNOWN", intent)
         return PredicateResult.UNKNOWN
-    query = _format_query(text[:_MAX_INPUT_CHARS], task)
+    query = text[:_MAX_INPUT_CHARS]
     try:
         vecs = lm_client.embed(model=model, texts=[query] + refs)
     except Exception as exc:
@@ -150,7 +150,7 @@ def _topic_similarity(
     if not topics:
         return PredicateResult.UNKNOWN
     task = f"Decide whether the recent prompt is on-topic for any of: {', '.join(topics)}."
-    query = _format_query(text[:_MAX_INPUT_CHARS], task)
+    query = text[:_MAX_INPUT_CHARS]
     try:
         vecs = lm_client.embed(model=model, texts=[query] + topics)
     except Exception as exc:
