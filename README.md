@@ -1,3 +1,10 @@
+<div align="center">
+  <h3>⚠️ This project has been rebranded to <a href="https://github.com/nrmeyers/agentalloy">AgentAlloy</a></h3>
+  <p>skillsmith is now <a href="https://github.com/nrmeyers/agentalloy">AgentAlloy</a> — a just-in-time instruction composer.</p>
+  <p><a href="https://github.com/nrmeyers/agentalloy">→ Move to the new repo →</a></p>
+  <hr />
+</div>
+
 <p align="center">
   <img src="docs/Skithsmith_cover.png" alt="Skillsmith — Just-in-Time Skill Composer" width="720" />
 </p>
