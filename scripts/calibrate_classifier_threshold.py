@@ -235,11 +235,10 @@ def main() -> None:
         )
 
         # Check if this threshold meets the constraint
-        if metrics["false_met_rate"] <= 0.05:
-            if metrics["f1"] > best_f1:
-                best_f1 = metrics["f1"]
-                best_threshold = threshold
-                best_metrics = metrics
+        if metrics["false_met_rate"] <= 0.05 and metrics["f1"] > best_f1:
+            best_f1 = metrics["f1"]
+            best_threshold = threshold
+            best_metrics = metrics
 
     if best_threshold is None:
         print("\nERROR: No threshold satisfies false_met_rate <= 0.05", file=sys.stderr)

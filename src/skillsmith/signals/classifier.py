@@ -149,7 +149,6 @@ def _topic_similarity(
 ) -> PredicateResult:
     if not topics:
         return PredicateResult.UNKNOWN
-    task = f"Decide whether the recent prompt is on-topic for any of: {', '.join(topics)}."
     query = text[:_MAX_INPUT_CHARS]
     try:
         vecs = lm_client.embed(model=model, texts=[query] + topics)
