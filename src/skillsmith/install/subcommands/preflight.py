@@ -290,6 +290,45 @@ def _check_ollama_reachable() -> dict[str, Any]:
     return _check("ollama_reachable", passed=True, started=t0, detail=f"GET {url} ok")
 
 
+def _try_start_ollama() -> bool:
+    """Attempt to start ollama serve in the background.
+
+    Spawns ``ollama serve &`` with output suppressed to a log file.
+    Polls until reachable or times out after 15 seconds.
+
+    Returns True if ollama became reachable.
+    """
+    if not shutil.which("ollama"):
+        return False
+
+    log_path = install_state.user_data_dir() / "logs" / "ollama.log"
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        import subprocess
+
+        with log_path.open("ab") as log_fh:
+            subprocess.Popen(
+                ["ollama", "serve"],
+                stdout=log_fh,
+                stderr=log_fh,
+                start_new_session=True,
+            )
+    except OSError:
+        return False
+
+    # Poll until reachable
+    import socket
+
+    deadline = time.monotonic() + 15
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection(("127.0.0.1", 11434), timeout=1):
+                return True
+        except OSError:
+            time.sleep(1)
+    return False
+
+
 def _check_llama_server_present() -> dict[str, Any]:
     t0 = time.monotonic()
     binary = shutil.which("llama-server")
@@ -401,7 +440,14 @@ def run_preflight(
             )
         elif chosen == "ollama":
             checks.append(_check_ollama_present())
-            checks.append(_check_ollama_reachable())
+            reachable = _check_ollama_reachable()
+            if not reachable["passed"]:
+                # Offer to start ollama automatically
+                started = _try_start_ollama()
+                if started:
+                    # Re-check after starting
+                    reachable = _check_ollama_reachable()
+            checks.append(reachable)
         elif chosen == "llama-server":
             checks.append(_check_llama_server_present())
             # _check_llama_server_reachable omitted: llama-server is started by
