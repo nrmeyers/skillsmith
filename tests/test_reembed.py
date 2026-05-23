@@ -193,6 +193,3 @@ def test_rebuild_fts_no_retry_on_non_transient_error(tmp_path: Path) -> None:
 
     # Only ONE create_fts_index call (no retry)
     assert create_count == 1
-
-
-
