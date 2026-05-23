@@ -23,10 +23,11 @@ from skillsmith.storage.vector_store import VectorStore
 
 def test_rebuild_fts_flag_accepted() -> None:
     """--rebuild-fts is accepted as valid CLI (dry-run mode)."""
-    with patch("skillsmith.reembed.cli.get_settings") as mock_settings, \
-         patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
-         patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls:
-
+    with (
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+    ):
         mock_settings.return_value.ladybug_db_path = "/tmp/test/ladybug.db"
         mock_settings.return_value.runtime_embedding_model = "test-model"
 
@@ -46,13 +47,16 @@ def test_rebuild_fts_flag_accepted() -> None:
         assert code == EXIT_OK
 
 
-def test_rebuild_fts_runs_when_zero_fragments(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def test_rebuild_fts_runs_when_zero_fragments(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """--rebuild-fts triggers rebuild_fts_index when fragments is empty."""
     # Mock the LadybugStore and vector_store so we can control discovery
-    with patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
-         patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls, \
-         patch("skillsmith.reembed.cli.get_settings") as mock_settings:
-
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+    ):
         mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
         mock_settings.return_value.runtime_embedding_model = "test-model"
 
@@ -77,12 +81,15 @@ def test_rebuild_fts_runs_when_zero_fragments(tmp_path: Path, caplog: pytest.Log
         assert "running --rebuild-fts only" in caplog.text or "rebuild-fts requested" in caplog.text
 
 
-def test_no_rebuild_without_flag_when_zero_fragments(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def test_no_rebuild_without_flag_when_zero_fragments(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Without --rebuild-fts, rebuild_fts_index is NOT called when fragments is empty."""
-    with patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
-         patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls, \
-         patch("skillsmith.reembed.cli.get_settings") as mock_settings:
-
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+    ):
         mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
         mock_settings.return_value.runtime_embedding_model = "test-model"
 
@@ -107,10 +114,11 @@ def test_no_rebuild_without_flag_when_zero_fragments(tmp_path: Path, caplog: pyt
 
 def test_rebuild_fts_exit_ok_on_failure(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
     """When rebuild_fts_index raises, exit code is still EXIT_OK."""
-    with patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
-         patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls, \
-         patch("skillsmith.reembed.cli.get_settings") as mock_settings:
-
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+    ):
         mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
         mock_settings.return_value.runtime_embedding_model = "test-model"
 
@@ -189,12 +197,15 @@ def test_rebuild_fts_no_retry_on_non_transient_error(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_backward_compat_no_flag_no_fragments(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def test_backward_compat_no_flag_no_fragments(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     """Run main([]) with no fragments -> same behavior as before."""
-    with patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls, \
-         patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls, \
-         patch("skillsmith.reembed.cli.get_settings") as mock_settings:
-
+    with (
+        patch("skillsmith.reembed.cli.LadybugStore") as mock_store_cls,
+        patch("skillsmith.reembed.cli.open_or_create") as mock_vs_cls,
+        patch("skillsmith.reembed.cli.get_settings") as mock_settings,
+    ):
         mock_settings.return_value.ladybug_db_path = str(tmp_path / "ladybug.db")
         mock_settings.return_value.runtime_embedding_model = "test-model"
 

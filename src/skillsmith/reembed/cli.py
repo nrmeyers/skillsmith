@@ -368,7 +368,9 @@ def main(argv: list[str] | None = None) -> int:
 
         if stats.embedded > 0 or args.rebuild_fts:
             if stats.embedded > 0:
-                logger.info("rebuilding BM25 FTS index after embedding %d fragment(s)", stats.embedded)
+                logger.info(
+                    "rebuilding BM25 FTS index after embedding %d fragment(s)", stats.embedded
+                )
             else:
                 logger.info("rebuilding BM25 FTS index (--rebuild-fts requested)")
             try:
