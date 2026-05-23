@@ -24,6 +24,7 @@ import json
 import os
 import shutil
 import socket
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -37,6 +38,7 @@ SCHEMA_VERSION = 1
 
 _DEFAULT_PORT = 47950
 _PHASES = ("early", "runner")
+_OLLAMA_PORT = 11434
 
 
 def _check(
@@ -270,7 +272,7 @@ def _check_ollama_present() -> dict[str, Any]:
 
 def _check_ollama_reachable() -> dict[str, Any]:
     t0 = time.monotonic()
-    url = "http://localhost:11434/api/tags"
+    url = f"http://localhost:{_OLLAMA_PORT}/api/tags"
     try:
         req = Request(url, method="GET")
         with urlopen(req, timeout=2) as resp:
@@ -284,7 +286,7 @@ def _check_ollama_reachable() -> dict[str, Any]:
             remediation=(
                 "Start the Ollama daemon: `ollama serve` (Linux), or use the "
                 "menubar app (macOS/Windows). Re-run preflight once "
-                "`curl -s http://localhost:11434/api/tags` returns JSON."
+                f"`curl -s http://localhost:{_OLLAMA_PORT}/api/tags` returns JSON."
             ),
         )
     return _check("ollama_reachable", passed=True, started=t0, detail=f"GET {url} ok")
@@ -304,8 +306,6 @@ def _try_start_ollama() -> bool:
     log_path = install_state.user_data_dir() / "logs" / "ollama.log"
     log_path.parent.mkdir(parents=True, exist_ok=True)
     try:
-        import subprocess
-
         with log_path.open("ab") as log_fh:
             subprocess.Popen(
                 ["ollama", "serve"],
@@ -317,12 +317,10 @@ def _try_start_ollama() -> bool:
         return False
 
     # Poll until reachable
-    import socket
-
     deadline = time.monotonic() + 15
     while time.monotonic() < deadline:
         try:
-            with socket.create_connection(("127.0.0.1", 11434), timeout=1):
+            with socket.create_connection(("127.0.0.1", _OLLAMA_PORT), timeout=1):
                 return True
         except OSError:
             time.sleep(1)
