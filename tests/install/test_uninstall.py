@@ -755,6 +755,96 @@ class TestPresetMapping:
         assert captured["remove_wiring"] is True
 
 
+class TestRunOutput:
+    """``_run`` should print the expected stream for summary vs JSON mode."""
+
+    def test_human_summary_writes_to_stderr(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        from skillsmith.install.subcommands.uninstall import _run
+
+        result = {
+            "schema_version": 1,
+            "files_modified": [],
+            "files_removed": [],
+            "data_kept": ["/tmp/skillsmith-corpus"],
+            "warnings": [],
+            "uv_tool": {},
+            "models_removed": [
+                {"runner": "ollama", "model": "llama3", "action": "ollama_removed"},
+                {
+                    "runner": "lm-studio",
+                    "model": "custom.gguf",
+                    "action": "skipped_unmanaged_runner",
+                    "hint": "Remove it manually.",
+                },
+            ],
+            "daemons_stopped": [],
+        }
+
+        ns = Namespace(
+            remove_data=False,
+            keep_data=False,
+            force=False,
+            all_repos=True,
+            yes=False,
+            preset="keep-data",
+            json=False,
+        )
+        with patch("skillsmith.install.subcommands.uninstall.uninstall", return_value=result):
+            assert _run(ns) == 0
+
+        captured = capsys.readouterr()
+        assert captured.out == ""
+        assert "Uninstall complete." in captured.err
+        assert "Models removed:" in captured.err
+        assert "    - ollama: llama3" in captured.err
+        assert "Model cleanup:" in captured.err
+        assert "skipped_unmanaged_runner (lm-studio: custom.gguf) - Remove it manually." in (
+            captured.err
+        )
+        assert "Data preserved:" in captured.err
+        assert "    - /tmp/skillsmith-corpus" in captured.err
+
+    def test_json_mode_writes_parseable_json_to_stdout(
+        self, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        from argparse import Namespace
+        from unittest.mock import patch
+
+        from skillsmith.install.subcommands.uninstall import _run
+
+        result = {
+            "schema_version": 1,
+            "files_modified": [],
+            "files_removed": [],
+            "data_kept": ["/tmp/skillsmith-corpus"],
+            "warnings": [],
+            "uv_tool": {},
+            "models_removed": [],
+            "daemons_stopped": [],
+        }
+
+        ns = Namespace(
+            remove_data=False,
+            keep_data=False,
+            force=False,
+            all_repos=True,
+            yes=False,
+            preset="keep-data",
+            json=True,
+        )
+        with patch("skillsmith.install.subcommands.uninstall.uninstall", return_value=result):
+            assert _run(ns) == 0
+
+        captured = capsys.readouterr()
+        assert captured.err == ""
+        assert json.loads(captured.out) == result
+
+
 class TestStopOllamaDaemon:
     """``_stop_ollama_daemon`` must only kill the PID we spawned — never
     a stray ollama the user runs for other apps."""
